@@ -10,23 +10,66 @@ import Mathlib.CategoryTheory.Types
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import Mathlib.CategoryTheory.Monad.Algebra
 
+import Mathlib.CategoryTheory.Endofunctor.Algebra
+
 
 /-
-1. Categorify the except monad from types to category
-as an example of a polynomial monad
-2. make monads out of a general polynomial functor
-3. given a span, write a polynomial functor and the associated monad
+1. Categorify the list construction
+2. Categorify the bag construction
+2. Make computable monads out of a general polynomial functor
+3. Given a span, write a polynomial functor and the associated monad
 4. computing with that monad extract the GNN/DP algorithm (maps from span to GNN and separately to DP)
-
 -/
+
+/-
+`List α` is the initial algebra for the polynomial functor `X ↦ 1 + α × X` in
+the category of types. The unique algebra map from (List α, [nil,cons]) to
+(S,[s₀,s]) is the foldr function after transposition.
+[]
+`foldr : (α → β → β) → β → List α → β`
+satisfying
+`foldr s s₀ nil = s₀` and
+`foldr s s₀ (cons x xs) = s x (foldr s s₀ xs)`
+-/
+
 
 universe u v
 
 noncomputable section
 namespace CategoryTheory
 
-open Functor Opposite Limits
+open Functor Opposite Limits Endofunctor List
 
+#check List
+#check List.foldr
+
+
+variable {C : Type (u + 1)} [Category C] [HasBinaryCoproducts C] [HasBinaryProducts C] [HasTerminal C]
+
+def LP (A : C) : C ⥤ C where
+  obj X := (⊤_ C) ⨿ (A ⨯ X)
+  map {X Y} f := coprod.map (𝟙 _) (prod.map (𝟙 A) f)
+
+
+/-- The list object in a category with products and coproducts. -/
+def List (A : C) [HasInitial (Algebra (LP A))] :=  (⊥_ (Algebra (LP A))).a
+
+namespace List
+
+#check foldr
+
+-- variable {A : C} [HasInitial (Algebra (LP A))]
+
+def foldr {A : C} [HasInitial (Algebra (LP A))]
+    {S : C} (s : A ⨯ S ⟶ S) (s₀ : ⊤_ C ⟶ β) : List A ⟶ S :=
+  sorry
+
+
+end List
+
+
+
+-- less organazied stuff
 #synth LargeCategory (FintypeCat)
 
 def 𝔽 := { α : Type u // Finite α }
@@ -91,6 +134,13 @@ coprod.desc (coprod.inl) next
 -- X ↦ 1 + X + X^2 + X^3 + ...
 -- extra assumptions on C
 def catList : C ⥤ C := sorry
+
+-- List A in the initial algebra for the monad C ⥤ C which takes an object `S : C` to `1 + A × S`.
+-- the corresponding diagram
+
+
+
+
 
 -- a different approach: define the list object `List A` as the initial algebra for the monad `X ↦ 1 + A × X`
 
