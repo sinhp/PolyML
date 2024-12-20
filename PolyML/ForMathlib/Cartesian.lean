@@ -63,35 +63,31 @@ attribute [local instance] monoidalOfHasFiniteProducts
 
 attribute [local instance] MonoidalLeftDistributive.isoLeft
 
-
 /-- The coproduct coprojections are monic in a distributive category. -/
-instance [MonoidalLeftDistributive C]  : MonoCoprod C where
-  binaryCofan_inl A B cocone hcolim := {
-    right_cancellation := by
+instance [MonoidalLeftDistributive C]  : MonoCoprod C :=
+  MonoCoprod.mk' fun A B => by
+    refine ⟨BinaryCofan.mk (coprod.inl : A ⟶ A ⨿ B) coprod.inr, ?_, ?_⟩
+    · exact coprodIsCoprod A B
+    · refine ⟨?_⟩
       intro Z f g he
-      dsimp at f
-      dsimp at g
-      let u := inv (∂L Z A B)
-      haveI : IsIso u := by exact IsIso.inv_isIso
-      let q := (Z ◁ coprod.inl) ≫ u ≫ (coprod.desc (𝟙 _) (prod.fst ≫ prod.lift (𝟙 Z) f))
-      have : q = 𝟙 _ := by
-        unfold q
-        rw [← assoc]
-        simp [whisker_inl_comp_inv_distributor]
-        --simp [coprod.inl_desc]
-
-
-
-
-      --
-
-  }
-
-
-
-
-
-
+      simp at he
+      have : SplitMono (Z ◁ coprod.inl) := {
+        retraction := (inv (∂L Z A B)) ≫ (coprod.desc (𝟙 _) (prod.fst ≫ prod.lift (𝟙 Z) f))
+        id := by
+          rw [← assoc]
+          simp only [whisker_inl_comp_inv_distributor, coprod.inl_desc]
+      }
+      have : Mono (Z ◁ coprod.inl) := SplitMono.mono this
+      have :  Mono (Z ◁ (coprod.inl (X:= A) (Y:= B))) := by infer_instance
+      have H : (prod.lift (𝟙 Z) f) ≫ (Z ◁ coprod.inl (X:= A) (Y:= B)) =
+        (prod.lift (𝟙 Z) g) ≫ (Z ◁ coprod.inl) := by
+          simp
+          simp_rw [he]
+      have : (prod.lift (𝟙 Z) f) = (prod.lift (𝟙 Z) g) := by
+        apply (cancel_mono  (Z ◁ (coprod.inl (X:= A) (Y:= B)))).1 H
+      convert prod.lift_snd (𝟙 Z) g
+      rw [← this]
+      simp only [prod.lift_snd]
 
 
 end CategoryTheory
