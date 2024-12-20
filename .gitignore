@@ -1,1 +1,7 @@
 /.lake
+**/.DS_Store
+*_draft
+**/*_draft
+**/**/*_draft
+**/**/**/*_draft
+**/**/**/**/*_draft
