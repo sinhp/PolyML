@@ -54,6 +54,7 @@ def LP (A : C) : C ⥤ C where
 /-- The list object in a category with products and coproducts. -/
 def List (A : C) [HasInitial (Algebra (LP A))] :=  (⊥_ (Algebra (LP A))).a
 
+-- (Algebra (LP A)
 namespace List
 
 #check foldr
@@ -130,6 +131,12 @@ coprod.desc (coprod.inl) next
 #check List
 
 
+/--
+Here we use a different approach to define a list object. We use
+the natural number object `ℕ` and the local cartesian closedness
+to define a polynomial which forms the list object.
+TODO: investigate the relationship between this and the previous definition in the distributive categories which are locally cartesian closed.
+-/
 -- the idea is to use polynomials to express the functor
 -- X ↦ 1 + X + X^2 + X^3 + ...
 -- extra assumptions on C
