@@ -46,7 +46,7 @@ variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
-open Endofunctor
+open Endofunctor Algebra
 
 /-
 For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a morphism `A ⊗ S → S`. The pairs `(S, A ⊗ S → S)` are objects of the category `Act A`, constructed as the category of algebras for the left-tensoring endofunctor `A ⊗ -` on `C`. One may regard the objects of this category as state-changing alphabet `A` acting on sets of states `S`.
@@ -64,6 +64,11 @@ def forget {A : C} : Act A ⥤ C :=
 /-- `Act` is functorial. -/
 def map {A B : C} (f : A ⟶ B) : Act B ⥤ Act A :=
   Algebra.functorOfNatTrans <| curriedTensor C |>.map <| f
+
+def map_id {A : C} : map (𝟙 A) ≅ 𝟭 _ := by
+  simp only [map]
+  simp only [Functor.map_id]
+  apply functorOfNatTransId
 
 /-- `Act.functor` commutes with forgetful functor `Act.forget`. -/
 theorem map_forget_eq {A B : C} (f : A ⟶ B) : map f ⋙ forget = forget  := by
@@ -125,6 +130,14 @@ def freeActionFunctorMapTriangle {A B : C} (f : A ⟶ B) :
     freeActionFunctor A ⟶ freeActionFunctor B ⋙ Act.map f :=
   mateEquiv (freeForgetAdj B) (freeForgetAdj A) |>.invFun <| Act.mapForgetTwoSquare f
 
+theorem freeActionFunctorMapTriangle_id {A : C} :
+    IsIso <| freeActionFunctorMapTriangle (𝟙 A) := by
+  sorry  -- use some fact about mates of idenity to derive this
+  -- need more API to use conjugateEquiv in the special case when Act.map (𝟙) ≅ 𝟭
+  -- use the iso Act.map (𝟙) ≅ 𝟭 to promote the original mates diagram to a conjuage mate diagram apply the lemma `conjugateEquiv_symm_iso` to construct an iso 2-cell between the left adjoints and then prove the resulting conjugate mate diagram is the same as the original mate diagram.
+  -- perhpas refactor
+
+
 /-- The paramtetrized list of `A` with the parameter object `P` .-/
 def plist (A P : C) : C := freeActionFunctor A ⋙ Act.forget |>.obj P
 
@@ -155,7 +168,11 @@ theorem map_cons {A A' P : C} {f : A ⟶ A'} :
 
 @[simp]
 theorem map_id {A P : C} : plist.map (𝟙 A) = 𝟙 (plist A P) := by
+  simp [plist.map]
+  --simp [freeActionFunctorMapTriangle, Functor.map_id]
   sorry
+
+
 
 @[simp]
 theorem map_comp {A A' A'' P : C} (f : A ⟶ A') (g : A' ⟶ A'') :
@@ -226,7 +243,7 @@ def foldr {A Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
 
 def foldl {A Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
   plist.rec e ((β_ A Y).hom ≫ f)
-#check List.foldr
+
 
 def map {A A' : C} (f : A ⟶ A') : list A ⟶ list A' :=
   plist.map (P := 𝟙_ C) f
@@ -236,23 +253,27 @@ def singleton {A : C} : A ⟶ list A :=
 
 end list
 
+variable (C)
+
 /-- The natural numbers object (NNO) defined as the list object of the terminal object. -/
 def nno : C :=
   list (𝟙_ C)
 
-@[inherit_doc] notation "N" => nno
+@[inherit_doc] notation "N_" => nno
 
-def nno.zero : 𝟙_ C ⟶ N :=
+variable {C}
+
+def nno.zero : 𝟙_ C ⟶ N_ C :=
   list.nil
 
-def nno.succ : (N : C) ⟶ N :=
+def nno.succ : N_ C ⟶ N_ C :=
   (λ_ _).inv ≫ list.cons (𝟙_ C)
 
-def nno.one : 𝟙_ C ⟶ N :=
+def nno.one : 𝟙_ C ⟶ N_ C :=
   nno.zero ≫ nno.succ
 
 /-- The length of a list. -/
-def list.len {A : C} : list A ⟶ N :=
+def list.len {A : C} : list A ⟶ N_ C :=
   list.map <| toUnit A
 
 /-- The length of the singleton list is `1`. -/
@@ -293,7 +314,7 @@ def list.foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) :
   list.rec e a
 
 def nno.rec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) :
-    N ⊗ P ⟶ Y :=
+    N_ C ⊗ P ⟶ Y :=
   list.rec e ((λ_ Y).hom ≫ a)
 
 namespace list
@@ -389,6 +410,8 @@ def lift {A : C} {M : Mon_ C} (f : A ⟶ M.X) : list A ⟶ M.X :=
 -- The alternative (old) way to develop the theory of list arithmetic categories.
 namespace List
 
+variable {C}
+
 /--
 A list algebra on an object `A` in a category `C` cists of an object `L`
 and morphisms `n : ⊤_C → L` and `c : A ⊗ L  ⟶ L`.
@@ -399,6 +422,8 @@ structure Algebra (A : C) where
   c : A ⊗ L  ⟶ L
 
 namespace Algebra
+
+
 
 variable {A : C}
 
