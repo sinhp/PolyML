@@ -351,6 +351,8 @@ theorem rev_rev {A : C} :
 def flatten {A : C} : list (list A) ⟶ list A :=
   list.rec' list.nil list.append
 
+def mult {A : C} : list A ⟶ A := sorry
+
 end list
 
 instance : CartesianMonoidalCategory (Type u) := sorry
@@ -391,6 +393,13 @@ variable [Recursive C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 
+instance mon (A : C) : Mon_Class (list A) where
+  one := list.nil
+  mul := list.append
+  one_mul' := list.nil_append
+  mul_one' := list.append_nil
+  mul_assoc' := list.append_assoc
+
 /--
 The monoid structure on the list object in a list-arithmetic category.
 -/
@@ -402,153 +411,10 @@ instance List.monoid (A : C) : Mon_ C where
   mul_one := list.append_nil
   mul_assoc := list.append_assoc
 
+
+-- from here we are trying to prove that list is the free monoid object in a list-arithmetic category.
 def lift {A : C} {M : Mon_ C} (f : A ⟶ M.X) : list A ⟶ M.X :=
   sorry
-
-
-
--- The alternative (old) way to develop the theory of list arithmetic categories.
-namespace List
-
-variable {C}
-
-/--
-A list algebra on an object `A` in a category `C` cists of an object `L`
-and morphisms `n : ⊤_C → L` and `c : A ⊗ L  ⟶ L`.
--/
-structure Algebra (A : C) where
-  L : C
-  n : ⊤_C ⟶ L
-  c : A ⊗ L  ⟶ L
-
-namespace Algebra
-
-
-
-variable {A : C}
-
-/--
-The list algberas on an object `A` in a category `C` form a category whose hom-types are given by the structure `Algebra.Hom`.
--/
-@[ext]
-structure Hom {A : C} (σ σ' : Algebra A) where
-  hom : σ.L ⟶ σ'.L
-  w_n : σ.n ≫ hom  = σ'.n := by aesop_cat
-  w_c : σ.c ≫ hom  = A ◁ hom ≫ σ'.c := by aesop_cat
-
-attribute [reassoc (attr := simp)] Hom.w_n Hom.w_c
-
-instance category : Category (Algebra A) where
-  Hom σ σ' := Hom σ σ'
-  id L := ⟨𝟙 _, by aesop_cat, by aesop_cat⟩
-  comp f g := ⟨f.hom ≫ g.hom, by aesop_cat, by aesop_cat⟩
-
-/--
-The initial list algebra.
--/
-structure Initial (σ : Algebra A) where
-  /-- For any list structure `σ'`, there is a morphism `desc` outgoing from `σ.obj` to `σ'.obj` -/
-  desc : ∀ σ' : Algebra A, σ.L ⟶ σ'.L
-  /-- For any list structure `σ'`, the morphism `desc` post-composed with `σ.n` is equal to `σ'.n` -/
-  fac_n : ∀ σ' : Algebra A, σ.n ≫ desc σ' = σ'.n := by aesop_cat
-  /-- For any list structure `σ'`, the morphism `desc` post-composed with `σ.c` is equal to `A ◁ lift σ' ≫ σ'.c` -/
-  fac_c : ∀ σ' : Algebra A, σ.c ≫ desc σ' = A ◁ desc σ' ≫ σ'.c := by aesop_cat
-  /-- For any list structure `σ'`, the morphism `desc` is unique -/
-  uniq : ∀ σ' : Algebra A, ∀ (f : σ.L ⟶ σ'.L) (_ : σ.n ≫ f = σ'.n)
-    (_ : σ.c ≫ f = A ◁ f ≫ σ'.c), f = desc σ' := by aesop_cat
-
-/-- `IsInitial σ` represents the mere existence of an initial list algebra on `L`. -/
-class IsInitial (σ : Algebra A) : Prop where mk' ::
-  /-- there is an initial list algebra on L -/
-  exists_initial : Nonempty (Initial σ)
-
-theorem IsInitial.mk {σ : Algebra A} (i : Initial σ) : IsInitial σ :=
-  ⟨Nonempty.intro i⟩
-
-def getInitial (σ : Algebra A) [IsInitial σ] : Initial σ :=
-  Classical.choice <| IsInitial.exists_initial
-
-end Algebra
-
-/--
-An inital list algebra is the initial object in the category of list structures.
--/
-def isInitial {A : C} (σ : Algebra A) (h : σ.IsInitial) : IsInitial σ := by
-  have : ∀ Y : Algebra A, Unique (σ ⟶ Y) := by
-    sorry
-  apply IsInitial.ofUnique σ
-
-variable (C)
-
-/-- `HasList C` represents the mere existence of an initial list algebra on each object `A`. -/
-class HasList : Prop where
-  has_list : ∀ (A : C), ∃ (σ : Algebra A), σ.IsInitial
-
-section
-
-variable {C} [HasList C]
-
-/-- The list object on `A : C` is the initial list algebra on `A`. -/
-abbrev list' (A : C) : C :=
-  HasList.has_list A |>.choose|>.L
-
-abbrev list'.nil (A : C) : ⊤_C ⟶ list' A :=
-  HasList.has_list A |>.choose|>.n
-
-abbrev list'.cons (A : C) : A ⊗ list' A ⟶ list' A :=
-  HasList.has_list A |>.choose|>.c
-
-end
-
-/-- The structure of a category with list objects. -/
-class withList where
-  /-- The list algebr on an object `A` in a category `C` is a list algebra. -/
-  alg : ∀ (A : C), Algebra A
-  /-- The list structure on an object `A` in a category `C` is initial. -/
-  is_initial : ∀ (A : C), (alg A).Initial
-
-variable {C} [withList C]
-
-abbrev list (A : C)  : C :=
-  withList.alg A |>.L
-
-abbrev list.nil {A : C} : ⊤_C ⟶ list A :=
-  withList.alg A |>.n
-
-abbrev list.cons {A : C} : A ⊗ list A ⟶ list A :=
-  withList.alg A |>.c
-
--- this is basically `List.foldr`
-abbrev list.it {A P : C} (n : ⊤_C ⟶ P) (c : A ⊗ P ⟶ P) : list A ⟶ P :=
-  withList.is_initial A |>.desc ⟨P, n, c⟩
-
-end List
-
-namespace PList
-
-variable {C}
-
-variable (P : C)
-
-/--
-The parametrized list algebra on an object `A` in a category `C` cists of an object `L`
-and two morphisms `n : P → L` and `c : A ⊗ L → L`.
--/
-structure Algebra (A : C) where
-  L : C
-  n : P ⟶ L
-  c : A ⊗ L  ⟶ L
-
-/--
-The parametrized list algebra on an object `A` in a category `C` form a category whose hom-types are given by the structure `Algebra.Hom`.
--/
-@[ext]
-structure Hom {A : C} (σ σ' : Algebra P A) where
-  hom : σ.L ⟶ σ'.L
-  w_n : σ.n ≫ hom  = σ'.n := by aesop_cat
-  w_c : σ.c ≫ hom  = A ◁ hom ≫ σ'.c := by aesop_cat
-
-end PList
 
 
 /- Show that
@@ -561,3 +427,9 @@ satisfying
 `foldr s s₀ n = s₀` and
 `foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
 -/
+
+
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
+[Recursive C] [ListArithmetic C]
+
+open Recursive ListArithmetic
