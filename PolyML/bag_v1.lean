@@ -52,7 +52,7 @@ structure RegularEpiFactorisation {X Y : C} (f : X ⟶ Y)
 -- a good test for the definition.
 -- ref: 8.3. Proposition of Barrs and Wells
 -- In a regular category, every morphism `f : X ⟶ Y`
--- can be factored as `f = m ≫ e`,
+-- can be factored as `f = e ≫ m`,
 -- where `e` is a regular epimorphism and `m` is a monomorphism.
 
 def regularEpiFactorization {A A' : C} [Regular C] (f : A ⟶ A') :
