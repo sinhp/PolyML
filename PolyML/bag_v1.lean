@@ -124,10 +124,12 @@ def fxf : Khh f g ⟶ Kgg g := by
 def Kl := pullback f (pullback.fst g g)
 def Kr := pullback f (pullback.snd g g)
 
+def PullbackPr2Kl := pullback.snd f (pullback.fst g g)
+
 variable [RegularEpi f]
 
 def is_regular_epi_left [Regular C] :
-  RegularEpi (pullback.snd f (pullback.fst g g)) := by
+  RegularEpi (PullbackPr2Kl f g) := by
   apply Regular.pullback_stability
   infer_instance
 
@@ -144,7 +146,7 @@ def map_to_pullback_left :
     simp only [IsPullback.lift_fst]}
   apply this.symm
   · exact pullback.fst f (pullback.fst g g)
-  · exact pullback.snd f (pullback.fst g g)
+  · exact PullbackPr2Kl f g
   exact IsPullback.of_hasPullback f (pullback.fst g g)}
 
 def map_to_pullback_right :
@@ -159,34 +161,50 @@ def map_to_pullback_right :
   · exact pullback.snd f (pullback.snd g g)
   exact IsPullback.of_hasPullback f (pullback.snd g g)}
 
-def map_to_pullback_sqr : map_to_pullback_left f g ≫ (pullback.snd f (pullback.fst g g)) =
+def map_to_pullback_sqr : map_to_pullback_left f g ≫ (PullbackPr2Kl f g) =
    map_to_pullback_right f g ≫ pullback.snd f (pullback.snd g g) := by {
     unfold map_to_pullback_left map_to_pullback_right
     simp only [IsPullback.lift_snd, id_eq]}
 
 lemma IsPullback.etc {w : C} (k₁ : w ⟶ Kl f g)
-  (k₂ : w ⟶ Kr f g) : k₁ ≫ (pullback.snd f (pullback.fst g g)) = k₂ ≫
+  (k₂ : w ⟶ Kr f g) : k₁ ≫ (PullbackPr2Kl f g) = k₂ ≫
     pullback.snd f (pullback.snd g g) := by {
       sorry
     }
 
-variable {w : C} (k₁ : w ⟶ Kl f g)
-  (k₂ : w ⟶ Kr f g)
+variable {w : C} (k₁ : w ⟶ Kl f g) (k₂ : w ⟶ Kr f g)
 
 lemma is_pullback_sqr_mor_eq :
   (k₁ ≫ pullback.fst f (pullback.fst g g)) ≫ (f ≫ g) =
   (k₂ ≫ pullback.fst f (pullback.snd g g)) ≫ (f ≫ g) := by {
     unfold Kl at *
     unfold Kr at *
-    rw [← assoc]
-    rw [← assoc]
-    have : pullback.fst f (pullback.fst g g) ≫ f =
-      pullback.snd f (pullback.fst g g) ≫ (pullback.fst g g) :=
+    rw [assoc]
+    rw [assoc]
+    have PullbackSqrCommutesKl : pullback.fst f (pullback.fst g g) ≫ f =
+      (PullbackPr2Kl f g) ≫ (pullback.fst g g) :=
       pullback.condition
-    have : pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g) =
-      pullback.fst f (pullback.snd g g) ≫ f :=
-      Eq.symm pullback.condition
+    have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
+     = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g)  :=
+      pullback.condition
+    have h1 : k₂ ≫ pullback.fst f (pullback.snd g g) ≫ f ≫ g =
+     k₂ ≫ (pullback.fst f (pullback.snd g g) ≫ f) ≫ g :=
+       by {simp only [assoc]}
+    rw [h1]
+    have h11 : k₁ ≫ pullback.fst f (pullback.fst g g) ≫ f ≫ g =
+      k₁ ≫ (pullback.fst f (pullback.fst g g) ≫ f) ≫ g := by {
+        simp only [assoc]
+      }
+    rw [h11]
+    rw [PullbackSqrCommutesKl]
+    rw [PullbackSqrCommutesKr]
+    unfold PullbackPr2Kl
     sorry
+
+
+
+
+
   }
 
 def is_pullback_sqr_mor : w ⟶ Khh f g:= by {
@@ -202,6 +220,8 @@ def is_pullback_sqr_mor : w ⟶ Khh f g:= by {
 lemma is_pullback_sqr_mor_pr1 :
   is_pullback_sqr_mor f g k₁ k₂ ≫ map_to_pullback_left f g = k₁ := by {
     unfold is_pullback_sqr_mor map_to_pullback_left
+    unfold fxf
+    simp only
     sorry
   }
 
