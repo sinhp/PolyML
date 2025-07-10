@@ -388,7 +388,7 @@ Show that in the category of small categories, an object with recursion is a mon
 We show that in a list-arithmetic category, the list object is
 the free monoid object.
 -/
-
+#exit
 variable [Recursive C] [ListArithmetic C]
 
 open Recursive ListArithmetic

@@ -168,7 +168,6 @@ def map_to_pullback_sqr : map_to_pullback_left f g ≫ (PullbackPr2Kl f g) =
     unfold map_to_pullback_left map_to_pullback_right
     simp only [IsPullback.lift_snd, id_eq]}
 
-
 variable {w : C} (k₁ : w ⟶ Kl f g) (k₂ : w ⟶ Kr f g)
  (IsPullbacketc : k₁ ≫ (PullbackPr2Kl f g) = k₂ ≫
     pullback.snd f (pullback.snd g g))
@@ -298,9 +297,20 @@ lemma is_pullback_sqr_mor_pr2 :
     · simp only [assoc, IsPullback.lift_snd, IsPullback.lift_snd_assoc]
       rw [PullbackSqrCommutesKr]}
 
-def is_pullback_sqr_unique  :
+def is_pullback_sqr_unique :
   ∃! hk, (hk ≫ (map_to_pullback_left f g ) = k₁ ∧
-    hk ≫ map_to_pullback_right f g = k₂) := sorry
+    hk ≫ map_to_pullback_right f g = k₂) := by {
+    constructor
+    simp only [and_imp]
+    unfold Khh
+    · constructor
+      · sorry
+      · intros y hy1 hy2
+        apply CategoryTheory.Limits.pullback.hom_ext ?_ ?_
+        · sorry
+        · sorry
+        · sorry
+    }
 
 #check map_to_pullback_sqr
 
@@ -308,17 +318,29 @@ def is_pullback_sqr : IsPullback (map_to_pullback_left f g)
  (map_to_pullback_right f g)
  (PullbackPr2Kl f g) (pullback.snd f (pullback.snd g g)) := by {
   constructor
-  · have := (is_pullback_sqr_unique f g k₁ k₂).choose
+  · let cone := PullbackCone.mk (map_to_pullback_left f g) (map_to_pullback_right f g)
+      (map_to_pullback_sqr f g)
+    have : IsLimit cone := by {
+      apply PullbackCone.IsLimit.mk
+      intros s
+      unfold PullbackPr2Kl at *
+      · sorry
+      · intros s
+        sorry
+      sorry
+      sorry
+    }
     sorry
+    --apply PullbackCone.isLimit.mk
   · constructor
     exact map_to_pullback_sqr f g
  }
 
-def pullback_map_regular_epi [HasPullbacks C] [Regular C]
+def pullback_map_epi [HasPullbacks C] [Regular C]
   {A B C' : C} (f : A ⟶ B) (g : B ⟶ C') [RegularEpi f] :
   Epi (fxf f g) := by {
     have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
-      = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g)  :=
+      = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g) :=
      pullback.condition
     let q : Khh f g ⟶ Kr f g := map_to_pullback_right f g
     let t := PullbackPr2Kr f g
@@ -336,14 +358,13 @@ def pullback_map_regular_epi [HasPullbacks C] [Regular C]
       have : RegularEpi (pullback.snd f (pullback.snd g g)) := by {
         apply is_regular_epi_right f g
       }
-      apply RegularEpi.epi
-    }
+      apply RegularEpi.epi }
     haveI : Epi q := by {
       have : RegularEpi q := by {
         unfold q
         unfold map_to_pullback_right
         simp only [id_eq]
-        have :=is_regular_epi_left f g
+        have := is_regular_epi_left f g
         unfold PullbackPr2Kl at this
         unfold fxf
         simp only
@@ -354,6 +375,27 @@ def pullback_map_regular_epi [HasPullbacks C] [Regular C]
     apply epi_comp
 
   }
+variable [Regular C]
+
+def K := pullback f f
+
+instance regular_epi_mono_factorization_image
+    : HasCoequalizer (pullback.fst f f) (pullback.snd f f)
+    := by {
+      apply Regular.equiv_rel_coeq f (pullback.fst f f) (pullback.snd f f)
+      unfold IsKernelPair
+      exact IsPullback.of_hasPullback f f}
+
+def im := regular_epi_mono_factorization_image f
+
+def regular_epi_mono_factorization_epi (x : C) :
+  x ⟶ coequalizer (pullback.fst f f) (pullback.snd f f) := by {
+  sorry
+    }
+
+
+
+
 
 #check Mono
 theorem regular_epi_mono_factorisation {A A' : C}
@@ -373,7 +415,7 @@ theorem regular_epi_mono_factorisation {A A' : C}
     let r : R ⟶ F.mid := pullback.fst F.π F.π
     let s : R ⟶ F.mid := pullback.snd F.π F.π
     have : RegularEpi F.ι := F.regular_epi
-    have := pullback_map_regular_epi F.ι F.π
+    --have := pullback_map_regular_epi F.ι F.π
     --have : Epi F.ι := StrongEpi.epi
     have h1 : (u ≫ F.ι) ≫ F.π = (v ≫ F.ι) ≫ F.π := by {
       simp only [assoc, Factorisation.ι_π]
@@ -402,13 +444,13 @@ theorem regular_epi_mono_factorisation {A A' : C}
 --strongEpi_of_regularEpi
 --Borceux Prop. 2.14 In a regular category, the following conditions
 --are equivalent (1) f is a regular epi (2) f is a strong epi.
-def regular_epi_iff_strong_epi {X Y : C} (f : X ⟶ Y) [Regular C] [H : StrongEpi f] :
-  RegularEpi f := by
-    have Hepi : Epi f := H.epi
-    have Hllp : ∀ ⦃X Y : C⦄ (z : X ⟶ Y) [Mono z], HasLiftingProperty f z := H.llp
-    let F := (regular_epi_mono_factorisation (A:= X) (A' := Y) f).choose
-    have HF := (regular_epi_mono_factorisation (A:= X) (A' := Y) f).choose_spec
-    sorry
+-- def regular_epi_iff_strong_epi {X Y : C} (f : X ⟶ Y) [Regular C] [H : StrongEpi f] :
+--   RegularEpi f := by
+--     have Hepi : Epi f := H.epi
+--     have Hllp : ∀ ⦃X Y : C⦄ (z : X ⟶ Y) [Mono z], HasLiftingProperty f z := H.llp
+--     let F := (regular_epi_mono_factorisation (A:= X) (A' := Y) f).choose
+--     have HF := (regular_epi_mono_factorisation (A:= X) (A' := Y) f).choose_spec
+--     sorry
 
 
 
