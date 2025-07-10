@@ -125,6 +125,8 @@ def Kl := pullback f (pullback.fst g g)
 def Kr := pullback f (pullback.snd g g)
 
 def PullbackPr2Kl := pullback.snd f (pullback.fst g g)
+def PullbackPr2Kr := pullback.snd f (pullback.snd g g)
+
 
 variable [RegularEpi f]
 
@@ -166,14 +168,12 @@ def map_to_pullback_sqr : map_to_pullback_left f g ≫ (PullbackPr2Kl f g) =
     unfold map_to_pullback_left map_to_pullback_right
     simp only [IsPullback.lift_snd, id_eq]}
 
-lemma IsPullback.etc {w : C} (k₁ : w ⟶ Kl f g)
-  (k₂ : w ⟶ Kr f g) : k₁ ≫ (PullbackPr2Kl f g) = k₂ ≫
-    pullback.snd f (pullback.snd g g) := by {
-      sorry
-    }
 
 variable {w : C} (k₁ : w ⟶ Kl f g) (k₂ : w ⟶ Kr f g)
+ (IsPullbacketc : k₁ ≫ (PullbackPr2Kl f g) = k₂ ≫
+    pullback.snd f (pullback.snd g g))
 
+include IsPullbacketc
 lemma is_pullback_sqr_mor_eq :
   (k₁ ≫ pullback.fst f (pullback.fst g g)) ≫ (f ≫ g) =
   (k₂ ≫ pullback.fst f (pullback.snd g g)) ≫ (f ≫ g) := by {
@@ -198,55 +198,162 @@ lemma is_pullback_sqr_mor_eq :
     rw [h11]
     rw [PullbackSqrCommutesKl]
     rw [PullbackSqrCommutesKr]
-    unfold PullbackPr2Kl
-    sorry
-
-
-
-
-
+    have : k₁ ≫ (PullbackPr2Kl f g ≫ pullback.fst g g) ≫ g =
+      (k₁ ≫ (PullbackPr2Kl f g)) ≫ pullback.fst g g ≫ g := by {
+        simp only [assoc]
+      }
+    rw [this]
+    have :  k₂ ≫ (pullback.snd f (pullback.snd g g)
+      ≫ pullback.snd g g) ≫ g =
+      (k₂ ≫ (pullback.snd f (pullback.snd g g)
+      ≫ pullback.snd g g)) ≫ g := by {simp only [assoc]}
+    rw [this]
+    rw [IsPullbacketc]
+    have PullbackSqrCommutes : pullback.fst g g ≫ g =
+      pullback.snd g g ≫ g := pullback.condition
+    rw [PullbackSqrCommutes]
+    simp only [assoc]
   }
 
 def is_pullback_sqr_mor : w ⟶ Khh f g:= by {
   unfold Khh
-  apply CategoryTheory.IsPullback.lift ?_ (k₁ ≫ pullback.fst f (pullback.fst g g))
+  apply CategoryTheory.IsPullback.lift ?_
+    (k₁ ≫ pullback.fst f (pullback.fst g g))
     (k₂ ≫ pullback.fst f (pullback.snd g g))
-  apply is_pullback_sqr_mor_eq f g k₁ k₂
+  apply is_pullback_sqr_mor_eq f g k₁ k₂ (IsPullbacketc)
   · exact pullback.fst (f ≫ g) (f ≫ g)
   · exact pullback.snd (f ≫ g) (f ≫ g)
-  · exact IsPullback.of_hasPullback (f ≫ g) (f ≫ g)
-}
+  · exact IsPullback.of_hasPullback (f ≫ g) (f ≫ g)}
 
 lemma is_pullback_sqr_mor_pr1 :
-  is_pullback_sqr_mor f g k₁ k₂ ≫ map_to_pullback_left f g = k₁ := by {
-    unfold is_pullback_sqr_mor map_to_pullback_left
-    unfold fxf
-    simp only
-    sorry
-  }
+  is_pullback_sqr_mor f g k₁ k₂ (IsPullbacketc) ≫
+  map_to_pullback_left f g = k₁ := by {
+  unfold is_pullback_sqr_mor map_to_pullback_left
+  unfold fxf
+  simp only
+  have PullbackSqrCommutesKl : pullback.fst f (pullback.fst g g) ≫ f =
+    (PullbackPr2Kl f g) ≫ (pullback.fst g g) :=
+    pullback.condition
+  have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
+    = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g)  :=
+    pullback.condition
+  unfold PullbackPr2Kl at *
+  apply CategoryTheory.Limits.pullback.hom_ext
+  · simp only [id_eq, assoc, IsPullback.lift_fst]
+  · simp only [id_eq]
+    apply CategoryTheory.Limits.pullback.hom_ext
+    · have : (k₁ ≫ pullback.snd f (pullback.fst g g)) ≫ pullback.fst g g=
+        k₁ ≫ (pullback.snd f (pullback.fst g g)) ≫ pullback.fst g g := by {
+          simp only [assoc]
+        }
+      rw [this]
+      rw [← PullbackSqrCommutesKl]
+      simp only [assoc, IsPullback.lift_snd,
+        IsPullback.lift_fst, IsPullback.lift_fst_assoc]
+    · simp only [assoc, IsPullback.lift_snd, IsPullback.lift_snd_assoc]
+      have : k₂ ≫ pullback.fst f (pullback.snd g g) ≫ f =
+        k₂ ≫ (pullback.fst f (pullback.snd g g) ≫ f) := by {
+          simp only [assoc]
+        }
+      rw [this]
+      rw [PullbackSqrCommutesKr]
+      have : k₂ ≫ pullback.snd f (pullback.snd g g) ≫ pullback.snd g g=
+       (k₂ ≫ pullback.snd f (pullback.snd g g)) ≫ pullback.snd g g := by {
+        simp only [assoc]
+       }
+      rw [this, ← (IsPullbacketc)]
+      simp only [assoc]
+}
+
 
 lemma is_pullback_sqr_mor_pr2 :
-  is_pullback_sqr_mor f g k₁ k₂ ≫ map_to_pullback_right f g = k₂ := by {
-    unfold is_pullback_sqr_mor map_to_pullback_right
-    sorry
-  }
+  is_pullback_sqr_mor f g k₁ k₂ (IsPullbacketc) ≫
+  map_to_pullback_right f g = k₂ := by {
+  unfold is_pullback_sqr_mor map_to_pullback_right
+  have PullbackSqrCommutesKl : pullback.fst f (pullback.fst g g) ≫ f =
+    (PullbackPr2Kl f g) ≫ (pullback.fst g g) :=
+    pullback.condition
+  have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
+      = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g)  :=
+     pullback.condition
+  unfold PullbackPr2Kl fxf at *
+  apply CategoryTheory.Limits.pullback.hom_ext
+  · simp only [id_eq, assoc, IsPullback.lift_fst, IsPullback.lift_snd]
+  · simp only [id_eq]
+    apply CategoryTheory.Limits.pullback.hom_ext
+    · simp only [assoc, IsPullback.lift_snd, IsPullback.lift_fst,
+        IsPullback.lift_fst_assoc]
+      have :  k₁ ≫ pullback.fst f (pullback.fst g g) ≫ f =
+         k₁ ≫ (pullback.fst f (pullback.fst g g) ≫ f) := by {
+          simp only [assoc]
+         }
+      rw [this]
+      rw [PullbackSqrCommutesKl]
+      have : k₁ ≫ pullback.snd f (pullback.fst g g) ≫ pullback.fst g g =
+        (k₁ ≫ pullback.snd f (pullback.fst g g)) ≫ pullback.fst g g := by {
+          simp only [assoc]
+        }
+      rw [this, (IsPullbacketc)]
+      simp only [assoc]
+    · simp only [assoc, IsPullback.lift_snd, IsPullback.lift_snd_assoc]
+      rw [PullbackSqrCommutesKr]}
 
 def is_pullback_sqr_unique  :
-      ∃! hk, (hk ≫ (map_to_pullback_left f g ) = k₁ ∧
-         hk ≫ map_to_pullback_right f g = k₂) := sorry
+  ∃! hk, (hk ≫ (map_to_pullback_left f g ) = k₁ ∧
+    hk ≫ map_to_pullback_right f g = k₂) := sorry
 
+#check map_to_pullback_sqr
 
+def is_pullback_sqr : IsPullback (map_to_pullback_left f g)
+ (map_to_pullback_right f g)
+ (PullbackPr2Kl f g) (pullback.snd f (pullback.snd g g)) := by {
+  constructor
+  · have := (is_pullback_sqr_unique f g k₁ k₂).choose
+    sorry
+  · constructor
+    exact map_to_pullback_sqr f g
+ }
 
-
-
-
-
-def pullback_map_regular_epi [HasPullbacks C]
+def pullback_map_regular_epi [HasPullbacks C] [Regular C]
   {A B C' : C} (f : A ⟶ B) (g : B ⟶ C') [RegularEpi f] :
-  Epi (fxf f g) where
-    left_cancellation := by {
-      sorry
+  Epi (fxf f g) := by {
+    have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
+      = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g)  :=
+     pullback.condition
+    let q : Khh f g ⟶ Kr f g := map_to_pullback_right f g
+    let t := PullbackPr2Kr f g
+    have Hq : fxf f g =  q ≫ t :=  by {
+      unfold fxf q t
+      unfold map_to_pullback_right
+      unfold PullbackPr2Kr
+      unfold fxf
+      simp only [id_eq, IsPullback.lift_snd]
     }
+    rw [Hq]
+    haveI : Epi t := by {
+      unfold t
+      unfold PullbackPr2Kr
+      have : RegularEpi (pullback.snd f (pullback.snd g g)) := by {
+        apply is_regular_epi_right f g
+      }
+      apply RegularEpi.epi
+    }
+    haveI : Epi q := by {
+      have : RegularEpi q := by {
+        unfold q
+        unfold map_to_pullback_right
+        simp only [id_eq]
+        have :=is_regular_epi_left f g
+        unfold PullbackPr2Kl at this
+        unfold fxf
+        simp only
+        sorry
+      }
+      apply RegularEpi.epi
+    }
+    apply epi_comp
+
+  }
 
 #check Mono
 theorem regular_epi_mono_factorisation {A A' : C}
