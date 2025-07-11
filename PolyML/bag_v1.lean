@@ -110,7 +110,7 @@ and an arbitrary morphism `g : B ⟶ C`,
 the induced map ` f ×C f : A ×c A ⟶ B ×c B`
 is an epimorphism.
 -/
-def fxf : Khh f g ⟶ Kgg g := by
+def kernel_pair_map : Khh f g ⟶ Kgg g := by
     let h := (pullback.fst (f ≫ g) (f ≫ g) ≫ f)
     let k := (pullback.snd (f ≫ g) (f ≫ g) ≫ f)
     have : IsPullback (pullback.fst g g) (pullback.snd g g) g g :=
@@ -142,9 +142,9 @@ def is_regular_epi_right [Regular C] :
 
 def map_to_pullback_left :
   Khh f g ⟶ Kl f g := by {
-  apply CategoryTheory.IsPullback.lift ?_ (pullback.fst (f ≫ g) (f ≫ g)) (fxf f g)
-  have : (fxf f g) ≫ (pullback.fst g g) = (pullback.fst (f ≫ g) (f ≫ g)) ≫ f := by {
-    unfold fxf
+  apply CategoryTheory.IsPullback.lift ?_ (pullback.fst (f ≫ g) (f ≫ g)) (kernel_pair_map f g)
+  have : (kernel_pair_map f g) ≫ (pullback.fst g g) = (pullback.fst (f ≫ g) (f ≫ g)) ≫ f := by {
+    unfold kernel_pair_map
     simp only [IsPullback.lift_fst]}
   apply this.symm
   · exact pullback.fst f (pullback.fst g g)
@@ -153,9 +153,9 @@ def map_to_pullback_left :
 
 def map_to_pullback_right :
   Khh f g ⟶ Kr f g := by {
-  apply CategoryTheory.IsPullback.lift ?_ (pullback.snd (f ≫ g) (f ≫ g)) (fxf f g)
-  have : (fxf f g) ≫ (pullback.snd g g) = (pullback.snd (f ≫ g) (f ≫ g)) ≫ f := by {
-    unfold fxf
+  apply CategoryTheory.IsPullback.lift ?_ (pullback.snd (f ≫ g) (f ≫ g)) (kernel_pair_map f g)
+  have : (kernel_pair_map f g) ≫ (pullback.snd g g) = (pullback.snd (f ≫ g) (f ≫ g)) ≫ f := by {
+    unfold kernel_pair_map
     simp only [IsPullback.lift_snd]}
   apply this.symm
   · unfold Kr
@@ -228,7 +228,7 @@ lemma is_pullback_sqr_mor_pr1 :
   is_pullback_sqr_mor f g k₁ k₂ (IsPullbacketc) ≫
   map_to_pullback_left f g = k₁ := by {
   unfold is_pullback_sqr_mor map_to_pullback_left
-  unfold fxf
+  unfold kernel_pair_map
   simp only
   have PullbackSqrCommutesKl : pullback.fst f (pullback.fst g g) ≫ f =
     (PullbackPr2Kl f g) ≫ (pullback.fst g g) :=
@@ -275,7 +275,7 @@ lemma is_pullback_sqr_mor_pr2 :
   have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
       = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g)  :=
      pullback.condition
-  unfold PullbackPr2Kl fxf at *
+  unfold PullbackPr2Kl kernel_pair_map at *
   apply CategoryTheory.Limits.pullback.hom_ext
   · simp only [id_eq, assoc, IsPullback.lift_fst, IsPullback.lift_snd]
   · simp only [id_eq]
@@ -336,19 +336,19 @@ def is_pullback_sqr : IsPullback (map_to_pullback_left f g)
     exact map_to_pullback_sqr f g
  }
 
-def pullback_map_epi [HasPullbacks C] [Regular C]
+def isEpi_kernel_pair_map [HasPullbacks C] [Regular C]
   {A B C' : C} (f : A ⟶ B) (g : B ⟶ C') [RegularEpi f] :
-  Epi (fxf f g) := by {
+  Epi (kernel_pair_map f g) := by {
     have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
       = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g) :=
      pullback.condition
     let q : Khh f g ⟶ Kr f g := map_to_pullback_right f g
     let t := PullbackPr2Kr f g
-    have Hq : fxf f g =  q ≫ t :=  by {
-      unfold fxf q t
+    have Hq : kernel_pair_map f g =  q ≫ t :=  by {
+      unfold kernel_pair_map q t
       unfold map_to_pullback_right
       unfold PullbackPr2Kr
-      unfold fxf
+      unfold kernel_pair_map
       simp only [id_eq, IsPullback.lift_snd]
     }
     rw [Hq]
@@ -366,7 +366,7 @@ def pullback_map_epi [HasPullbacks C] [Regular C]
         simp only [id_eq]
         have := is_regular_epi_left f g
         unfold PullbackPr2Kl at this
-        unfold fxf
+        unfold kernel_pair_map
         simp only
         sorry
       }
@@ -386,12 +386,60 @@ instance regular_epi_mono_factorization_image
       unfold IsKernelPair
       exact IsPullback.of_hasPullback f f}
 
-def im := regular_epi_mono_factorization_image f
+def im := coequalizer (pullback.fst f f) (pullback.snd f f)
 
-def regular_epi_mono_factorization_epi (x : C) :
-  x ⟶ coequalizer (pullback.fst f f) (pullback.snd f f) := by {
-  sorry
+def regular_epi_mono_factorization_epi : A ⟶ im f :=
+  coequalizer.π (pullback.fst f f) (pullback.snd f f)
+
+def e := regular_epi_mono_factorization_epi f
+
+def regular_epi_mono_factorization_mono : im f ⟶ B := by {
+  apply coequalizer.desc f
+  exact pullback.condition
+}
+
+def m := regular_epi_mono_factorization_mono f
+
+def regular_epi_mono_factorization_is_regular_epi
+    : RegularEpi (e f) :=
+  coequalizerRegular (pullback.fst f f) (pullback.snd f f)
+
+def K' := pullback (m f)  (m f)
+
+def regular_epi_mono_factorization_is_regular_is_monic_eq : pullback.fst f f ≫
+    (coequalizer.π (pullback.fst f f) (pullback.snd f f)) ≫  (m f) =
+    pullback.snd f f ≫
+    (coequalizer.π (pullback.fst f f) (pullback.snd f f)) ≫  (m f) := by {
+      unfold m regular_epi_mono_factorization_mono
+      simp only [colimit.ι_desc, Cofork.ofπ_pt, Cofork.ofπ_ι_app]
+      exact pullback.condition
     }
+
+def regular_epi_mono_factorization_comm
+    : f = e f ≫ m f := by {
+      unfold e m
+      unfold regular_epi_mono_factorization_epi regular_epi_mono_factorization_mono
+      simp only [colimit.ι_desc, Cofork.ofπ_pt, Cofork.ofπ_ι_app]
+    }
+
+def regular_epi_mono_factorization_is_regular_is_monic_mor
+  : K f ⟶ K' f := by { sorry
+    -- unfold K'
+    -- rw [regular_epi_mono_factorization_comm f]
+    -- unfold K
+
+    }
+
+def φ := regular_epi_mono_factorization_is_regular_is_monic_mor f
+
+lemma is_epi_monic_mor : Epi (φ f) := by {
+  have := isEpi_kernel_pair_map f g
+  sorry
+}
+
+
+
+
 
 
 
@@ -494,7 +542,8 @@ relationas
 
 variable {C}
 
-def perm [Recursive C] [HasPullbacks C] [ListArithmetic C] (X : C) : EquivRel (list X) where
+def perm [Recursive C] [HasPullbacks C] [ListArithmetic C] (X : C) :
+    EquivRel (list X) where
   R := _
   left := _
   right := _
