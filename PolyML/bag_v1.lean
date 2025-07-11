@@ -47,55 +47,13 @@ variable {C}
 structure RegularEpiFactorisation {X Y : C} (f : X ⟶ Y)
     extends Factorisation f where
   regular_epi : RegularEpi ι
+  mono : Mono π
 
 -- a good test for the definition.
 -- ref: 8.3. Proposition of Barrs and Wells
 -- In a regular category, every morphism `f : X ⟶ Y`
 -- can be factored as `f = e ≫ m`,
 -- where `e` is a regular epimorphism and `m` is a monomorphism.
-
-def regularEpiFactorization {A A' : C} [Regular C] (f : A ⟶ A') :
-  RegularEpiFactorisation f where
-    mid := by {
-      let K := pullback f f
-      let d0 : K ⟶ A := pullback.fst f f
-      let d1 : K ⟶ A := pullback.snd f f
-      haveI kernelPair : IsKernelPair f d0 d1 :=
-        IsPullback.of_hasPullback f f
-      haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
-      exact coequalizer d0 d1}
-    ι := by {
-      let K := pullback f f
-      let d0 : K ⟶ A := pullback.fst f f
-      let d1 : K ⟶ A := pullback.snd f f
-      haveI kernelPair : IsKernelPair f d0 d1 :=
-        IsPullback.of_hasPullback f f
-      haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
-      -- let g be the coequalizer of d0 and d1.
-      let g : A ⟶ coequalizer d0 d1 := coequalizer.π d0 d1
-      exact g
-    }
-    π := by {
-      let K := pullback f f
-      let d0 : K ⟶ A := pullback.fst f f
-      let d1 : K ⟶ A := pullback.snd f f
-      haveI kernelPair : IsKernelPair f d0 d1 :=
-        IsPullback.of_hasPullback f f
-      haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
-      apply CategoryTheory.Limits.coequalizer.desc f
-      exact pullback.condition}
-    ι_π := by {
-      simp only [colimit.ι_desc, Cofork.ofπ_pt, Cofork.ofπ_ι_app] }
-    regular_epi := by {
-      let K := pullback f f
-      let d0 : K ⟶ A := pullback.fst f f
-      let d1 : K ⟶ A := pullback.snd f f
-      haveI kernelPair : IsKernelPair f d0 d1 := IsPullback.of_hasPullback f f
-      haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
-      let g : A ⟶ coequalizer d0 d1 := coequalizer.π d0 d1
-      simp only
-      constructor
-      exact coequalizerIsCoequalizer (pullback.fst f f) (pullback.snd f f)}
 
 variable [HasPullbacks C] {A B C' : C} (f : A ⟶ B)
     (g : B ⟶ C')
@@ -264,7 +222,6 @@ lemma is_pullback_sqr_mor_pr1 :
       simp only [assoc]
 }
 
-
 lemma is_pullback_sqr_mor_pr2 :
   is_pullback_sqr_mor f g k₁ k₂ (IsPullbacketc) ≫
   map_to_pullback_right f g = k₂ := by {
@@ -404,7 +361,7 @@ def regular_epi_mono_factorization_is_regular_epi
     : RegularEpi (e f) :=
   coequalizerRegular (pullback.fst f f) (pullback.snd f f)
 
-def K' := pullback (m f)  (m f)
+def K' := pullback (m f) (m f)
 
 def regular_epi_mono_factorization_is_regular_is_monic_eq : pullback.fst f f ≫
     (coequalizer.π (pullback.fst f f) (pullback.snd f f)) ≫  (m f) =
@@ -418,91 +375,142 @@ def regular_epi_mono_factorization_is_regular_is_monic_eq : pullback.fst f f ≫
 def regular_epi_mono_factorization_comm
     : f = e f ≫ m f := by {
       unfold e m
-      unfold regular_epi_mono_factorization_epi regular_epi_mono_factorization_mono
+      unfold regular_epi_mono_factorization_epi
+        regular_epi_mono_factorization_mono
       simp only [colimit.ι_desc, Cofork.ofπ_pt, Cofork.ofπ_ι_app]
     }
 
-def regular_epi_mono_factorization_is_regular_is_monic_mor
-  : K f ⟶ K' f := by { sorry
-    -- unfold K'
-    -- rw [regular_epi_mono_factorization_comm f]
-    -- unfold K
-
+omit IsPullbacketc in
+def regular_epi_mono_factorization_is_regular_is_monic_mor :
+  K f ⟶ K' f := by {
+    unfold K'
+    --rw [regular_epi_mono_factorization_comm f]
+    let kernel_pair_map := kernel_pair_map f g
+    unfold Khh Kgg at kernel_pair_map
+    have hP : IsPullback (pullback.fst (m f) (m f))
+     (pullback.snd (m f) (m f)) (m f) (m f) := IsPullback.of_hasPullback (m f) (m f)
+    apply CategoryTheory.IsPullback.lift hP
+      -- (pullback.fst (e f ≫ m f) (e f ≫ m f))
+      -- ((pullback.snd (e f ≫ m f) (e f ≫ m f)))
+    · rfl_cat
+    · exact (pullback.fst f f) ≫ (e f)
     }
 
-def φ := regular_epi_mono_factorization_is_regular_is_monic_mor f
+def φ : K f ⟶ K' f := regular_epi_mono_factorization_is_regular_is_monic_mor f g
 
-lemma is_epi_monic_mor : Epi (φ f) := by {
-  have := isEpi_kernel_pair_map f g
-  sorry
+omit k₁ k₂ IsPullbacketc in
+lemma is_epi_monic_mor : Epi (φ f g) := by { sorry
+  -- have := isEpi_kernel_pair_map f g
+  -- unfold φ
+  -- unfold regular_epi_mono_factorization_is_regular_is_monic_mor
+  -- simp only [id_eq]
+  --sorry
+  --apply isEpi_kernel_pair_map
+  -- unfold kernel_pair_map at this
+  -- simp only at this
+  -- unfold e
+  -- unfold regular_epi_mono_factorization_epi
+
 }
+omit w k₁ k₂ IsPullbacketc in
+lemma monic_mor_pr1 :
+  φ f g ≫ pullback.fst (m f) (m f) = pullback.fst f f ≫
+    coequalizer.π (pullback.fst f f) (pullback.snd f f) := by
+  unfold φ
+  apply CategoryTheory.IsPullback.lift_fst
 
+omit w k₁ k₂ IsPullbacketc in
+def monic_mor_pr2 :
+  φ f g ≫ pullback.snd (m f) (m f) = pullback.snd f f ≫
+    coequalizer.π (pullback.fst f f) (pullback.snd f f) := by
+  unfold φ
+  sorry
+  --apply CategoryTheory.IsPullback.lift_snd
 
+omit w k₁ k₂ IsPullbacketc in
+def monic_mor_eq :
+  pullback.fst (m f) (m f) =
+  pullback.snd (m f) (m f) := by {
+  have Hepi := (is_epi_monic_mor f g)
+  -- Example usage of Epi.left_cancellation:
+  have Hepi_prop :=
+    Hepi.left_cancellation
+     (pullback.fst (m f) (m f)) (pullback.snd (m f) (m f))
+  simp only at Hepi_prop
+  apply Hepi_prop
+  rw [monic_mor_pr1 f g]
+  rw [monic_mor_pr2 f g]
+  sorry
+  }
 
+include g in
+omit w k₁ k₂ IsPullbacketc in
+lemma regular_epi_mono_factorization_is_regular_is_monic :
+  Mono (m f) := by {
+  constructor
+  intros w g' h p
+  have hP : IsPullback (pullback.fst (m f) (m f))
+    (pullback.snd (m f) (m f)) (m f) (m f) :=
+    IsPullback.of_hasPullback (m f) (m f)
+  have ζ := CategoryTheory.IsPullback.lift hP g' h p
+  have h1 := IsPullback.lift_fst hP g' h p
+  have h2 := IsPullback.lift_snd hP g' h p
+  rw [← h1]
+  have := monic_mor_eq f g
+  simp_all only [IsPullback.lift_fst]}
 
+def regularEpiFactorization [Regular C] (f : A ⟶ B) [RegularEpi f]:
+  RegularEpiFactorisation f where
+    mid := im f
+    ι := (e f)
+    π := (m f)
+    ι_π := (regular_epi_mono_factorization_comm f).symm
+    regular_epi := regular_epi_mono_factorization_is_regular_epi f
+    mono := regular_epi_mono_factorization_is_regular_is_monic f g
 
+-- def regularEpiFactorization {A A' : C} [Regular C] (f : A ⟶ A') :
+--   RegularEpiFactorisation f where
+--     mid := by {
+--       let K := pullback f f
+--       let d0 : K ⟶ A := pullback.fst f f
+--       let d1 : K ⟶ A := pullback.snd f f
+--       haveI kernelPair : IsKernelPair f d0 d1 :=
+--         IsPullback.of_hasPullback f f
+--       haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
+--       exact coequalizer d0 d1}
+--     ι := by {
+--       let K := pullback f f
+--       let d0 : K ⟶ A := pullback.fst f f
+--       let d1 : K ⟶ A := pullback.snd f f
+--       haveI kernelPair : IsKernelPair f d0 d1 :=
+--         IsPullback.of_hasPullback f f
+--       haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
+--       -- let g be the coequalizer of d0 and d1.
+--       let g : A ⟶ coequalizer d0 d1 := coequalizer.π d0 d1
+--       exact g
+--     }
+--     π := by {
+--       let K := pullback f f
+--       let d0 : K ⟶ A := pullback.fst f f
+--       let d1 : K ⟶ A := pullback.snd f f
+--       haveI kernelPair : IsKernelPair f d0 d1 :=
+--         IsPullback.of_hasPullback f f
+--       haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
+--       apply CategoryTheory.Limits.coequalizer.desc f
+--       exact pullback.condition}
+--     ι_π := by {
+--       simp only [colimit.ι_desc, Cofork.ofπ_pt, Cofork.ofπ_ι_app] }
+--     regular_epi := by {
+--       let K := pullback f f
+--       let d0 : K ⟶ A := pullback.fst f f
+--       let d1 : K ⟶ A := pullback.snd f f
+--       haveI kernelPair : IsKernelPair f d0 d1 := IsPullback.of_hasPullback f f
+--       haveI := Regular.equiv_rel_coeq f d0 d1 kernelPair
+--       let g : A ⟶ coequalizer d0 d1 := coequalizer.π d0 d1
+--       simp only
+--       constructor
+--       exact coequalizerIsCoequalizer (pullback.fst f f) (pullback.snd f f)}
 
-
-
-
-#check Mono
-theorem regular_epi_mono_factorisation {A A' : C}
-    [Regular C] (f : A ⟶ B):
-  ∃ (F : RegularEpiFactorisation f), Mono F.π := by
-  let F := regularEpiFactorization f
-  exact ⟨F, by
-    -- provide the proof that F.π is mono
-    constructor
-    intros Z e0 e1 he0e1
-    have := CommSq.mk he0e1
-    have := F.ι_π
-    let P := pullback f f
-    let u : P ⟶ A := pullback.fst f f
-    let v : P ⟶ A := pullback.snd f f
-    let R := pullback F.π F.π
-    let r : R ⟶ F.mid := pullback.fst F.π F.π
-    let s : R ⟶ F.mid := pullback.snd F.π F.π
-    have : RegularEpi F.ι := F.regular_epi
-    --have := pullback_map_regular_epi F.ι F.π
-    --have : Epi F.ι := StrongEpi.epi
-    have h1 : (u ≫ F.ι) ≫ F.π = (v ≫ F.ι) ≫ F.π := by {
-      simp only [assoc, Factorisation.ι_π]
-      exact pullback.condition
-    }
-    let q : P ⟶ R := pullback.lift (u ≫ F.ι) (v ≫ F.ι) h1
-    let q' := pullback.lift e0 e1 he0e1
-    have sq1 : CommSq u q F.ι r := by
-      simp_all only [limit.lift_π, PullbackCone.mk_pt,
-      PullbackCone.mk_π_app,
-      CommSq.mk, F, P, R, u, q, v, r]
-    have sq1' : CommSq u q F.ι s := sorry
-    have sq2 : CommSq v q F.ι r := sorry
-    have sq2' : CommSq v q F.ι s := by
-      simp_all only [limit.lift_π, PullbackCone.mk_pt,
-      PullbackCone.mk_π_app,
-      CommSq.mk, F, R, P, r, v, u, q, s]
-    sorry
-        -- have hrq : q ≫ r = u ≫ F.ι := by {sorry
-    --   }
-    -- have hrq : u ≫ F.ι = v ≫ F.ι := by {sorry
-    --   }
-    --have :=  this.left_cancellation r s
-⟩
-
---strongEpi_of_regularEpi
---Borceux Prop. 2.14 In a regular category, the following conditions
---are equivalent (1) f is a regular epi (2) f is a strong epi.
--- def regular_epi_iff_strong_epi {X Y : C} (f : X ⟶ Y) [Regular C] [H : StrongEpi f] :
---   RegularEpi f := by
---     have Hepi : Epi f := H.epi
---     have Hllp : ∀ ⦃X Y : C⦄ (z : X ⟶ Y) [Mono z], HasLiftingProperty f z := H.llp
---     let F := (regular_epi_mono_factorisation (A:= X) (A' := Y) f).choose
---     have HF := (regular_epi_mono_factorisation (A:= X) (A' := Y) f).choose_spec
---     sorry
-
-
-
-#exit
 
 #check Quot
 
