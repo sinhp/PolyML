@@ -9,6 +9,10 @@ import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Sites.Sieves
 import Mathlib.Combinatorics.Quiver.ReflQuiver
 
+/- This code is a Lean 4 port of "Few Digits", a Unimath implementation of regular categoris
+ by Niels van der Weide. Original source:
+https://github.com/UniMath/UniMath/blob/master/UniMath/CategoryTheory/RegularAndExact/RegularCategory.v#L319 -/
+
 set_option linter.unusedSimpArgs false
 
 universe u v
@@ -44,8 +48,7 @@ structure RegularEpiFactorisation {X Y : C} (f : X ⟶ Y)
 -- can be factored as `f = e ≫ m`,
 -- where `e` is a regular epimorphism and `m` is a monomorphism.
 
-variable [HasPullbacks C] {A B C' : C} (f : A ⟶ B)
-    (g : B ⟶ C')
+variable [HasPullbacks C] {A B C' : C} (f : A ⟶ B) (g : B ⟶ C')
 
 def Kgg := pullback g g
 def Khh := pullback (f ≫ g) (f ≫ g)
@@ -286,8 +289,7 @@ def is_pullback_sqr : IsPullback (map_to_pullback_left f g)
     exact map_to_pullback_sqr f g
  }
 
-def isEpi_kernel_pair_map [HasPullbacks C] [Regular C]
-  {A B C' : C} (f : A ⟶ B) (g : B ⟶ C') [RegularEpi f] :
+def isEpi_kernel_pair_map [Regular C] :
   Epi (kernel_pair_map f g) := by {
     have PullbackSqrCommutesKr : pullback.fst f (pullback.snd g g) ≫ f
       = pullback.snd f (pullback.snd g g) ≫ (pullback.snd g g) :=
@@ -452,8 +454,8 @@ lemma regular_epi_mono_factorization_is_regular_is_monic :
 def regularEpiFactorization [Regular C] (f : A ⟶ B) [RegularEpi f]:
   RegularEpiFactorisation f where
     mid := im f
-    ι := (e f)
-    π := (m f)
+    ι := e f
+    π := m f
     ι_π := (regular_epi_mono_factorization_comm f).symm
     regular_epi := regular_epi_mono_factorization_is_regular_epi f
     mono := regular_epi_mono_factorization_is_regular_is_monic f g
