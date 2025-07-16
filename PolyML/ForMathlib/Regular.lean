@@ -9,9 +9,6 @@ import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Sites.Sieves
 import Mathlib.Combinatorics.Quiver.ReflQuiver
 
-/- This code is a Lean 4 port of "Few Digits", a Unimath implementation of regular categoris
- by Niels van der Weide. Original source:
-https://github.com/UniMath/UniMath/blob/master/UniMath/CategoryTheory/RegularAndExact/RegularCategory.v#L319 -/
 
 set_option linter.unusedSimpArgs false
 
@@ -50,8 +47,18 @@ structure RegularEpiFactorisation {X Y : C} (f : X ⟶ Y)
 
 variable [HasPullbacks C] {A B C' : C} (f : A ⟶ B) (g : B ⟶ C')
 
+
+
+/- This code is a Lean 4 port of "Few Digits", a Unimath implementation of regular categoris
+ by Niels van der Weide. Original source:
+https://github.com/UniMath/UniMath/blob/master/UniMath/CategoryTheory/RegularAndExact/RegularCategory.v#L319 -/
+
 def Kgg := pullback g g
 def Khh := pullback (f ≫ g) (f ≫ g)
+
+
+
+
 
 /-
 Borceux - Lemma 2.1.2 :
