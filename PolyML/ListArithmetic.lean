@@ -14,23 +14,33 @@ import Mathlib.CategoryTheory.Monoidal.Mon_
 
 /-! # List Arithmetic Categories
 
-In category theory, the notion of parameterized list object models the list type, directly generalising Lawvere’s notion of NNO (Natural Numbers Object)
+In category theory, the notion of parameterized list object models the list type, directly
+generalising Lawvere’s notion of NNO (Natural Numbers Object)
 
-A **list object** on an object `A` in a category with finite products consists of an object `list A` and morphisms `nil : 𝟙_ C → list A` and `cons : A × list A  ⟶ list A`
+A **list object** on an object `A` in a category with finite products consists of an object `list A`
+and morphisms `nil : 𝟙_ C → list A` and `cons : A × list A  ⟶ list A`
 which is initial among such data.
 
-Such a structure is a **parameterized list object** whenever it is parametrized initial, i.e. it is initial among the data of `(P → L ← P × L)` for some parameter object `P` in the category.
+Such a structure is a **parameterized list object** whenever it is parametrized initial, i.e. it is initial
+among the data of `(P → L ← P × L)` for some parameter object `P` in the category.
 
 In cartesian closed categories, these two notions coincide.
 
 ## Implementation notes
 
-- We use a high-level definition of parameterized list object based on existence of a left adjoint to the forgetful functor from the category of actions to the underlying category `C`.
-The advantage of this definition is that it gives a compact formulation of the universal property of the list object from which the recursion scheme can be derived thus enabling us to define all the important list maps. Such categories are called **recursive categories**. We can already define list maps such as `map`, `foldr` in recursive categories.
+- We use a high-level definition of parameterized list object based on existence of a left adjoint to the
+forgetful functor from the category of actions to the underlying category `C`.
+The advantage of this definition is that it gives a compact formulation of the universal property of the
+list object from which the recursion scheme can be derived thus enabling us to define all the important list maps.
+Such categories are called **recursive categories**. We can already define list maps such as `map`, `foldr` in recursive categories.
 
-- The condition requiring the morphism `plist A (P ⊗ Y) ⟶ (plist A P) ⊗ Y` to be an isomorphism for all objects `A, P, Y` is equivalent to the requirment that the recursion in `C` is preserved when pulled back to the slice categories `C / P` for all `P`.
+- The condition requiring the morphism `plist A (P ⊗ Y) ⟶ (plist A P) ⊗ Y` to be an isomorphism for all
+objects `A, P, Y` is equivalent to the requirment that the recursion in `C` is preserved when
+pulled back to the slice categories `C / P` for all `P`.
 
-- Although parameterized list objects are defined in finite product categories, the well-behaved recursion scheme is only available in **list-arithmetic categories**, i.e. in categories with chosen finite products where the comparison morphisms `plist.cmp` are isomorphisms.
+- Although parameterized list objects are defined in finite product categories, the well-behaved recursion
+scheme is only available in **list-arithmetic categories**, i.e. in categories with chosen finite
+products where the comparison morphisms `plist.cmp` are isomorphisms.
 
 - In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
 -/
@@ -49,7 +59,10 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 open Endofunctor Algebra
 
 /-
-For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a morphism `A ⊗ S → S`. The pairs `(S, A ⊗ S → S)` are objects of the category `Act A`, constructed as the category of algebras for the left-tensoring endofunctor `A ⊗ -` on `C`. One may regard the objects of this category as state-changing alphabet `A` acting on sets of states `S`.
+For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a
+morphism `A ⊗ S → S`. The pairs `(S, A ⊗ S → S)` are objects of the category `Act A`, constructed as the category
+of algebras for the left-tensoring endofunctor `A ⊗ -` on `C`. One may regard the objects of this
+category as state-changing alphabet `A` acting on sets of states `S`.
 -/
 private abbrev Act (A : C) := Algebra <| tensorLeft A
 
@@ -102,7 +115,8 @@ def mapForgetTwoSquare {A B : C} (f : A ⟶ B) :
 
 end Act
 
-/-- An object `A` in a category `C` is called **recursive** if the forgetful functor from the category of actions on `A` to `C` has a left adjoint. -/
+/-- An object `A` in a category `C` is called **recursive** if the forgetful functor from the
+category of actions on `A` to `C` has a left adjoint. -/
 class HasRecursion (A : C) where
   /-- The Act.forgetful functor from the category of actions to the category `C` has a left adjoint. -/
   adj : IsRightAdjoint (Act.forget : Act A ⥤ C)
@@ -134,9 +148,10 @@ theorem freeActionFunctorMapTriangle_id {A : C} :
     IsIso <| freeActionFunctorMapTriangle (𝟙 A) := by
   sorry  -- use some fact about mates of idenity to derive this
   -- need more API to use conjugateEquiv in the special case when Act.map (𝟙) ≅ 𝟭
-  -- use the iso Act.map (𝟙) ≅ 𝟭 to promote the original mates diagram to a conjuage mate diagram apply the lemma `conjugateEquiv_symm_iso` to construct an iso 2-cell between the left adjoints and then prove the resulting conjugate mate diagram is the same as the original mate diagram.
+  -- use the iso Act.map (𝟙) ≅ 𝟭 to promote the original mates diagram to a conjuage mate diagram apply the lemma
+  --`conjugateEquiv_symm_iso` to construct an iso 2-cell between the left adjoints and then prove
+  -- the resulting conjugate mate diagram is the same as the original mate diagram.
   -- perhpas refactor
-
 
 /-- The paramtetrized list of `A` with the parameter object `P` .-/
 def plist (A P : C) : C := freeActionFunctor A ⋙ Act.forget |>.obj P
@@ -155,8 +170,11 @@ def map {A A' P : C} (f : A ⟶ A') : plist A P ⟶ plist A' P :=
 @[reassoc (attr := simp)]
 theorem map_nil {A A' P : C} {f : A ⟶ A'} :
     (plist.nil : P ⟶ plist A P) ≫ plist.map f = plist.nil := by
-  dsimp [plist.map, plist.nil]
-  sorry
+  dsimp [plist.map, plist.nil, freeActionFunctorMapTriangle]
+  simp only [Category.comp_id, Category.id_comp, map_comp,
+    Adjunction.unit_naturality_assoc,
+    Adjunction.right_triangle_components]
+  exact Category.comp_id ((Adjunction.ofIsRightAdjoint Act.forget).unit.app P)
 
 @[simp]
 theorem map_cons {A A' P : C} {f : A ⟶ A'} :
@@ -171,8 +189,6 @@ theorem map_id {A P : C} : plist.map (𝟙 A) = 𝟙 (plist A P) := by
   simp [plist.map]
   --simp [freeActionFunctorMapTriangle, Functor.map_id]
   sorry
-
-
 
 @[simp]
 theorem map_comp {A A' A'' P : C} (f : A ⟶ A') (g : A' ⟶ A'') :
@@ -214,7 +230,14 @@ def map' (A : C) {P P' : C} (f : P ⟶ P') : plist A P ⟶ plist A P' :=
 
 theorem map'_eq_rec {A P P' : C} {f : P ⟶ P'} :
     (plist.map' A f) = plist.rec (f ≫ plist.nil) plist.cons := by
-  sorry
+  dsimp [plist.map', plist.nil, freeActionFunctorMapTriangle, cons]
+  unfold freeActionFunctor freeForgetAdj
+  refine rec_uniq (Act.forget.map (Act.forget.leftAdjoint.map f)) ?_ ?_
+  · dsimp [nil]
+    sorry
+  · dsimp [cons]
+    unfold freeActionFunctor
+    simp [Act.forget]
 
 instance map'_iso_of_iso {A P P' : C} (f : P ⟶ P') [IsIso f] :
     IsIso (plist.map' A f) := by
@@ -388,7 +411,6 @@ Show that in the category of small categories, an object with recursion is a mon
 We show that in a list-arithmetic category, the list object is
 the free monoid object.
 -/
-#exit
 variable [Recursive C] [ListArithmetic C]
 
 open Recursive ListArithmetic
@@ -396,21 +418,20 @@ open Recursive ListArithmetic
 instance mon (A : C) : Mon_Class (list A) where
   one := list.nil
   mul := list.append
-  one_mul' := list.nil_append
-  mul_one' := list.append_nil
-  mul_assoc' := list.append_assoc
+  one_mul := list.nil_append
+  mul_one := list.append_nil
+  mul_assoc := list.append_assoc
 
 /--
 The monoid structure on the list object in a list-arithmetic category.
 -/
 instance List.monoid (A : C) : Mon_ C where
   X := list A
-  one := list.nil
-  mul := list.append
-  one_mul := list.nil_append
-  mul_one := list.append_nil
-  mul_assoc := list.append_assoc
-
+  -- one := list.nil
+  -- mul := list.append
+  -- one_mul := list.nil_append
+  -- mul_one := list.append_nil
+  -- mul_assoc := list.append_assoc
 
 -- from here we are trying to prove that list is the free monoid object in a list-arithmetic category.
 def lift {A : C} {M : Mon_ C} (f : A ⟶ M.X) : list A ⟶ M.X :=
