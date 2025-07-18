@@ -19,9 +19,47 @@ open Endofunctor Algebra
 
 variable (U : C)
 
-#check Regular
+#check HasFiniteLimits C
 
-#check CategoryTheory.Factorisation
+#check IsKernelPair
+
+#check CategoryTheory.IsKernelPair
+
+#moogle "Coequalizer."
+
+#moogle "Coequalizer universal property."
+
+#check CategoryTheory.RegularEpi
+
+#check CategoryTheory.Preregular
+
+namespace RegularEpi
+
+
+def effectiveEpiStructOfRegularEpi' {B X : C} (f : X ⟶ B) [RegularEpi f] :
+    EffectiveEpiStruct f where
+  desc e h := Cofork.IsColimit.desc isColimit e (h left right w)
+  fac _ _ := Cofork.IsColimit.π_desc' isColimit _ _
+  uniq _ _ _ hg := Cofork.IsColimit.hom_ext isColimit (hg.trans
+    (Cofork.IsColimit.π_desc' _ _ _).symm)
+
+
+/-- A regular category is a category with finite limits where equalisers of kernel pairs exist, and regular epimorphisms (=effective epis) are stable under pullbacks. -/
+class Regular extends HasFiniteLimits C where
+  equiv_rel_coeq : ∀ {W X Y : C} (f : X ⟶ Y) (a b : W ⟶ X),
+    IsKernelPair f a b → HasCoequalizer a b
+  pullback_stability : ∀ {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z),
+    RegularEpi f → RegularEpi (pullback.snd f g)
+
+/-- Every regular category is preregular. -/
+def Regular.toPreregular [Regular C] : Preregular C where
+  exists_fac {X Y Z} f g w := by
+    use pullback g f, pullback.snd g f
+    let h_reg := pullback_stability g f (regularEpiOfEffectiveEpi g)
+    have : EffectiveEpi (pullback.snd g f) := by
+      infer_instance
+    use this, pullback.fst g f
+    exact pullback.condition
 
 
 variable {C}
