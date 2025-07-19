@@ -569,6 +569,8 @@ relationas
 
 variable {C}
 
+#check Multiset
+
 def perm [Recursive C] [HasPullbacks C] [ListArithmetic C] (X : C) :
     EquivRel (list X) where
   R := _

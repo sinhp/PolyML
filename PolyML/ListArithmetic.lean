@@ -412,11 +412,6 @@ instance List.monoid (A : C) : Mon_ C where
   mul_assoc := list.append_assoc
 
 
--- from here we are trying to prove that list is the free monoid object in a list-arithmetic category.
-def lift {A : C} {M : Mon_ C} (f : A ⟶ M.X) : list A ⟶ M.X :=
-  sorry
-
-
 /- Show that
 `list α` is the initial algebra for the polynomial functor `P ↦ 1 + α × P` in
 the category of types. The unique algebra map from (List α, [n,c]) to
@@ -429,7 +424,5 @@ satisfying
 -/
 
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
-[Recursive C] [ListArithmetic C]
 
 open Recursive ListArithmetic
