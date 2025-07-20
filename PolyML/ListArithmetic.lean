@@ -47,7 +47,7 @@ products where the comparison morphisms `plist.cmp` are isomorphisms.
 
 universe u v
 
-noncomputable section
+
 namespace CategoryTheory
 
 open Functor Opposite Limits MonoidalCategory CartesianMonoidalCategory
@@ -142,8 +142,10 @@ variable {C} [IsRecursive C]
 instance (A : C) : IsRightAdjoint (Act.forget : Act A ⥤ C) :=
   (IsRecursive.has_rec A).adj
 
+noncomputable
 def freeActionFunctor (A : C) : C ⥤ Act A := leftAdjoint (Act.forget : Act A ⥤ C)
 
+noncomputable
 def freeForgetAdj (A : C) : freeActionFunctor A ⊣ Act.forget  :=
   Adjunction.ofIsRightAdjoint (Act.forget : Act A ⥤ C)
 
@@ -349,21 +351,32 @@ open Recursive
 
 variable [Recursive C]
 
+
+class ListArithmetic' where
+  is_iso {A P Y : C} : IsIso (plist.cmp A P Y)
+
 /-- A recursive category is list-arithmetic if the comparison morphisms `cmp A P Y` are
 all isomorphisms. -/
 class ListArithmetic where
-  is_iso {A P Y : C} : IsIso (plist.cmp A P Y)
+  cmpInv (A P Y : C) : plist A P ⊗ Y ⟶ plist A (P ⊗ Y)
+  hom_inv_id : plist.cmp A P Y ≫ cmpInv A P Y = 𝟙 _
+  inv_hom_id : cmpInv A P Y ≫ plist.cmp A P Y = 𝟙 _
 
 namespace ListArithmetic
 
 variable {C} [ListArithmetic C]
 
 instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) :=
-  ListArithmetic.is_iso
+  sorry --ListArithmetic.is_iso
 
 /-- In a list-arithmetic category, `plist A P` is isomorphic to `(list A) ⊗ P`. -/
-def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P :=
-  asIso (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)
+def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
+  hom := plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P
+  inv := sorry
+  hom_inv_id := sorry
+  inv_hom_id := sorry
+
+  --asIso (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)
 
 /-- Recursion scheme for the list object in a list-arithmetic category. -/
 def list.rec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) :
@@ -434,8 +447,9 @@ instance : Recursive (Type u) where
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
-  is_iso := by
-    sorry
+  cmpInv := sorry
+  hom_inv_id := sorry
+  inv_hom_id := sorry
 
 end ListArithmetic
 
@@ -464,7 +478,7 @@ variable [Recursive C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 
-instance mon (A : C) : Mon_Class (list A) where
+instance mon_class (A : C) : Mon_Class (list A) where
   one := list.nil
   mul := list.append
   one_mul := list.nil_append
