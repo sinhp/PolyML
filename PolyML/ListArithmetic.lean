@@ -115,6 +115,10 @@ def mapForgetTwoSquare {A B : C} (f : A ⟶ B) :
 
 end Act
 
+class WithRecursion (A : C) where
+  freeActionFunctor : C ⥤ Act A
+  freeForgetAdj : freeActionFunctor ⊣ Act.forget
+
 /-- An object `A` in a category `C` is called **recursive** if the forgetful functor from the
 category of actions on `A` to `C` has a left adjoint. -/
 class HasRecursion (A : C) where
@@ -125,19 +129,34 @@ variable (C)
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
 class Recursive where
+  withRec (A : C) : WithRecursion A
+
+/-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
+class IsRecursive where
   has_rec (A : C) : HasRecursion A
 
-namespace Recursive
+namespace IsRecursive
 
-variable {C} [Recursive C]
+variable {C} [IsRecursive C]
 
 instance (A : C) : IsRightAdjoint (Act.forget : Act A ⥤ C) :=
-  (Recursive.has_rec A).adj
+  (IsRecursive.has_rec A).adj
 
 def freeActionFunctor (A : C) : C ⥤ Act A := leftAdjoint (Act.forget : Act A ⥤ C)
 
 def freeForgetAdj (A : C) : freeActionFunctor A ⊣ Act.forget  :=
   Adjunction.ofIsRightAdjoint (Act.forget : Act A ⥤ C)
+
+end IsRecursive
+
+namespace Recursive
+
+variable {C} [Recursive C]
+
+def freeActionFunctor (A : C) : C ⥤ Act A := (withRec A).freeActionFunctor
+
+def freeForgetAdj (A : C) : freeActionFunctor A ⊣ Act.forget :=
+  (withRec A).freeForgetAdj
 
 /-- The mate of natural transformation `forget ⟶ map f ⋙ forget`. -/
 def freeActionFunctorMapTriangle {A B : C} (f : A ⟶ B) :
@@ -174,7 +193,7 @@ theorem map_nil {A A' P : C} {f : A ⟶ A'} :
   simp only [Category.comp_id, Category.id_comp, map_comp,
     Adjunction.unit_naturality_assoc,
     Adjunction.right_triangle_components]
-  exact Category.comp_id ((Adjunction.ofIsRightAdjoint Act.forget).unit.app P)
+  exact Category.comp_id ((freeForgetAdj A').unit.app P)
 
 @[simp]
 theorem map_cons {A A' P : C} {f : A ⟶ A'} :
@@ -232,7 +251,7 @@ theorem map'_eq_rec {A P P' : C} {f : P ⟶ P'} :
     (plist.map' A f) = plist.rec (f ≫ plist.nil) plist.cons := by
   dsimp [plist.map', plist.nil, freeActionFunctorMapTriangle, cons]
   unfold freeActionFunctor freeForgetAdj
-  refine rec_uniq (Act.forget.map (Act.forget.leftAdjoint.map f)) ?_ ?_
+  refine rec_uniq (Act.forget.map (freeActionFunctor A |>.map f)) ?_ ?_
   · dsimp [nil]
     sorry
   · dsimp [cons]
@@ -267,9 +286,28 @@ def foldr {A Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
 def foldl {A Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
   plist.rec e ((β_ A Y).hom ≫ f)
 
-
 def map {A A' : C} (f : A ⟶ A') : list A ⟶ list A' :=
   plist.map (P := 𝟙_ C) f
+
+@[reassoc (attr := simp)]
+theorem map_nil {A A' : C} {f : A ⟶ A'} :
+    (list.nil : 𝟙_ C ⟶ list A) ≫ list.map f = plist.nil := by
+  simp only [list.nil, list.map, plist.map_nil]
+
+@[simp]
+theorem map_cons {A A' : C} {f : A ⟶ A'} :
+    (list.cons A : A ⊗ list A ⟶ list A) ≫ list.map f =
+    (A ◁ list.map f) ≫ (f ▷ list A') ≫ list.cons A' := by
+  simp only [list, list.cons, list.map, plist.map_cons]
+
+@[simp]
+theorem map_comp {A A' A'' : C} (f : A ⟶ A') (g : A' ⟶ A'') :
+    list.map (f ≫ g) = list.map f ≫ list.map g := by
+  simp only [list.map, plist.map_comp]
+
+@[simp]
+theorem map_id {A : C} : list.map (𝟙 A) = 𝟙 (list A) := by
+  simp only [list.map, plist.map_id, list]
 
 def singleton {A : C} : A ⟶ list A :=
   (ρ_ A).inv ≫ (A ◁ (list.nil)) ≫ list.cons A
@@ -361,6 +399,11 @@ theorem append_assoc {A : C} :
     (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by
   sorry
 
+theorem map_append {A B : C} {f : A ⟶ B} :
+    list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := by
+  dsimp [list.append, list.map]
+  sorry
+
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev {A : C} : list A ⟶ list A :=
   list.rec' list.nil ((list.singleton ▷ list A) ≫ (β_ _ _).hom ≫ list.append)
@@ -376,12 +419,18 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 
 def mult {A : C} : list A ⟶ A := sorry
 
+def functor : C ⥤ C where
+  obj A := list A
+  map := list.map
+  map_id _ := plist.map_id
+  map_comp := plist.map_comp
+
 end list
 
 instance : CartesianMonoidalCategory (Type u) := sorry
 
 instance : Recursive (Type u) where
-  has_rec A := sorry
+  withRec := sorry
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
