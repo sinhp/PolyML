@@ -55,6 +55,16 @@ Tip: can we show for instance that this map is an effective epi? If so, every ef
 -/
 
 
+/-
+TODO:
+*aggregator*
+show that any internal commutative monoid structure is equivalent to the data of an aggregator.
+
+Therefore a bag structure on `A` is equivalent to the data of an aggregator.
+
+-/
+
+
 end bag
 
 
