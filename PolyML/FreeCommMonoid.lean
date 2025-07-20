@@ -31,19 +31,27 @@ class WithBags where
 
 variable {C} [WithBags C]
 
-def bag (A : C) : C :=
-  WithBags.bagFunctor.obj A |>.X
+-- def bag (A : C) : C :=
+--   WithBags.bagFunctor.obj A |>.X
+
+/-- The monoid structure on `bag A`. -/
+def bagMonoid (A : C) : Mon_ C := CommMon_.toMon_ (WithBags.bagFunctor.obj A)
+
+def bag (A : C) : C := bagMonoid A |>.X
+
 
 namespace bag
 
 def singleton {A : C} : A ⟶ bag A := WithBags.adj.unit.app A
 
 def ofList {A : C} : list A ⟶ bag A :=
-  sorry --list.lift (singleton)
+  list.lift (singleton)
 
 /-
 TODO: show that `ofList` is a quotient morphism. The relation should be thought of as
 the permutation relation on lists, i.e. `l1 ~ l2` if `l1` can be obtained from `l2` by permuting the elements.
+
+Tip: can we show for instance that this map is an effective epi? If so, every effective epi is regular and therefore W is `perm` relation.
 -/
 
 
