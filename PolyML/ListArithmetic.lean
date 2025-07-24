@@ -446,8 +446,7 @@ theorem list.singleton_len {A : C} :
     rw [← assoc]
     refine ?_ =≫ cons (𝟙_ C)
     have : ((((ρ_ A).inv ≫ A ◁ plist.nil) ≫ A ◁ map (toUnit A))) =
-      (((ρ_ A).inv ≫ (A ◁ plist.nil ≫ A ◁ map (toUnit A)))) :=
-        by {exact assoc (ρ_ A).inv (A ◁ plist.nil) (A ◁ map (toUnit A))}
+      (((ρ_ A).inv ≫ (A ◁ plist.nil ≫ A ◁ map (toUnit A)))) := by {rw [assoc]}
     rw [this]
     have : (A ◁ plist.nil) ≫ A ◁ map (toUnit A) = (A ◁ plist.nil) := by {
       refine hom_ext (A ◁ plist.nil ≫ A ◁ map (toUnit A)) (A ◁ plist.nil) ?_ ?_
@@ -457,6 +456,7 @@ theorem list.singleton_len {A : C} :
       rw [← plist.map_nil (f := (toUnit A))]
       dsimp [list.map]
     }
+    dsimp [map] at *
     rw [this]
     rw [Iso.eq_comp_inv]
     simp only [assoc]
@@ -487,8 +487,11 @@ namespace ListArithmetic
 
 variable {C} [ListArithmetic C]
 
-instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) :=
-  sorry --ListArithmetic.is_iso
+instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) := by {
+  use cmpInv A P Y
+  constructor
+  rw [ListArithmetic.hom_inv_id]
+  rw [ListArithmetic.inv_hom_id]}
 
 /-- In a list-arithmetic category, `plist A B` is isomorphic to `(list A) ⊗ B`. -/
 def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
@@ -507,8 +510,7 @@ def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id]
     rw [plist.map'_id_tensor]
-    simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]
-  }
+    simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]}
   inv_hom_id := by {
     refine (comp_hom_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
     have := ListArithmetic.hom_inv_id (A:=A) (P :=(𝟙_ C)) (Y := B)
@@ -521,26 +523,22 @@ def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
 
   --asIso (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)
 /-- Recursion scheme for the list object in a list-arithmetic category. -/
-def list.rec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) :
-    list A ⊗ P ⟶ Y :=
+def list.rec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y :=
   (plistIsoTensor A P).inv ≫ plist.rec e a
 
-def list.foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) :
-    list A ⊗ P ⟶ Y :=
+def list.foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y :=
   list.rec e a
 
-def nno.rec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) :
-    N_ C ⊗ P ⟶ Y :=
+def nno.rec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) : N_ C ⊗ P ⟶ Y :=
   list.rec e ((λ_ Y).hom ≫ a)
 
 namespace list
 
 theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   ((λ_ P).inv ≫ list.nil ▷ P) ≫ list.rec f g = f := by {
-      simp only [assoc]
-      refine (Iso.inv_comp_eq (λ_ P)).mpr ?_
-      sorry
-    }
+  simp only [assoc]
+  refine (Iso.inv_comp_eq (λ_ P)).mpr ?_
+  sorry}
 
 /-- Appends two lists. -/
 def append {A : C} : list A ⊗ list A ⟶ list A :=
@@ -553,6 +551,7 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ list.append = (λ_ (list A)
   rw [plist.map'_eq_rec]
   simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, assoc,
     plist.rec_nil_assoc]
+  sorry
 
 theorem append_nil {A : C} : (list A ◁ list.nil) ≫ list.append = (ρ_ (list A)).hom := by
   dsimp [list.nil,list,append,list.cons]
@@ -603,11 +602,16 @@ end list
 instance : CartesianMonoidalCategory (Type u) := sorry
 
 instance : Recursive (Type u) where
-  withRec := sorry
+  withRec := by {
+    refine fun A ↦ ?_
+    constructor
+    · sorry
+    · sorry
+  }
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
-  cmpInv := sorry
+  cmpInv A P Y := sorry
   hom_inv_id := sorry
   inv_hom_id := sorry
 
