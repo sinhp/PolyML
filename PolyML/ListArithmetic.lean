@@ -209,7 +209,17 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
   have h1 : plist.nil ≫ 𝟙 (plist A P) = plist.nil := comp_id nil
-  have h2 : plist.nil ≫ plist.rec nil cons = nil (A:=A) (P:=P) := by {simp only [rec_nil]}
+  have h2 : plist.nil ≫ plist.rec (𝟙 (plist A P)) cons = 𝟙 (plist A P) := by {simp only [rec_nil]}
+  nth_rw 1 [← h2]
+  simp only [rec, cons, Adjunction.homEquiv,nil,plist] at *
+  simp only [Functor.map_comp, Functor.map_id, id_comp] at *
+  simp only [Act.forget] at *
+  refine
+    ?_ =≫
+      ((freeForgetAdj A).counit.app
+          { a := ((freeActionFunctor A).obj P).a, str := ((freeActionFunctor A).obj P).str }).f
+  simp only [Functor.comp_obj] at *
+  simp only [forget_obj, forget_map] at *
   sorry
   }
 
@@ -252,7 +262,13 @@ theorem map_id : map (𝟙 A) = 𝟙 (plist A P) := by simp [map, rec_nil_cons_i
 theorem map_comp {A B B' P : C} (f : A ⟶ B) (g : B ⟶ B') :
     plist.map (P := P) (f ≫ g) = plist.map f ≫ plist.map g := by
   dsimp only [plist.map]
+  dsimp [rec,nil,map,plist,cons]
+  simp only [Functor.comp_obj, Adjunction.homEquiv]
+  simp only [Equiv.coe_fn_symm_mk, Functor.map_comp, assoc]
+  dsimp [Act.forget, forget_map, Act.map]
   sorry
+  --simp only [Functor.map_id, id_f, id_comp]
+  --rfl
 
 variable (P)
 
@@ -292,10 +308,49 @@ theorem map'_eq_rec {A P P' : C} {f : P ⟶ P'} :
   · simp only [nil, Adjunction.unit_naturality]
   · simp only [cons, Act.forget, forget_map, Act.hom]
 
-instance map'_iso_of_iso {A P P' : C} (f : P ⟶ P') [IsIso f] :
+theorem map'_comp {A : C} {P P' P'' : C} (f : P ⟶ P') (g : P' ⟶ P'') :
+    plist.map' A (f ≫ g) = plist.map' A f ≫ plist.map' A g := by
+  dsimp [plist.map']
+  rw [Functor.map_comp]
+  simp only [Functor.map_comp]
+
+@[simp]
+theorem map'_id (A : C) : plist.map' A (𝟙 _) = 𝟙 (plist A (𝟙_ C)) := by {
+  dsimp [plist.map']
+  simp only [Functor.map_id, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]
+  exact rfl}
+
+@[simp]
+theorem map'_id_tensor (A B : C) : plist.map' A (𝟙 (𝟙_ C ⊗ B)) = 𝟙 (plist A (𝟙_ C ⊗ B)) := by
+  dsimp [plist.map']
+  simp only [Functor.map_id]
+  rfl
+
+@[simp]
+theorem map'_id' (A : C) (P : C) : plist.map' A (𝟙 P) = 𝟙 (plist A P) := by
+  dsimp [plist.map']
+  simp only [Functor.map_id]
+  rfl
+
+instance map'_iso_of_iso {A P P' : C} (f : P ⟶ P') [h : IsIso f] :
     IsIso (plist.map' A f) := by
+  have := h.out
+  obtain ⟨finv, hfinvl, hfinvr⟩:= this
   constructor
-  sorry
+  let inv : plist A P' ⟶ plist A P := by {
+     apply map'
+     exact finv
+     }
+  use inv
+  constructor
+  · unfold inv
+    rw [← map'_comp]
+    rw [hfinvl]
+    simp only [map'_id', comp_id, whiskerLeft_id, id_comp, rec_uniq, rec_nil]
+  · unfold inv
+    rw [← map'_comp]
+    rw [hfinvr]
+    simp only [map'_id', comp_id, whiskerLeft_id, id_comp, rec_uniq, rec_nil]
 
 end plist
 
@@ -405,6 +460,11 @@ theorem list.singleton_len {A : C} :
     rw [this]
     rw [Iso.eq_comp_inv]
     simp only [assoc]
+    dsimp [plist,nil,list,plist.nil]
+    simp only [Act.forget]
+    simp only [forget_obj]
+    refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
+    simp only [comp_toUnit_assoc]
     sorry
 
 end Recursive
@@ -433,12 +493,33 @@ instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) :=
 /-- In a list-arithmetic category, `plist A B` is isomorphic to `(list A) ⊗ B`. -/
 def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
   hom := plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B
-  inv := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+  inv := cmpInv A (𝟙_ C) B ≫ ((plist.map' A (λ_ B).hom))
+  hom_inv_id := by {
+    refine (hom_comp_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
+    have := ListArithmetic.inv_hom_id (A:=A) (P :=(𝟙_ C)) (Y := B)
+    simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
+    refine Eq.symm (IsIso.inv_eq_of_inv_hom_id ?_)
+    rw [← this]
+    rw [assoc]
+    rw [assoc]
+    refine cmpInv A (𝟙_ C) B ≫= ?_
+    rw [← assoc]
+    rw [← plist.map'_comp]
+    simp only [Iso.hom_inv_id]
+    rw [plist.map'_id_tensor]
+    simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]
+  }
+  inv_hom_id := by {
+    refine (comp_hom_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
+    have := ListArithmetic.hom_inv_id (A:=A) (P :=(𝟙_ C)) (Y := B)
+    simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
+    refine Eq.symm (IsIso.inv_eq_of_hom_inv_id ?_)
+    rw [← this]
+    rw [← plist.map'_comp]
+    simp only [Iso.hom_inv_id, plist.map'_id_tensor, comp_id, whiskerLeft_id, id_comp,
+      plist.rec_uniq, plist.rec_nil]}
 
   --asIso (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)
-
 /-- Recursion scheme for the list object in a list-arithmetic category. -/
 def list.rec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) :
     list A ⊗ P ⟶ Y :=
@@ -455,24 +536,11 @@ def nno.rec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) :
 namespace list
 
 theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    ((λ_ P).inv ≫ list.nil ▷ P) ≫ list.rec f g = f := by
-  simp only [Category.assoc]
-  simp only [list, list.nil, list.rec]
-  --simp only [comp_obj, comp_f, IsIso.Iso.inv_inv]
-  nth_rw 2[← plist.rec_nil (f := f) (g := g)]
-  --refine (IsIso.eq_inv_comp (λ_ P).inv).mp ?_
-  --rw [IsIso.Iso.inv_inv]
-  rw [← Category.assoc]
-  rw [← Category.assoc]
-  refine ?_ =≫ plist.rec f g
-  refine (Iso.comp_inv_eq (plistIsoTensor A P)).mpr ?_
-  --simp only [Category.assoc]
-  --dsimp [plistIsoTensor, plist.map', plist.cmp]
-  dsimp [plistIsoTensor]
-  dsimp [plist.map']
-  dsimp [plist.cmp]
-  refine (Iso.inv_comp_eq (λ_ P)).mpr ?_
-  sorry
+  ((λ_ P).inv ≫ list.nil ▷ P) ≫ list.rec f g = f := by {
+      simp only [assoc]
+      refine (Iso.inv_comp_eq (λ_ P)).mpr ?_
+      sorry
+    }
 
 /-- Appends two lists. -/
 def append {A : C} : list A ⊗ list A ⟶ list A :=
@@ -481,42 +549,25 @@ def append {A : C} : list A ⊗ list A ⟶ list A :=
 --plist A P ≅ list A ⊗ P
 
 theorem nil_append {A : C} : list.nil ▷ list A ≫ list.append = (λ_ (list A)).hom := by
-  dsimp [list,append, list.nil, list.cons]
-  rw [← plist.map_id]
-
-
-  sorry
-
-  -- rw [← plist.map_id]
-  -- rw [← plist.map_nil (f := (𝟙 A))]
-  -- rw [← Category.assoc]
-  -- rw [← rec_nil (f := (𝟙 A))]
-  -- rw [plist.map_comp]
-  -- unfold plist.rec
-  -- simp only [plist.map_comp, plist.map_nil_assoc, plist.map_nil, Category.assoc,
-  --   Equiv.invFun_as_coe]
-  -- unfold freeActionFunctor
-  -- unfold plist.nil
-  -- unfold freeForgetAdj
-  -- unfold Act.forget
-  -- simp only [forget_obj, forget_map]
-  -- simp?
+  dsimp [list,append, list.nil, list.cons,rec,plistIsoTensor]
+  rw [plist.map'_eq_rec]
+  simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, assoc,
+    plist.rec_nil_assoc]
 
 theorem append_nil {A : C} : (list A ◁ list.nil) ≫ list.append = (ρ_ (list A)).hom := by
   dsimp [list.nil,list,append,list.cons]
-  rw [← plist.map_id]
-  simp only [plist.map_id, Category.comp_id, MonoidalCategory.whiskerLeft_id, Category.id_comp,
-    plist.rec_uniq, plist.rec_nil]
-
+  -- rw [← plist.map_id]
+  -- simp only [plist.map_id, Category.comp_id, MonoidalCategory.whiskerLeft_id, Category.id_comp,
+  --   plist.rec_uniq, plist.rec_nil]
+  -- dsimp [list.rec]
+  -- dsimp [plistIsoTensor]
   sorry
 
 theorem append_assoc {A : C} :
     list.append ▷ list A ≫ list.append =
     (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by {
-      sorry
+      sorry}
 
-
-     }
 theorem map_append {A B : C} {f : A ⟶ B} :
     list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := by
   dsimp [list.append, list.map]
@@ -540,7 +591,6 @@ def mult {A : C} : list A ⟶ A := by
  apply list.rec'
  · sorry
  · sorry
-
 
 def functor : C ⥤ C where
   obj A := list A
