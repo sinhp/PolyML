@@ -123,7 +123,7 @@ class WithRecursion (A : C) where
 category of actions on `A` to `C` has a left adjoint. -/
 class HasRecursion (A : C) where
   /-- The Act.forgetful functor from the category of actions to the category `C` has a left adjoint. -/
-  adj : IsRightAdjoint (Act.forget : Act A ⥤ C)
+  adj : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C)
 
 variable (C)
 
@@ -199,16 +199,19 @@ def rec {Y : C} (f : P ⟶ Y) (g : A ⊗ Y ⟶ Y) : plist A P ⟶ Y :=
 theorem rec_nil {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     plist.nil ≫ plist.rec f g = f := by
   dsimp [rec, nil, Adjunction.homEquiv]
-  simp only [Functor.map_comp, Adjunction.unit_naturality_assoc, Adjunction.right_triangle_components,
-    comp_id]
+  simp only [Functor.map_comp, Adjunction.unit_naturality_assoc,
+    Adjunction.right_triangle_components, comp_id]
 
 theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     plist.cons ≫ plist.rec f g = A ◁ plist.rec f g ≫ g := by
   dsimp [rec, cons, Adjunction.homEquiv]
-  sorry
+  simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
-theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by
+theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
+  have h1 : plist.nil ≫ 𝟙 (plist A P) = plist.nil := comp_id nil
+  have h2 : plist.nil ≫ plist.rec nil cons = nil (A:=A) (P:=P) := by {simp only [rec_nil]}
   sorry
+  }
 
 /-- Covariant action of `plist` on morphisms of the first argument. -/
 def map {B : C} (f : A ⟶ B) : plist A P ⟶ plist B P :=
@@ -218,8 +221,14 @@ def map {B : C} (f : A ⟶ B) : plist A P ⟶ plist B P :=
 natural transformation `Act.forget.map <| freeActionFunctorMapTriangle f` under the forgetful
 functor `Act.forget : Act B ⥤ C`. -/
 theorem map_nat_trans {B : C} {f : A ⟶ B} :
-    map (P:= P) f = (Act.forget.map <| freeActionFunctorMapTriangle f |>.app P) := by
-  sorry
+  map (P:= P) f = (Act.forget.map <| freeActionFunctorMapTriangle f |>.app P) := by
+  dsimp [Adjunction.homEquiv,freeActionFunctorMapTriangle]
+  simp only [Act.mapForgetTwoSquare,Act.mapForgetIsoSquare,Act.mapForgetIso]
+  simp only [Functor.map_id, comp_id, id_comp]
+  refine ((freeActionFunctor A).map ((freeForgetAdj B).unit.app P)).f ≫= ?_
+  dsimp [Act.forget, forget_map, Act.map]
+  simp only [Functor.map_id, id_f, id_comp]
+  rfl
 
 @[reassoc (attr := simp)]
 theorem map_nil {B: C} {f : A ⟶ B} : (nil : P ⟶ plist A P) ≫ map f = nil := by
@@ -231,13 +240,13 @@ theorem map_cons {B : C} {f : A ⟶ B} :
     (A ◁ map f) ≫ (f ▷ plist B P) ≫ cons := by
   simp only [map, rec_cons]
 
-lemma whisker_map_nil {B: C} {f : A ⟶ B} : (A ◁ plist.nil) ≫ (A ◁ plist.map f (P := P)) = (A ◁ plist.nil) := by
+lemma whisker_map_nil {B: C} {f : A ⟶ B} : (A ◁ plist.nil) ≫
+    (A ◁ plist.map f (P := P)) = (A ◁ plist.nil) := by
    rw [← whiskerLeft_comp]
    simp only [map_nil]
 
 @[simp]
-theorem map_id : map (𝟙 A) = 𝟙 (plist A P) := by
-  simp [map, rec_nil_cons_id]
+theorem map_id : map (𝟙 A) = 𝟙 (plist A P) := by simp [map, rec_nil_cons_id]
 
 @[simp]
 theorem map_comp {A B B' P : C} (f : A ⟶ B) (g : B ⟶ B') :
@@ -255,10 +264,7 @@ def functor : C ⥤ C where
 
 variable {P}
 
-
-
 open Category
-
 
 @[simp]
 /- The action morphism is unique. -/
