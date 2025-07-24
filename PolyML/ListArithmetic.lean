@@ -123,7 +123,7 @@ class WithRecursion (A : C) where
 category of actions on `A` to `C` has a left adjoint. -/
 class HasRecursion (A : C) where
   /-- The Act.forgetful functor from the category of actions to the category `C` has a left adjoint. -/
-  adj : IsRightAdjoint (Act.forget : Act A ⥤ C)
+  adj : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C)
 
 variable (C)
 
