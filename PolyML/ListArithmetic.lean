@@ -177,58 +177,58 @@ theorem freeActionFunctorMapTriangle_id {A : C} :
   -- perhpas refactor
 
 /-- The paramtetrized list of `A` with the parameter object `P` .-/
-def plist (A X : C) : C := freeActionFunctor A ⋙ Act.forget |>.obj X
+def plist (A P : C) : C := freeActionFunctor A ⋙ Act.forget |>.obj P
 
 namespace plist
 
 open Category
 
 /-r₀ : X ⟶ rec (A,X)-/
-def nil {A X : C} : X ⟶ plist A X := freeForgetAdj A |>.unit |>.app X
+def nil {A P : C} : P ⟶ plist A P := freeForgetAdj A |>.unit |>.app P
 
 /-r₁ : A × rec (A, X) ⟶ rec (A,X) -/
-def cons {A X : C} : A ⊗ plist A X ⟶ plist A X :=
-  freeActionFunctor A |>.obj X |>.str
+def cons {A P : C} : A ⊗ plist A P ⟶ plist A P :=
+  freeActionFunctor A |>.obj P |>.str
 
 /-- Covariant action of `plist` on morphisms of the first argument. -/
-def map {A A' X : C} (f : A ⟶ A') : plist A X ⟶ plist A' X :=
-  Act.forget.map <| freeActionFunctorMapTriangle f |>.app X
+def map {A A' P : C} (f : A ⟶ A') : plist A P ⟶ plist A' P :=
+  Act.forget.map <| freeActionFunctorMapTriangle f |>.app P
 
 @[reassoc (attr := simp)]
-theorem map_nil {A A' X : C} {f : A ⟶ A'} :
-    (nil : X ⟶ plist A X) ≫ map f = nil := by
+theorem map_nil {A A' P : C} {f : A ⟶ A'} :
+    (nil : P ⟶ plist A P) ≫ map f = nil := by
   dsimp [map, nil, freeActionFunctorMapTriangle]
   simp only [Category.comp_id, Category.id_comp, map_comp,
     Adjunction.unit_naturality_assoc,
     Adjunction.right_triangle_components]
-  exact Category.comp_id ((freeForgetAdj A').unit.app X)
+  exact Category.comp_id ((freeForgetAdj A').unit.app P)
 
 @[simp]
-theorem map_cons {A A' X : C} {f : A ⟶ A'} :
-    (cons : A ⊗ plist A X ⟶ plist A X) ≫ map f =
-    (A ◁ map f) ≫ (f ▷ plist A' X) ≫ cons := by
+theorem map_cons {A A' P : C} {f : A ⟶ A'} :
+    (cons : A ⊗ plist A P ⟶ plist A P) ≫ map f =
+    (A ◁ map f) ≫ (f ▷ plist A' P) ≫ cons := by
   dsimp only [map, cons, Act.forget, Algebra.forget]
   simp only [← Act.hom, plist]
   congr 1
 
-lemma foo {A A' X : C} {f : A ⟶ A'} : (A ◁ plist.nil) ≫ (A ◁ plist.map f (X := X)) = (A ◁ plist.nil) := by {
-      refine hom_ext (A ◁ plist.nil (X := X) ≫ A ◁ plist.map f) (A ◁ plist.nil) ?_ ?_
+lemma foo {A A' P : C} {f : A ⟶ A'} : (A ◁ plist.nil) ≫ (A ◁ plist.map f (P := P)) = (A ◁ plist.nil) := by {
+      refine hom_ext (A ◁ plist.nil (P := P) ≫ A ◁ plist.map f) (A ◁ plist.nil) ?_ ?_
       simp only [assoc, whiskerLeft_fst]
       simp only [assoc]
       simp only [whiskerLeft_snd, whiskerLeft_snd_assoc]
-      refine snd A X ≫= ?_
+      refine snd A P ≫= ?_
       rw [← plist.map_nil (f := f)]
     }
 
 open Category
 
 @[simp]
-theorem map_id {A X : C} : map (𝟙 A) = 𝟙 (plist A X) := by {
-  have H1 : (nil : X ⟶ plist A X) ≫ map (𝟙 A) = (nil : X ⟶ plist A X) := by {
+theorem map_id {A P : C} : map (𝟙 A) = 𝟙 (plist A P) := by {
+  have H1 : (nil : P ⟶ plist A P) ≫ map (𝟙 A) = (nil : P ⟶ plist A P) := by {
     simp only [map_nil]
   }
-  have H2 : nil ≫ 𝟙 (plist A X) = nil := by {simp only [comp_id]}
-  have :  (nil : X ⟶ plist A X) ≫ map (𝟙 A) = nil ≫ 𝟙 (plist A X) := by {
+  have H2 : nil ≫ 𝟙 (plist A P) = nil := by {simp only [comp_id]}
+  have :  (nil : P ⟶ plist A P) ≫ map (𝟙 A) = nil ≫ 𝟙 (plist A P) := by {
     rw [H2]
     simp only [map_nil]
   }
@@ -237,7 +237,7 @@ theorem map_id {A X : C} : map (𝟙 A) = 𝟙 (plist A X) := by {
 
 @[simp]
 theorem map_comp {A A' A'' P : C} (f : A ⟶ A') (g : A' ⟶ A'') :
-    plist.map (X := P) (f ≫ g) = plist.map f ≫ plist.map g := by
+    plist.map (P := P) (f ≫ g) = plist.map f ≫ plist.map g := by
   dsimp only [plist.map]
   simp only [Act.forget, Algebra.forget]
   sorry
@@ -249,14 +249,14 @@ def functor (P : C) : C ⥤ C where
   map_comp := plist.map_comp
 
 /-- The recursor morphism obtained as an adjoint transpose. -/
-def rec {A X C' : C} (f : X ⟶ C') (g : A ⊗ C' ⟶ C') : plist A X ⟶ C' :=
-  Act.forget.map <| freeForgetAdj A |>.homEquiv X ⟨C', g⟩ |>.invFun f
+def rec {A P C' : C} (f : P ⟶ C') (g : A ⊗ C' ⟶ C') : plist A P ⟶ C' :=
+  Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨C', g⟩ |>.invFun f
 
 open Category
 
 /- r₀ ≫ rec g f = f -/
 @[reassoc (attr := simp)]
-theorem rec_nil {A X C' : C} {f : X ⟶ C'} {g : A ⊗ C' ⟶ C'} :
+theorem rec_nil {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'} :
     plist.nil ≫ plist.rec f g = f := by {
   dsimp [rec, map,nil, Adjunction.homEquiv]
   simp only [Functor.map_comp, Adjunction.unit_naturality_assoc,
@@ -265,28 +265,29 @@ theorem rec_nil {A X C' : C} {f : X ⟶ C'} {g : A ⊗ C' ⟶ C'} :
 
 @[reassoc (attr := simp)]
 /- rec g f ≫ r₁ = id_A × rec g f ≫ g -/
-theorem rec_cons {A X C' : C} {f : X ⟶ C'} {g : A ⊗ C' ⟶ C'} :
+theorem rec_cons {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'} :
     plist.cons ≫ plist.rec f g = A ◁ (plist.rec f g) ≫ g := by
   dsimp [rec, map, nil, Adjunction.homEquiv, cons]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
 @[simp]
 /- The action morphism is unique. -/
-theorem rec_uniq {A X C' : C} {f : X ⟶ C'} {g : A ⊗ C' ⟶ C'}
-   (h : plist A X ⟶ C')
+theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
+   (h : plist A P ⟶ C')
   (hh₁ : plist.nil ≫ h = f) (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) :
     h = plist.rec f g := by {
     have Hnil: plist.nil ≫ plist.rec h g = h := rec_nil
-    have Hcons : plist.cons ≫ plist.rec h g = A ◁ (plist.rec h g) ≫ g := by {simp only [rec_cons]}
+    have Hcons : plist.cons ≫ plist.rec h g = A ◁ (plist.rec h g) ≫ g :=
+       by {simp only [rec_cons]}
     sorry
     }
 
 /-- The comparision morphism `plist A (X ⊗ C') ⟶ (plist A X) ⊗ C`. -/
-def cmp (A X C' : C) : plist A (X ⊗ C') ⟶ (plist A X) ⊗ C' :=
+def cmp (A P C' : C) : plist A (P ⊗ C') ⟶ (plist A P) ⊗ C' :=
   plist.rec (plist.nil ▷ C') ((α_ _ _ _).inv ≫ (plist.cons ▷ C'))
 
 /-- `plist` is functorial in parameter `X`. -/
-def map' (A : C) {X X' : C} (f : X ⟶ X') : plist A X ⟶ plist A X' :=
+def map' (A : C) {P P' : C} (f : P ⟶ P') : plist A P ⟶ plist A P' :=
   Act.forget.map <| freeActionFunctor A |>.map f
 
 theorem map'_eq_rec {A P P' : C} {f : P ⟶ P'} :
@@ -310,11 +311,11 @@ namespace list
 
 /- ε : 1 ⟶ list A -/
 def nil {A : C} : 𝟙_ C ⟶ list A :=
-  plist.nil (X := 𝟙_ C)
+  plist.nil (P := 𝟙_ C)
 
 /- const : A × list A ⟶ list A -/
 def cons (A : C) : A ⊗ list A ⟶ list A :=
-  plist.cons (X := 𝟙_ C)
+  plist.cons (P := 𝟙_ C)
 
 /-- The weak recursion scheme for the list object. See `list.rec`
 for the strong recursion scheme. -/
@@ -328,7 +329,7 @@ def foldl {A Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
   plist.rec e ((β_ A Y).hom ≫ f)
 
 def map {A A' : C} (f : A ⟶ A') : list A ⟶ list A' :=
-  plist.map (X := 𝟙_ C) f
+  plist.map (P := 𝟙_ C) f
 
 @[reassoc (attr := simp)]
 theorem map_nil {A A' : C} {f : A ⟶ A'} :
