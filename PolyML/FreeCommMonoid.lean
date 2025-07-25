@@ -8,13 +8,15 @@ import PolyML.FreeMonoid
 import PolyML.ListArithmetic
 
 /-
-In this file, we define `bag A` as the free commutative monoid on `A`, and establish useful relations between `bag A` and `list A`.
+In this file, we define `bag A` as the free commutative monoid on `A`,
+and establish useful relations between `bag A` and `list A`.
 -/
 
 
 namespace CategoryTheory
 
-open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory Mon_Class CommMon_
+open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory
+  Mon_Class CommMon_
 
 universe v u
 
@@ -59,38 +61,45 @@ def nil : 𝟙_C ⟶ bag A :=
 
 def singleton : A ⟶ bag A := WithBags.adj.unit.app A
 
-/-- Given a commutative monoid object `M` in `C`, this lifts `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
+/-- Given a commutative monoid object `M` in `C`, this lifts
+  `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
 def lift {M : CommMon_ C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
   bagMon.lift f |> (forget C).map
 
 #check η
 
+omit [Recursive C] [ListArithmetic C] in
 theorem lift_one {M : CommMon_ C} {f : A ⟶ M.X} :
     η ≫ lift f = η := by
-  sorry
+  dsimp [lift]
+  simp only [IsMon_Hom.one_hom]
 
+omit [Recursive C] [ListArithmetic C] in
 theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
     μ ≫ lift f = (lift f ⊗ₘ lift f) ≫ μ := by
-  sorry
+  dsimp [lift]
+  simp only [IsMon_Hom.mul_hom]
 
 theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
-    singleton ≫ lift f = f := by
-  sorry
+  singleton ≫ lift f = f := sorry
 
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B :=
   lift (f ≫ singleton)
 
+omit [Recursive C] [ListArithmetic C] in
 theorem map_nil {M : CommMon_ C} {f : A ⟶ M.X} :
     η ≫ lift f = η := by
-  sorry
+  dsimp [lift]
+  simp only [IsMon_Hom.one_hom]
 
 def ofList : list A ⟶ bag A :=
   list.lift (bag.singleton)
 
+omit [ListArithmetic C] in
 theorem ofList_nil : list.nil ≫ ofList = bag.nil (A:= A) := by
-  sorry
-
+  simp only [bag.nil, ofList, singleton, list.nil, list.lift,list.foldl]
+  simp only [plist.rec_nil]
 
 /-
 TODO: show that `ofList` is a quotient morphism. The relation should be thought of as
@@ -98,12 +107,6 @@ the permutation relation on lists, i.e. `l1 ~ l2` if `l1` can be obtained from `
 
 Tip: can we show for instance that this map is an effective epi? If so, every effective epi is regular and therefore W is `perm` relation.
 -/
-
-
-
-
-
-
 
 /-
 TODO:
