@@ -52,8 +52,6 @@ namespace CategoryTheory
 
 open Category Opposite Limits MonoidalCategory CartesianMonoidalCategory
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
-
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
 open Endofunctor Algebra
@@ -64,9 +62,11 @@ morphism `A ⊗ S → S`. The pairs `(S, A ⊗ S → S)` are objects of the cate
 of algebras for the left-tensoring endofunctor `A ⊗ -` on `C`. One may regard the objects of this
 category as state-changing alphabet `A` acting on sets of states `S`.
 -/
-private abbrev Act (A : C) := Algebra <| tensorLeft A
+abbrev Act {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] (A : C) := Algebra <| tensorLeft A
 
 namespace Act
+
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
 
 @[simp]
 lemma hom {A : C} {σ σ' : Act A} {f : σ ⟶ σ'} : A ◁ f.1 ≫ σ'.str = σ.str ≫ f.1 := f.h
@@ -115,29 +115,30 @@ def mapForgetTwoSquare {A B : C} (f : A ⟶ B) :
 
 end Act
 
-class WithRecursion (A : C) where
+class WithRecursion {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] (A : C) where
   freeActionFunctor : C ⥤ Act A
   freeForgetAdj : freeActionFunctor ⊣ Act.forget
 
 /-- An object `A` in a category `C` is called **recursive** if the forgetful functor from the
 category of actions on `A` to `C` has a left adjoint. -/
-class HasRecursion (A : C) where
-  /-- The Act.forgetful functor from the category of actions to the category `C` has a left adjoint. -/
+class HasRecursion {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] (A : C) where
+  /-- The Act.forgetful functor from the category of actions to the category `C` has a
+  left adjoint. -/
   adj : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C)
 
 variable (C)
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
-class Recursive where
+class Recursive (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C] where
   withRec (A : C) : WithRecursion A
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
-class IsRecursive where
+class IsRecursive (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C] where
   has_rec (A : C) : HasRecursion A
 
 namespace IsRecursive
 
-variable {C} [IsRecursive C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [IsRecursive C]
 
 instance (A : C) : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C) :=
   (IsRecursive.has_rec A).adj
@@ -153,7 +154,7 @@ end IsRecursive
 
 namespace Recursive
 
-variable {C} [Recursive C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C][Recursive C]
 
 def freeActionFunctor (A : C) : C ⥤ Act A := (withRec A).freeActionFunctor
 
@@ -283,9 +284,6 @@ theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
     sorry
     --rw [← hh₁]
     --have Hnil: plist.nil ≫ plist.rec h g = h := rec_nil
-
-
-
 
     -- have Hcons : plist.cons ≫ plist.rec h g = A ◁ (plist.rec h g) ≫ g :=
     --    by {simp only [rec_cons]}
@@ -471,33 +469,31 @@ end Recursive
 
 open Recursive
 
-variable [Recursive C]
-
-class ListArithmetic' where
-  is_iso {A P Y : C} : IsIso (plist.cmp A P Y)
+-- class ListArithmetic' where
+--   is_iso {A P Y : C} : IsIso (plist.cmp A P Y)
 
 /-- A recursive category is list-arithmetic if the comparison morphisms `cmp A P Y` are
 all isomorphisms. -/
-class ListArithmetic where
+class ListArithmetic (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C] extends Recursive C where
   cmpInv (A P Y : C) : plist A P ⊗ Y ⟶ plist A (P ⊗ Y)
   hom_inv_id : plist.cmp A P Y ≫ cmpInv A P Y = 𝟙 _
   inv_hom_id : cmpInv A P Y ≫ plist.cmp A P Y = 𝟙 _
 
 namespace ListArithmetic
 
-variable {C} [ListArithmetic C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C][ListArithmetic C]
 
-instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) := by {
+instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) := by
   use cmpInv A P Y
   constructor
   rw [ListArithmetic.hom_inv_id]
-  rw [ListArithmetic.inv_hom_id]}
+  rw [ListArithmetic.inv_hom_id]
 
 /-- In a list-arithmetic category, `plist A B` is isomorphic to `(list A) ⊗ B`. -/
 def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
   hom := plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B
   inv := cmpInv A (𝟙_ C) B ≫ ((plist.map' A (λ_ B).hom))
-  hom_inv_id := by {
+  hom_inv_id := by
     refine (hom_comp_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
     have := ListArithmetic.inv_hom_id (A:=A) (P :=(𝟙_ C)) (Y := B)
     simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
@@ -510,8 +506,8 @@ def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id]
     rw [plist.map'_id_tensor]
-    simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]}
-  inv_hom_id := by {
+    simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]
+  inv_hom_id := by
     refine (comp_hom_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
     have := ListArithmetic.hom_inv_id (A:=A) (P :=(𝟙_ C)) (Y := B)
     simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
@@ -519,7 +515,7 @@ def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
     rw [← this]
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id, plist.map'_id_tensor, comp_id, whiskerLeft_id, id_comp,
-      plist.rec_uniq, plist.rec_nil]}
+      plist.rec_uniq, plist.rec_nil]
 
   --asIso (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)
 /-- Recursion scheme for the list object in a list-arithmetic category. -/
@@ -623,12 +619,6 @@ def mult {A : C} : list A ⟶ A := by
  · sorry
  · sorry
 
-def functor : C ⥤ C where
-  obj A := list A
-  map := list.map
-  map_id _ := plist.map_id
-  map_comp := plist.map_comp
-
 end list
 
 instance : CartesianMonoidalCategory (Type u) := sorry
@@ -667,7 +657,7 @@ an object with recursion is a monoidal category.
 We show that in a list-arithmetic category, the list object is
 the free monoid object.
 -/
-variable [Recursive C] [ListArithmetic C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 

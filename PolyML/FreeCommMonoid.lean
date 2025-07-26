@@ -15,13 +15,11 @@ and establish useful relations between `bag A` and `list A`.
 
 namespace CategoryTheory
 
-open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory
-  Mon_Class CommMon_
+open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory Mon_Class CommMon_
 
 universe v u
 
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
-[Recursive C] [ListArithmetic C]
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
@@ -66,15 +64,11 @@ def singleton : A ⟶ bag A := WithBags.adj.unit.app A
 def lift {M : CommMon_ C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
   bagMon.lift f |> (forget C).map
 
-#check η
-
-omit [Recursive C] [ListArithmetic C] in
 theorem lift_one {M : CommMon_ C} {f : A ⟶ M.X} :
     η ≫ lift f = η := by
   dsimp [lift]
   simp only [IsMon_Hom.one_hom]
 
-omit [Recursive C] [ListArithmetic C] in
 theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
     μ ≫ lift f = (lift f ⊗ₘ lift f) ≫ μ := by
   dsimp [lift]
@@ -87,17 +81,15 @@ theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B :=
   lift (f ≫ singleton)
 
-omit [Recursive C] [ListArithmetic C] in
 theorem map_nil {M : CommMon_ C} {f : A ⟶ M.X} :
     η ≫ lift f = η := by
   dsimp [lift]
   simp only [IsMon_Hom.one_hom]
 
-def ofList : list A ⟶ bag A :=
+def ofList [ListArithmetic C] : list A ⟶ bag A :=
   list.lift (bag.singleton)
 
-omit [ListArithmetic C] in
-theorem ofList_nil : list.nil ≫ ofList = bag.nil (A:= A) := by
+theorem ofList_nil [ListArithmetic C] : list.nil ≫ ofList = bag.nil (A:= A) := by
   simp only [bag.nil, ofList, singleton, list.nil, list.lift,list.foldl]
   simp only [plist.rec_nil]
 
