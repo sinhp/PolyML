@@ -25,13 +25,13 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 variable (C)
 
 class WithBags where
-  bagFunctor : C ⥤ CommMon_ C
-  adj : bagFunctor ⊣ CommMon_.forget C
+  functor : C ⥤ CommMon_ C
+  adj : functor ⊣ CommMon_.forget C
 
 variable {C} [WithBags C]
 
 /-- The common monoid structure on `bag A` is given by the free commutative monoid functor. -/
-def freeCommMon (A : C) : CommMon_ C := WithBags.bagFunctor.obj A
+def freeCommMon (A : C) : CommMon_ C := WithBags.functor.obj A
 
 def freeCommMon.lift {M : CommMon_ C} (f : A ⟶ M.X) : freeCommMon A ⟶ M :=
   (WithBags.adj.homEquiv A M).invFun f
@@ -49,6 +49,9 @@ namespace bag
 
 variable {A : C}
 
+def functor : C ⥤ C :=
+  WithBags.functor ⋙ CommMon_.forget C
+
 instance mon_Class : Mon_Class (bag A) := bagMon A |> Mon_.mon
 
 instance isCommMon : IsCommMon (bag A) := freeCommMon A |> CommMon_.comm
@@ -62,8 +65,6 @@ theorem append_symm : (β_ (bag A) (bag A)).hom ≫ append = append := by
   sorry
 
 def singleton : A ⟶ bag A := WithBags.adj.unit.app A
-
-#check List.cons
 
 def cons : A ⊗ bag A ⟶ bag A :=
   (singleton ▷ bag A) ≫ append
@@ -91,16 +92,32 @@ theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
   simp only [IsMon_Hom.mul_hom]
 
 theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
-  singleton ≫ lift f = f := sorry
+    singleton ≫ lift f = f := by
+  sorry
 
 /-- The functorial action of `bag` on morphisms. -/
-def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B :=
-  lift (f ≫ singleton)
+def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.functor.map f
 
-theorem map_nil {M : CommMon_ C} {f : A ⟶ M.X} :
-    η ≫ lift f = η := by
-  dsimp [lift]
-  simp only [IsMon_Hom.one_hom]
+theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
+  sorry
+
+@[simp]
+theorem map_nil {B : C} {f : A ⟶ B} :
+    η ≫ map f = η := by
+  sorry
+
+@[simp]
+theorem map_singleton {B : C} {f : A ⟶ B} :
+    singleton ≫ map f = f ≫ singleton := by
+  sorry
+
+theorem append_map {B : C} {f : A ⟶ B} :
+    (map f ⊗ₘ map f) ≫ μ = μ ≫ map f := by
+  sorry
+
+theorem cons_map {B : C} {f : A ⟶ B} :
+    (f ⊗ₘ map f) ≫ cons = cons ≫ map f := by
+  sorry
 
 def ofList [ListArithmetic C] : list A ⟶ bag A :=
   list.lift (bag.singleton)
@@ -112,6 +129,10 @@ theorem ofList_nil [ListArithmetic C] : list.nil ≫ ofList = bag.nil (A:= A) :=
 theorem ofList_cons [ListArithmetic C] :
     list.cons (A:= A) ≫ ofList = A ◁ ofList ≫ bag.cons := by
   sorry
+
+
+
+
 
 /-
 TODO: show that `ofList` is a quotient morphism. The relation should be thought of as
@@ -128,6 +149,9 @@ show that any internal commutative monoid structure is equivalent to the data of
 Therefore a bag structure on `A` is equivalent to the data of an aggregator.
 
 -/
+
+
+
 
 
 end bag

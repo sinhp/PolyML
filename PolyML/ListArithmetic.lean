@@ -362,8 +362,8 @@ namespace list
 def nil {A : C} : 𝟙_ C ⟶ list A :=
   plist.nil (P := 𝟙_ C)
 
-/- const : A × list A ⟶ list A -/
-def cons (A : C) : A ⊗ list A ⟶ list A :=
+/- cons : A × list A ⟶ list A -/
+def cons {A : C} : A ⊗ list A ⟶ list A :=
   plist.cons (P := 𝟙_ C)
 
 /-- The weak recursion scheme for the list object. See `list.rec`
@@ -387,13 +387,13 @@ theorem map_nil {A B : C} {f : A ⟶ B} :
 
 @[simp]
 theorem map_cons {A B : C} {f : A ⟶ B} :
-    (list.cons A : A ⊗ list A ⟶ list A) ≫ list.map f =
-    (A ◁ list.map f) ≫ (f ▷ list B) ≫ list.cons B := by
+    (cons : A ⊗ list A ⟶ list A) ≫ map f =
+    (A ◁ map f) ≫ (f ▷ list B) ≫ cons := by
   simp only [list, list.cons, list.map, plist.map_cons]
 
 @[simp]
 theorem map_comp {A B B' : C} (f : A ⟶ B) (g : B ⟶ B') :
-    list.map (f ≫ g) = list.map f ≫ list.map g := by
+    map (f ≫ g) = map f ≫ map g := by
   simp only [list.map, plist.map_comp]
 
 @[simp]
@@ -401,7 +401,7 @@ theorem map_id {A : C} : list.map (𝟙 A) = 𝟙 (list A) := by
   simp only [list.map, plist.map_id, list]
 
 def singleton {A : C} : A ⟶ list A :=
-  (ρ_ A).inv ≫ (A ◁ (list.nil)) ≫ list.cons A
+  (ρ_ A).inv ≫ (A ◁ (list.nil)) ≫ list.cons
 
 end list
 
@@ -420,7 +420,7 @@ def nno.zero : 𝟙_ C ⟶ N_ C :=
   list.nil
 
 def nno.succ : N_ C ⟶ N_ C :=
-  (λ_ _).inv ≫ list.cons (𝟙_ C)
+  (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
 
 def nno.one : 𝟙_ C ⟶ N_ C :=
   nno.zero ≫ nno.succ
@@ -442,7 +442,7 @@ theorem list.singleton_len {A : C} :
     rw [← assoc]
     rw [← assoc]
     rw [← assoc]
-    refine ?_ =≫ cons (𝟙_ C)
+    refine ?_ =≫ cons (A:= 𝟙_ C)
     have h1 : ((((ρ_ A).inv ≫ A ◁ plist.nil) ≫ A ◁ map (toUnit A))) =
       (((ρ_ A).inv ≫ (A ◁ plist.nil ≫ A ◁ map (toUnit A)))) := by {rw [assoc]}
     rw [h1]
@@ -548,7 +548,7 @@ theorem rec_nil' {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 
 /-- Appends two lists. -/
 def append {A : C} : list A ⊗ list A ⟶ list A :=
-  list.rec (𝟙 _) (list.cons A)
+  list.rec (𝟙 _) (list.cons)
 
 theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   refine (Iso.inv_comp_eq_id (λ_ (list A))).mp ?_
@@ -571,7 +571,7 @@ theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
   (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by {
   dsimp [list.append, list.map]
   rw [← assoc]
-  refine ?_ =≫ rec (𝟙 (list A)) (list.cons A)
+  refine ?_ =≫ rec (𝟙 (list A)) (list.cons)
   dsimp [list.nil]
   dsimp [list.cons]
   dsimp [rec]
