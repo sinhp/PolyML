@@ -4,14 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Monoidal.CommMon_
-import PolyML.FreeMonoid
+import PolyML.FreeMon
 import PolyML.ListArithmetic
 
 /-
 In this file, we define `bag A` as the free commutative monoid on `A`,
 and establish useful relations between `bag A` and `list A`.
 -/
-
 
 namespace CategoryTheory
 
@@ -54,10 +53,27 @@ instance mon_Class : Mon_Class (bag A) := bagMon A |> Mon_.mon
 
 instance isCommMon : IsCommMon (bag A) := freeCommMon A |> CommMon_.comm
 
-def nil : 𝟙_C ⟶ bag A :=
-  bagMon A |>.mon |>.one
+def nil : 𝟙_C ⟶ bag A := η
+
+def append : bag A ⊗ bag A ⟶ bag A := μ
+
+/-- `append` is symmetric because for bags. -/
+theorem append_symm : (β_ (bag A) (bag A)).hom ≫ append = append := by
+  sorry
 
 def singleton : A ⟶ bag A := WithBags.adj.unit.app A
+
+#check List.cons
+
+def cons : A ⊗ bag A ⟶ bag A :=
+  (singleton ▷ bag A) ≫ append
+
+def snoc : bag A ⊗ A ⟶ bag A :=
+  (bag A ◁ singleton) ≫ append
+
+/-- Appending an element as head or tail is the same operation for bags. -/
+theorem cons_snoc : (β_ A (bag A)).hom ≫ snoc = cons := by
+  sorry
 
 /-- Given a commutative monoid object `M` in `C`, this lifts
   `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
@@ -92,6 +108,10 @@ def ofList [ListArithmetic C] : list A ⟶ bag A :=
 theorem ofList_nil [ListArithmetic C] : list.nil ≫ ofList = bag.nil (A:= A) := by
   simp only [bag.nil, ofList, singleton, list.nil, list.lift,list.foldl]
   simp only [plist.rec_nil]
+
+theorem ofList_cons [ListArithmetic C] :
+    list.cons (A:= A) ≫ ofList = A ◁ ofList ≫ bag.cons := by
+  sorry
 
 /-
 TODO: show that `ofList` is a quotient morphism. The relation should be thought of as
