@@ -62,7 +62,8 @@ def append : bag A ⊗ bag A ⟶ bag A := μ
 
 /-- `append` is symmetric because for bags. -/
 theorem append_symm : (β_ (bag A) (bag A)).hom ≫ append = append := by
-  sorry
+  dsimp [bag, append]
+  simp only [IsCommMon.mul_comm, forget₂Mon_obj_mul]
 
 def singleton : A ⟶ bag A := WithBags.adj.unit.app A
 
@@ -104,20 +105,29 @@ theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
 @[simp]
 theorem map_nil {B : C} {f : A ⟶ B} :
     η ≫ map f = η := by
-  sorry
+  rw [map_eq_lift]
+  dsimp [lift]
+  simp only [IsMon_Hom.one_hom, forget₂Mon_obj_one]
 
 @[simp]
 theorem map_singleton {B : C} {f : A ⟶ B} :
     singleton ≫ map f = f ≫ singleton := by
-  sorry
+  rw [map_eq_lift, lift_singleton]
 
 theorem append_map {B : C} {f : A ⟶ B} :
     (map f ⊗ₘ map f) ≫ μ = μ ≫ map f := by
-  sorry
+  rw [map_eq_lift]
+  rw [lift_mul]
 
 theorem cons_map {B : C} {f : A ⟶ B} :
     (f ⊗ₘ map f) ≫ cons = cons ≫ map f := by
   sorry
+  -- dsimp [cons]
+  -- dsimp [append]
+  -- simp only [assoc, ← append_map, forget₂Mon_obj_mul]
+  -- rw [map_eq_lift]
+  -- simp only [← lift_mul]
+  -- rw [← assoc]
 
 def ofList [ListArithmetic C] : list A ⟶ bag A :=
   list.lift (bag.singleton)
@@ -128,6 +138,8 @@ theorem ofList_nil [ListArithmetic C] : list.nil ≫ ofList = bag.nil (A:= A) :=
 
 theorem ofList_cons [ListArithmetic C] :
     list.cons (A:= A) ≫ ofList = A ◁ ofList ≫ bag.cons := by
+  simp only [ofList, singleton,list.lift,list.foldl]
+  dsimp [list.cons]
   sorry
 
 

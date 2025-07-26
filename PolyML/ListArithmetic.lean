@@ -209,7 +209,9 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
-  rw [← rec_nil (f := 𝟙 (plist A P)) (g := plist.cons)]
+  dsimp [rec, nil, Adjunction.homEquiv]
+  simp only [Act.forget, Algebra.forget,← Act.hom, plist]
+  simp only [Functor.comp_obj, comp_f]
   sorry
   }
 
@@ -585,8 +587,29 @@ theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
 
 theorem map_append {A B : C} {f : A ⟶ B} :
     list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := by
-  --dsimp [list.append, list.map]
+  dsimp [list.append]
+  rw [← list.map_id]
+  rw [← list.map_id]
+  dsimp [list.cons]
+  dsimp [list.map]
+  simp only [plist.map_id, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil,
+    plist.map_nil]
+  dsimp [rec]
+  dsimp [plist.cons]
+  --rw [plist.map_nat_trans]
+  dsimp [plistIsoTensor]
+  rw [plist.map'_eq_rec]
+  dsimp [list]
   sorry
+
+  -- simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, assoc,
+  --   plist.rec_nil_assoc]
+  --dsimp [Adjunction.homEquiv,freeActionFunctorMapTriangle]
+  --simp only [Act.mapForgetTwoSquare,Act.mapForgetIsoSquare,Act.mapForgetIso]
+
+
+
+
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev {A : C} : list A ⟶ list A :=
