@@ -94,9 +94,40 @@ theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
   dsimp [lift]
   simp only [IsMon_Hom.mul_hom]
 
+open CategoryTheory.Adjunction
+open CategoryTheory.Functor
+
 theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
+<<<<<<< Updated upstream:PolyML/FreeCommMon.lean
     singleton ≫ lift f = f := by
   sorry
+=======
+  singleton ≫ lift f = f := by {
+    dsimp [lift,singleton]
+    dsimp [bagMon.lift]
+    dsimp [freeCommMon.lift]
+    rw [Adjunction.homEquiv]
+    -- rw [ranCounit_app_app_ranAdjunction_unit_app_app]
+    -- simp only [forget_obj, comp_obj, forget_map, comp', Equiv.coe_fn_symm_mk, Mon_.comp_hom',
+    --   toMon__X]
+    -- rw [← CategoryTheory.Adjunction.homEquiv_id]
+    -- rw [Adjunction.homEquiv]
+    -- simp only [forget_obj, comp_obj, forget_map, comp', id', Equiv.coe_fn_mk, Mon_.id_hom',
+    --   toMon__X, assoc]
+
+
+
+    --simp only [homEquiv_naturality_left_symm]
+    --rw [CategoryTheory.Adjunction.mkOfHomEquiv_counit_app]
+    --simp only [CategoryTheory.Adjunction.right_triangle]
+
+
+    sorry
+
+  }
+
+#check CategoryTheory.Adjunction.homEquiv_id
+>>>>>>> Stashed changes:PolyML/FreeCommMonoid.lean
 
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.functor.map f

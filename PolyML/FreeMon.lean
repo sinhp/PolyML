@@ -17,7 +17,34 @@ open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory M
 
 universe v u
 
+<<<<<<< Updated upstream:PolyML/FreeMon.lean
 variable (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
+=======
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C]
+[Recursive C] [ListArithmetic C]
+
+attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+
+namespace list
+
+/-- Given a monoid object `M` in `C`, we define a morphism from `list X` to `M.X` by folding the list with the multiplication of the monoid. -/
+def lift {X : C} {M : Mon_ C} (f : X ⟶ M.X) : list X ⟶ M.X :=
+  list.foldl ((M.X ◁ f) ≫ μ[M.X]) η[M.X]
+
+theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
+    η ≫ list.lift f = η := by
+  dsimp [list.lift]
+  dsimp [list.foldl]
+  sorry
+
+theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
+    μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
+  dsimp [list.lift]
+  dsimp [list.foldl]
+  sorry
+
+end list
+>>>>>>> Stashed changes:PolyML/FreeMonoid.lean
 
 /-- The free monoid functor given by the list objects of a list-arithmetic category. -/
 @[simps]

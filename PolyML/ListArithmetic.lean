@@ -209,9 +209,19 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
+<<<<<<< Updated upstream
   dsimp [rec, nil, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
   simp only [Functor.comp_obj, comp_f]
+=======
+  rw [← rec_nil (f := 𝟙 (plist A P)) (g := plist.cons)]
+
+
+
+
+
+
+>>>>>>> Stashed changes
   sorry
   }
 
@@ -245,8 +255,6 @@ theorem map_cons {B : C} {f : A ⟶ B} :
 lemma whisker_map_nil {B: C} {f : A ⟶ B} : (A ◁ plist.nil) ≫
   (A ◁ plist.map f (P := P)) = (A ◁ plist.nil) := by
   aesop
-  -- rw [← whiskerLeft_comp]
-  -- simp only [map_nil]
 
 lemma whisker_map_nil_right {B: C} {f : A ⟶ B} : (plist.nil ▷ P) ≫
 (plist.map f (P := P) ▷ P) = (plist.nil ▷ P) := by
@@ -532,7 +540,7 @@ def nno.rec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) : N_ C ⊗ P ⟶ Y :=
 
 namespace list
 
-theorem rec_nil' {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   ((λ_ P).inv ≫ list.nil ▷ P) ≫ list.rec f g = f := by {
   dsimp [rec]
   nth_rw 2 [← plist.rec_nil (f := f) (g := g)]
@@ -556,7 +564,7 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom
   refine (Iso.inv_comp_eq_id (λ_ (list A))).mp ?_
   rw [← assoc]
   dsimp [append]
-  apply rec_nil'
+  apply rec_nil
 
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
   refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
@@ -582,8 +590,7 @@ theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
   dsimp [list]
   refine (Iso.inv_comp_eq (α_ (plist A (𝟙_ C)) (plist A (𝟙_ C)) (plist A (𝟙_ C)))).mp ?_
   rw [assoc]
-  sorry
-  }
+  sorry}
 
 theorem map_append {A B : C} {f : A ⟶ B} :
     list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := by
@@ -650,10 +657,7 @@ instance : Recursive (Type u) where
   withRec := sorry
 
 /-- The category of types is list-arithmetic. -/
-instance : ListArithmetic (Type u) where
-  cmpInv A P Y := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+instance : ListArithmetic (Type u) := sorry
 
 end ListArithmetic
 
