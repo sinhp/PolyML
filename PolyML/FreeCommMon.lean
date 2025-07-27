@@ -12,6 +12,13 @@ import PolyML.ListArithmetic
 /-
 In this file, we define `bag A` as the free commutative monoid on `A`,
 and establish useful relations between `bag A` and `list A`.
+
+We also that show that any internal commutative monoid structure is the same as the data of an
+algbera for the bag monad. Given a monoid structure on `A`, we define an aggregator morphism
+`bag A ⟶ A` as the structure map of the algebra.
+
+Therefore a bag structure on `A` is equivalent to the data of an aggregator.
+
 -/
 
 namespace CategoryTheory
@@ -64,6 +71,7 @@ def nil : 𝟙_C ⟶ bag A := η
 def append : bag A ⊗ bag A ⟶ bag A := μ
 
 /-- `append` is symmetric because for bags. -/
+@[reassoc (attr := simp)]
 theorem append_symm : (β_ (bag A) (bag A)).hom ≫ append = append := by
   dsimp [bag, append]
   simp only [IsCommMon.mul_comm, forget₂Mon_obj_mul]
@@ -171,6 +179,28 @@ def ofCommMon (M : CommMon_ C) : Algebra bag.monad (C:= C) where
   unit := sorry
   assoc := sorry
 
+instance monClassOfAlgebra {α : Algebra bag.monad (C:= C)} : Mon_Class (monad.obj α.A) := by
+  dsimp [monad_obj]
+  infer_instance
+
+/-- An algebra for the `bag` monad is a commutative monoid structure. -/
+instance monClassOf (α : Algebra bag.monad (C:= C)) : Mon_Class (α.A) where
+  one := η ≫ α.a
+  mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
+  one_mul := sorry
+  mul_one := sorry
+  mul_assoc := sorry
+
+instance isCommMon {α : Algebra bag.monad (C:= C)} : IsCommMon (α.A) where
+  mul_comm := by sorry
+
+def commMonOf (α : Algebra bag.monad (C:= C)) : CommMon_ C where
+  X := α.A
+
+end algebra
+
+open algebra
+
 def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X :=
   (ofCommMon M).a
 
@@ -193,36 +223,6 @@ theorem aggregator_join {M : CommMon_ C} :
 theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
   sorry
-
-instance monClassOfAlgebra {α : Algebra bag.monad (C:= C)} : Mon_Class (monad.obj α.A) := by
-  dsimp [monad_obj]
-  infer_instance
-
-/-- An algebra for the `bag` monad is a commutative monoid structure. -/
-def monClassOf (α : Algebra bag.monad (C:= C)) : Mon_Class (α.A) where
-  one := η ≫ α.a
-  mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
-  one_mul := sorry
-  mul_one := sorry
-  mul_assoc := sorry
-
-
-
-end algebra
-
-
-/-
-TODO:
-*aggregator*
-show that any internal commutative monoid structure is equivalent to the data of an aggregator.
-
-Therefore a bag structure on `A` is equivalent to the data of an aggregator.
-
--/
-
-
-
-
 
 end bag
 

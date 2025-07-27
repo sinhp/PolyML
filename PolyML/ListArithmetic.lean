@@ -637,11 +637,6 @@ theorem rev_rev {A : C} :
 def flatten {A : C} : list (list A) ⟶ list A :=
   list.rec' list.nil list.append
 
-def mult {A : C} : list A ⟶ A := by
- apply list.rec'
- · sorry
- · sorry
-
 end list
 
 instance : CartesianMonoidalCategory (Type u) := sorry
