@@ -37,11 +37,19 @@ def lift {X : C} {M : Mon_ C} (f : X ⟶ M.X) : list X ⟶ M.X :=
 
 theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     η ≫ list.lift f = η := by
+  dsimp [lift]
+  dsimp [list.foldl]
+  rw [← assoc]
   sorry
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
+  dsimp [lift]
+  rw [← lift_one (f := f)]
   sorry
+
+
+
 
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
@@ -57,7 +65,16 @@ variable {C}
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := sorry
+  left_inv := by {
+    simp only [Mon_.forget_obj]
+    intros f
+    simp only
+    refine Mon_.Hom.ext' ?_
+    simp only [freeMon_obj_X]
+    dsimp [list.lift]
+    dsimp [list.foldl]
+    sorry
+  }
   right_inv := sorry
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
