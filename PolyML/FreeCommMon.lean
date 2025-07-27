@@ -75,7 +75,9 @@ def snoc : bag A ⊗ A ⟶ bag A :=
 
 /-- Appending an element as head or tail is the same operation for bags. -/
 theorem cons_snoc : (β_ A (bag A)).hom ≫ snoc = cons := by
-  sorry
+  dsimp [cons, snoc]
+  nth_rw 2 [← append_symm]
+  simp only [BraidedCategory.braiding_naturality_left_assoc]
 
 /-- Given a commutative monoid object `M` in `C`, this lifts
   `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
@@ -99,7 +101,7 @@ theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.functor.map f
 
-theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
+theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) :=
   sorry
 
 @[simp]
@@ -120,14 +122,16 @@ theorem append_map {B : C} {f : A ⟶ B} :
   rw [lift_mul]
 
 theorem cons_map {B : C} {f : A ⟶ B} :
-    (f ⊗ₘ map f) ≫ cons = cons ≫ map f := by
-  sorry
-  -- dsimp [cons]
-  -- dsimp [append]
-  -- simp only [assoc, ← append_map, forget₂Mon_obj_mul]
-  -- rw [map_eq_lift]
-  -- simp only [← lift_mul]
-  -- rw [← assoc]
+    (f ⊗ₘ map f) ≫ cons = cons ≫ map f := by {
+      sorry
+    }
+
+  --dsimp [cons]
+  --dsimp [append]
+  --simp only [assoc, ← append_map, forget₂Mon_obj_mul]
+  --rw [map_eq_lift]
+  --simp only [← lift_mul]
+  --rw [← assoc]
 
 def ofList [ListArithmetic C] : list A ⟶ bag A :=
   list.lift (bag.singleton)
@@ -138,8 +142,7 @@ theorem ofList_nil [ListArithmetic C] : list.nil ≫ ofList = bag.nil (A:= A) :=
 
 theorem ofList_cons [ListArithmetic C] :
     list.cons (A:= A) ≫ ofList = A ◁ ofList ≫ bag.cons := by
-  simp only [ofList, singleton,list.lift,list.foldl]
-  dsimp [list.cons]
+  dsimp [ofList]
   sorry
 
 

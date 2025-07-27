@@ -39,11 +39,17 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     η ≫ list.lift f = η := by
   dsimp [lift]
   dsimp [list.foldl]
+  rw [← assoc]
   sorry
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
+  dsimp [lift]
+  rw [← lift_one (f := f)]
   sorry
+
+
+
 
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
