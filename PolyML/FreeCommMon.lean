@@ -6,8 +6,8 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.CommMon_
 import Mathlib.CategoryTheory.Monad.Adjunction
 import Mathlib.CategoryTheory.Monad.Algebra
-import PolyML.FreeMon
 import PolyML.ListArithmetic
+import PolyML.FreeMon
 
 /-
 In this file, we define `bag A` as the free commutative monoid on `A`,
@@ -222,6 +222,10 @@ theorem aggregator_join {M : CommMon_ C} :
 
 theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
+  sorry
+
+theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :
+    ofList ≫ bag.aggregator M = list.aggregator M.toMon_ := by
   sorry
 
 end bag
