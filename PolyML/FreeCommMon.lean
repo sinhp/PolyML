@@ -112,7 +112,7 @@ theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.functor.map f
 
-theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) :=
+theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
   sorry
 
 @[simp]
@@ -206,11 +206,13 @@ def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X :=
 
 theorem aggregator_one {M : CommMon_ C} :
     η ≫ aggregator M = η := by
-  sorry
+  dsimp [aggregator, ofCommMon, lift]
+  simp only [IsMon_Hom.one_hom]
 
 theorem aggregator_mul {M : CommMon_ C} :
     μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := by
-  sorry
+  dsimp [aggregator, ofCommMon,lift]
+  simp only [IsMon_Hom.mul_hom]
 
 theorem aggregator_singleton {M : CommMon_ C} :
     singleton ≫ aggregator M = 𝟙 M.X := by
