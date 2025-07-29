@@ -586,13 +586,59 @@ theorem map_append {A B : C} {f : A ⟶ B} :
   rw [tensorHom_def]
   sorry
 
+/-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
+lemma plist.ext {A P Y : C} {f g : plist A P ⟶ Y}
+  (h₀ : plist.nil ≫ f = plist.nil ≫ g)
+  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {
+    sorry
+  }
+
+-- rev (rev (x :: xs))
+-- = rev (xs ++ [x])
+
+-- rev (xs ++ ys) = rev xs ++ rev ys
+
+-- Then
+-- rev (xs ++ [x])
+-- = rev [x] ++ rev (rev xs)
+-- = rev [x] ++ xs
+
+-- Note
+-- - rev  [x] = [x]
+-- - ⁠[x] ++ xs = x :: xs
+
+-- rev :: [a] -> [a]
+-- rev = foldr (\x acc -> acc ++ [x]) []
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev {A : C} : list A ⟶ list A :=
   list.rec' list.nil ((list.singleton ▷ list A) ≫ (β_ _ _).hom ≫ list.append)
 
 /-- list.rev is an involution, i.e. `list.rev ≫ list.rev = 𝟙`. -/
 theorem rev_rev {A : C} :
-  list.rev ≫ list.rev = 𝟙 (list A) := sorry
+  list.rev ≫ list.rev = 𝟙 (list A) := by {
+    apply plist.ext
+    · dsimp [rev]
+      dsimp [list.rec']
+      simp only [BraidedCategory.braiding_naturality_left_assoc,plist.rec_nil_assoc]
+      dsimp [list]
+      simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq]
+      dsimp [list.nil]
+      simp only [plist.rec_nil]
+    · rw [← assoc]
+      dsimp [rev]
+      dsimp [list.rec']
+      rw [plist.rec_cons]
+
+
+
+
+
+
+
+
+
+
+  }
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
 def flatten {A : C} : list (list A) ⟶ list A :=
