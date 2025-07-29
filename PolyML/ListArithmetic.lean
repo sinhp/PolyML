@@ -628,6 +628,7 @@ theorem rev_rev {A : C} :
       dsimp [rev]
       dsimp [list.rec']
       rw [plist.rec_cons]
+      sorry
 
 
 
