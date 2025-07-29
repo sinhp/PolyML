@@ -630,15 +630,6 @@ theorem rev_rev {A : C} :
       rw [plist.rec_cons]
       sorry
 
-
-
-
-
-
-
-
-
-
   }
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
