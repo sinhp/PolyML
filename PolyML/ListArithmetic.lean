@@ -600,7 +600,17 @@ theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
 theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
   (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by {
-  sorry}
+  dsimp [append]
+  dsimp [rec]
+  rw [← assoc]
+  dsimp [list.cons]
+  rw [← plist.rec_uniq (C:=C) (f := 𝟙 (list A)) (g := plist.cons) (h := ?_)]
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+
+  }
 
 -- map f (xs ++ ys) = map f xs ++ map f ys
 theorem map_append {A B : C} {f : A ⟶ B} :
@@ -628,10 +638,9 @@ lemma sing_cons_empty {A : C} : list.singleton (A := A) =
 /-⁠[x] ++ xs = x :: xs-/
 lemma single_bar {A : C} : (list.singleton ▷ list A) ≫
    list.append (A := A) = list.cons (A := A) := by {
-  dsimp [list.singleton]
-  dsimp [append]
-
-  sorry}
+  dsimp [list.cons, rec]
+  sorry
+  }
 
 /-rev [x] = [x] -/
 lemma rev_singleton_eq_singleton {A : C} :
@@ -648,41 +657,70 @@ lemma rev_singleton_eq_singleton {A : C} :
   dsimp [list.singleton]
   rfl}
 
-/-rev (rev (x :: xs)) = rev (xs ++ [x])
-
-We need rev (xs ++ ys) = rev xs ++ rev ys-/
+/-rev (xs ++ ys) = rev ys ++ rev xs-/
 lemma rev_append {A : C} : list.append (A := A) ≫ list.rev (A := A) =
   (list.rev (A:=A) ⊗ₘ list.rev (A := A)) ≫ list.append (A := A) := by {
   dsimp [rev]
   dsimp [list.rec']
-  rw [single_bar] at *
+  rw [single_bar]
   have map_append {A B : C} {f : A ⟶ B} :
   list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := map_append
   dsimp [list.map] at map_append
   dsimp [plist.map] at map_append
-  let f : A ⟶ A := 𝟙 ( A)
+  let f : A ⟶ A := 𝟙 (A)
   simp only at f
   have := map_append  (f := f)
   dsimp [list.nil,list.cons]
-  simp_all only [id_whiskerRight, id_comp, f]}
+  simp_all only [id_whiskerRight, id_comp, f]
+  }
 
-/-rev (rev (x :: xs)) = rev (xs ++ [x])-/
+/-rev (rev (x :: xs)) = rev (rev xs ++ [x])-/
 lemma rev1  {A : C}: plist.cons ≫ list.rev ≫ list.rev (C:=C) =
-  ((list.singleton ▷ list A) ≫ list.append) ≫ list.rev := by {
+  (((list.singleton ▷ list A) ≫ (𝟙 (list A) ⊗ₘ list.rev)) ≫ list.append) ≫ list.rev := by {
   rw [← assoc]
-  sorry}
+  refine ?_ =≫ rev
+  rw [assoc]
+  have := single_bar (C:=C) (A:=A)
+  dsimp [list.cons] at this
+  rw [← this]
+  simp only [assoc]
+  dsimp [rev]
+  dsimp [list.rec']
+  have map_append {A B : C} {f : A ⟶ B} :
+    list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := map_append
+  dsimp [list.map] at map_append
+  dsimp [plist.map] at map_append
+  let f : A ⟶ A := 𝟙 (A)
+  simp only at f
+  have := map_append  (f := f)
+  dsimp [list.nil,list.cons]
+  simp_all only [id_whiskerRight, id_comp, f]
+  simp only [id_tensorHom]
+  refine list.singleton ▷ list A ≫= ?_
+  refine ?_ =≫ append
+  sorry
+  }
 
-/-rev (xs ++ [x]) = rev [x] ++ rev (rev xs)-/
+/-rev rev (xs ++ [x]) = rev [x] ++ rev (rev xs)-/
 lemma step2 {A : C} :
-  ((list.singleton ▷ list A) ≫ list.append) ≫ list.rev =
+ (((list.singleton ▷ list A) ≫ (𝟙 (list A) ⊗ₘ list.rev)) ≫ list.append) ≫ list.rev =
    ((list.singleton (A := A) ▷ list A) ≫ (𝟙 (list A) ⊗ₘ list.rev (A := A)))
-   ≫ list.append (A := A) ≫ list.rev (A := A) := sorry
+   ≫ list.append (A := A) ≫ list.rev ≫ list.rev (A := A) := by {
+  have := rev_append (C:= C) (A:= A)
+  rw [assoc]
+  rw [this]
+  simp only [id_tensorHom, assoc]
+  refine list.singleton ▷ list A ≫= ?_
+  refine list A ◁ rev ≫= ?_
+  sorry
+   }
 
 /-rev [x] ++ rev (rev xs) = rev [x] ++ xs-/
-lemma step3  {A : C} : ((list.singleton (A := A) ▷ list A) ≫
-  (𝟙 (list A) ⊗ₘ list.rev (A := A)) ) ≫ list.append (A := A) ≫ list.rev (A := A) =
-  ((list.singleton ▷ list A)) ≫ append (C := C) (A := A) := sorry
-
+lemma step3 {A : C} : ((list.singleton (A := A) ▷ list A) ≫ (𝟙 (list A) ⊗ₘ list.rev (A := A)))
+   ≫ list.append (A := A) ≫ list.rev ≫ list.rev (A := A) =
+  ((list.singleton ▷ list A)) ≫ append (C := C) (A := A) := by {
+    sorry
+  }
 -- Then
 -- rev (xs ++ [x])
 -- = rev [x] ++ rev (rev xs)
@@ -703,7 +741,7 @@ theorem rev_rev {A : C} : list.rev ≫ list.rev = 𝟙 (list A) := by {
     dsimp [list.nil]
     simp only [plist.rec_nil]
   · rw [rev1]
-    rw [step2]
+    simp only [step2]
     rw [step3]
     simp only [single_bar]
     dsimp [list.cons]
@@ -761,7 +799,9 @@ end list
 
 
 
-instance : CartesianMonoidalCategory (Type u) := sorry
+instance : CartesianMonoidalCategory (Type u) := by {
+  sorry
+}
 
 instance : Recursive (Type u) where
   withRec := sorry
