@@ -59,7 +59,7 @@ namespace bag
 
 variable {A : C}
 
-def functor : C ⥤ C :=
+def endofunctor : C ⥤ C :=
   WithBags.functor ⋙ CommMon_.forget C
 
 instance monClass : Mon_Class (bag A) := bagMon A |> Mon_.mon
@@ -93,7 +93,7 @@ theorem cons_snoc : (β_ A (bag A)).hom ≫ snoc = cons := by
 /-- Given a commutative monoid object `M` in `C`, this lifts
   `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
 def lift {M : CommMon_ C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
-  bagMon.lift f |> (forget C).map
+  bagMon.lift f |> (CommMon_.forget C).map
 
 theorem lift_one {M : CommMon_ C} {f : A ⟶ M.X} :
     η ≫ lift f = η := by
@@ -110,7 +110,7 @@ theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
   sorry
 
 /-- The functorial action of `bag` on morphisms. -/
-def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.functor.map f
+def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
 
 theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) :=
   sorry

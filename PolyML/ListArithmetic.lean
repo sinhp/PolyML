@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Mathlib.CategoryTheory.Limits.Shapes.Terminal
-import Mathlib.CategoryTheory.Endofunctor.Algebra
-import Mathlib.CategoryTheory.Functor.TwoSquare
 import Mathlib.CategoryTheory.Adjunction.Mates
+import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
-
+import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 /-! # List Arithmetic Categories
 
@@ -462,7 +459,7 @@ theorem list.singleton_len {A : C} :
     simp only [assoc]
     dsimp [plist,nil,list,plist.nil]
     simp only [Act.forget]
-    simp only [forget_obj]
+    --simp only [forget_obj]
     refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
     simp only [comp_toUnit_assoc]
     sorry
@@ -639,7 +636,7 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 
 end list
 
-instance : CartesianMonoidalCategory (Type u) := sorry
+
 
 instance : Recursive (Type u) where
   withRec := sorry
@@ -711,3 +708,5 @@ satisfying
 
 
 open Recursive ListArithmetic
+
+#min_imports
