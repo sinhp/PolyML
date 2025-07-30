@@ -71,7 +71,7 @@ def functor : Type u ⥤ AddCommMonCat where
   map {α β} f := AddCommMonCat.ofHom <| mapDomain.addMonoidHom f
 
 noncomputable
-def bagFunctorAdjunction : functor ⊣  forget AddCommMonCat := Adjunction.mkOfHomEquiv {
+def adjunction : functor ⊣  forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
     invFun g := AddCommMonCat.ofHom (Finsupp.weight (M:= _) (R:= ℕ) g)
@@ -92,7 +92,7 @@ instance : WithBags (Type u) where
   functor := functor ⋙ (AddCommMonCat.equivalence.functor ⋙ CommMonTypeEquivalenceCommMon.inverse)
   adj := by
     rw [CommMon_forget_aux]
-    refine Adjunction.comp bagFunctorAdjunction ?_
+    refine Adjunction.comp adjunction ?_
     refine Adjunction.comp AddCommMonCat.equivalence.toAdjunction
       commMonTypeEquivalenceCommMon.symm.toAdjunction
 
