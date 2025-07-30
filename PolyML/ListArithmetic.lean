@@ -572,6 +572,7 @@ theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 def append {A : C} : (list A ⊗ list A) ⟶ list A :=
   list.rec (𝟙 _) (list.cons)
 
+-- [] ++ xs= xs
 theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   refine (Iso.inv_comp_eq_id (λ_ (list A))).mp ?_
   rw [← assoc]
@@ -587,7 +588,14 @@ lemma plist.ext {A P Y : C} {f g : plist A P ⟶ Y}
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
   dsimp [append]
-  sorry
+  dsimp [rec]
+  rw [← assoc]
+  dsimp [list.cons]
+  rw [← plist.rec_uniq (C:=C) (f := 𝟙 (list A)) (g := plist.cons) (h := ?_)]
+  · sorry
+  · sorry
+  · sorry
+  · sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
 theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
