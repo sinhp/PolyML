@@ -84,14 +84,7 @@ def monad : Monad C :=
 
 def join {A : C} : list (list A) ⟶ list A := monad.μ.app A
 
-/--
-Haskell equivalent:
 
-join :: Monad m => m (m a) -> m a
-join = flatten
-
-This theorem states that `list.join` is equal to `list.flatten`, similar to how Haskell's `join` function for monads is equivalent to `flatten`.
--/
 theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
   dsimp [list.join]
   dsimp [list.flatten]

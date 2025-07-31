@@ -201,7 +201,7 @@ theorem rec_nil {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     Adjunction.right_triangle_components, comp_id]
 
 @[reassoc (attr := simp)]
-theorem rec_nil' {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+theorem whisker_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
    A ◁ plist.nil ≫ A ◁ plist.rec f g = A ◁ f := by {
     ext : 1
     · simp_all only [assoc, whiskerLeft_fst]
@@ -262,8 +262,8 @@ lemma whisker_map_nil_right {B: C} {f : A ⟶ B} : (plist.nil ▷ P) ≫
 theorem map_id : map (𝟙 A) = 𝟙 (plist A P) := by simp [map, rec_nil_cons_id]
 
 @[simp]
-theorem map_comp {A B B' P : C} (u : A ⟶ B) (v : B ⟶ B') :
-    plist.map (P := P) (u ≫ v) = plist.map u ≫ plist.map v := by
+theorem map_comp {A B B' P : C} (f : A ⟶ B) (g : B ⟶ B') :
+    plist.map (P := P) (f ≫ g) = plist.map f ≫ plist.map g := by
   dsimp [map]
   sorry
 
@@ -399,7 +399,7 @@ theorem map_id {A : C} : list.map (𝟙 A) = 𝟙 (list A) := by
   simp only [list.map, plist.map_id, list]
 
 def singleton {A : C} : A ⟶ list A :=
-  (ρ_ (A)).inv ≫ (A ◁ (list.nil)) ≫ list.cons
+  (ρ_ A).inv ≫ (A ◁ (list.nil)) ≫ list.cons
 
 end list
 
@@ -656,7 +656,7 @@ lemma rev_singleton_eq_singleton {A : C} :
   dsimp [list.cons]
   rw [plist.rec_cons]
   dsimp [list.nil]
-  simp only [← assoc, plist.rec_nil']
+  simp only [← assoc, plist.whisker_rec]
   simp only [assoc,singleton_append_eq_cons ]
   dsimp [list.singleton]
   rfl}
