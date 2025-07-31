@@ -42,14 +42,19 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   dsimp [lift]
   dsimp [list.foldl]
   rw [← Category.assoc]
-  sorry
+  dsimp [Mon_Class.one]
+  dsimp [list.nil]
+  rw [plist.rec_nil]
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
   dsimp [lift]
   rw [← lift_one (f := f)]
+  dsimp [Mon_Class.mul]
+  dsimp [list.foldl]
+  have map_append {A B : C} {f : A ⟶ B} :
+  list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := list.map_append
   sorry
-
 
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
@@ -62,13 +67,6 @@ def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.f
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
   left_inv := by {
-    simp only [Mon_.forget_obj]
-    intros f
-    simp only
-    refine Mon_.Hom.ext' ?_
-    simp only [freeMon_obj_X]
-    dsimp [list.lift]
-    dsimp [list.foldl]
     sorry
   }
   right_inv := sorry
@@ -77,7 +75,7 @@ def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.f
 def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
   Adjunction.mkOfHomEquiv {
     homEquiv (X : C) (Y : Mon_ C) := homEquiv X Y
-    homEquiv_naturality_left_symm := sorry
+    homEquiv_naturality_left_symm f g := by { sorry}
     homEquiv_naturality_right := sorry
   }
 
@@ -86,8 +84,20 @@ def monad : Monad C :=
 
 def join {A : C} : list (list A) ⟶ list A := monad.μ.app A
 
-theorem join_eq_flatten {A : C} : list.join (A:= C) = list.flatten := by
+/--
+Haskell equivalent:
+
+join :: Monad m => m (m a) -> m a
+join = flatten
+
+This theorem states that `list.join` is equal to `list.flatten`, similar to how Haskell's `join` function for monads is equivalent to `flatten`.
+-/
+theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
+  dsimp [list.join]
+  dsimp [list.flatten]
+  dsimp [list.rec']
   sorry
+}
 
 namespace algebra
 
@@ -106,19 +116,30 @@ def aggregator (M : Mon_ C) : list M.X ⟶ M.X :=
   (ofMon M).a
 
 theorem aggregator_one {M : Mon_ C} :
-  η ≫ aggregator M = η := by
-  sorry
+  η ≫ aggregator M = η := lift_one
 
 theorem aggregator_mul {M : Mon_ C} :
-  μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := by
-  sorry
+  μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := lift_mul
 
 theorem aggregator_singleton {M : Mon_ C} :
   list.singleton ≫ aggregator M = 𝟙 M.X := by
+  dsimp [aggregator]
+  dsimp [ofMon]
+  dsimp [list.singleton]
+  simp only [Category.assoc]
+  dsimp [lift]
+  dsimp [list.foldl]
+  dsimp [list.cons]
+  rw [plist.rec_cons]
+  simp only [MonoidalCategory.whiskerLeft_id, id_comp,
+    BraidedCategory.braiding_naturality_right_assoc]
   sorry
 
 theorem aggregator_join {M : Mon_ C} :
   list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
+  rw [CategoryTheory.list.join_eq_flatten]
+  dsimp [list.flatten]
+  dsimp [list.rec']
   sorry
 
 /-- Theorem: Aggregator is functorial. -/

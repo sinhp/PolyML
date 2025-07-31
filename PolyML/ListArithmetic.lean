@@ -756,8 +756,6 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 
 end list
 
-
-
 instance : Recursive (Type u) where
   withRec := sorry
 
