@@ -565,7 +565,7 @@ theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   simp only [plist.rec_nil, plist.rec_nil_assoc, assoc, Iso.hom_inv_id_assoc]}
 
 /-- Appends two lists. -/
-def append {A : C} : (list A ⊗ list A) ⟶ list A :=
+def append {A : C} : list A ⊗ list A ⟶ list A :=
   list.rec (𝟙 _) (list.cons)
 
 -- [] ++ xs= xs
@@ -592,8 +592,6 @@ theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom
   · sorry
   · sorry
   · sorry
-    -- apply plist.map'
-    -- exact toUnit (list A)
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
 theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
