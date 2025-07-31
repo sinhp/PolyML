@@ -754,51 +754,6 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 end list
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 instance : CartesianMonoidalCategory (Type u) := by {
   sorry
 }
