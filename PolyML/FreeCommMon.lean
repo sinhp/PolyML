@@ -173,6 +173,7 @@ def join : bag (bag A) ⟶ bag A := monad.μ.app A
 namespace algebra
 
 /-- A commutative monoid structure on `A` gives rise to an algebra for the `bag` monad. -/
+@[simps!]
 def ofCommMon (M : CommMon_ C) : Algebra bag.monad (C:= C) where
   A := M.X
   a := lift (𝟙 _)
