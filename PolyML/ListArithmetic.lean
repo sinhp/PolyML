@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Mathlib.CategoryTheory.Limits.Shapes.Terminal
-import Mathlib.CategoryTheory.Endofunctor.Algebra
-import Mathlib.CategoryTheory.Functor.TwoSquare
 import Mathlib.CategoryTheory.Adjunction.Mates
+import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
-
+import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 /-! # List Arithmetic Categories
 
@@ -759,8 +756,7 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 
 end list
 
-instance : CartesianMonoidalCategory (Type u) := by {
-  sorry}
+
 
 instance : Recursive (Type u) where
   withRec := sorry
@@ -832,3 +828,5 @@ satisfying
 
 
 open Recursive ListArithmetic
+
+#min_imports
