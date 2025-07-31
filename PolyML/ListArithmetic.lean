@@ -825,8 +825,4 @@ satisfying
 `foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
 -/
 
-
-
 open Recursive ListArithmetic
-
-#min_imports
