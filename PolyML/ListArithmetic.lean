@@ -700,7 +700,8 @@ lemma rev_rev_append_singleton_distrib {A : C} :
      list.singleton ▷ list A ≫ ((β_ _ _).hom ≫ append ≫ rev ≫ rev) := by {simp only [assoc]}
   rw [this]
   have : list.singleton ▷ list A ≫ rev ▷ list A ≫ (β_ _ _).hom ≫ append ≫ rev ≫ rev =
-    (list.singleton ▷ list A ≫ rev ▷ list A) ≫ ((β_ _ _).hom ≫ append ≫ rev ≫ rev) := by {simp only [assoc]}
+    (list.singleton ▷ list A ≫ rev ▷ list A) ≫ ((β_ _ _).hom ≫ append ≫ rev ≫ rev) :=
+     by {simp only [assoc]}
   rw [this]
   refine ?_ =≫ ((β_ _ _).hom ≫append ≫ rev ≫ rev)
   nth_rw 1 [H]
