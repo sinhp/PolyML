@@ -10,6 +10,7 @@ import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Functor.TwoSquare
 import Mathlib.CategoryTheory.Adjunction.Mates
 import Mathlib.CategoryTheory.Monoidal.Mon_
+import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 
 /-! # List Arithmetic Categories
@@ -649,7 +650,7 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 
 end list
 
-instance : CartesianMonoidalCategory (Type u) := sorry
+instance : CartesianMonoidalCategory (Type u) := inferInstance
 
 instance : Recursive (Type u) where
   withRec := sorry
