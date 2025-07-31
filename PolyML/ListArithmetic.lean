@@ -211,16 +211,8 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
-<<<<<<< Updated upstream
-=======
   rw [← rec_nil (f := 𝟙 (plist A P)) (g := plist.cons)]
 
-
-
-
-
-
->>>>>>> Stashed changes
   sorry
   }
 
