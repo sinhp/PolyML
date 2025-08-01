@@ -48,12 +48,15 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
+  dsimp [Mon_Class.mul]
   dsimp [lift]
   rw [← lift_one (f := f)]
-  dsimp [Mon_Class.mul]
   dsimp [list.foldl]
   have map_append {A B : C} {f : A ⟶ B} :
   list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := list.map_append
+  dsimp [list.map, plist.map] at map_append
+  rw [lift_one]
+  --dsimp [Mon_Class.mul]
   sorry
 
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
@@ -124,6 +127,7 @@ theorem aggregator_singleton {M : Mon_ C} :
   dsimp [list.foldl]
   dsimp [list.cons]
   rw [plist.rec_cons]
+  dsimp [list.nil]
   simp only [MonoidalCategory.whiskerLeft_id, id_comp,
     BraidedCategory.braiding_naturality_right_assoc]
   sorry

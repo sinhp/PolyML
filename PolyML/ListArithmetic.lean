@@ -385,8 +385,7 @@ theorem map_nil {A B : C} {f : A ⟶ B} :
 
 @[simp]
 theorem map_cons {A B : C} {f : A ⟶ B} :
-    (cons : A ⊗ list A ⟶ list A) ≫ map f =
-    (A ◁ map f) ≫ (f ▷ list B) ≫ cons := by
+    (cons : A ⊗ list A ⟶ list A) ≫ map f = (A ◁ map f) ≫ (f ▷ list B) ≫ cons := by
   simp only [list, list.cons, list.map, plist.map_cons]
 
 @[simp]
@@ -578,7 +577,7 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom
 /-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
 lemma plist.ext {A P Y : C} {f g : plist A P ⟶ Y}
   (h₀ : plist.nil ≫ f = plist.nil ≫ g)
-  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {sorry}
+  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by sorry
 
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
@@ -630,9 +629,16 @@ lemma sing_cons_empty {A : C} : list.singleton (A := A) =
     (ρ_ A).inv ≫ (A ◁ list.nil) ≫ list.cons := by
   dsimp [list.singleton, list.cons, list.nil]
 
+  --   (list.singleton ) ▷ list A = ((list.singleton ) ≫ (list.rev (A := A))) ▷ list A := by
+  -- simp only [comp_whiskerRight]
+  -- ext
+  -- · simp only [whiskerRight_fst, assoc, whiskerRight_fst_assoc]
+  --   simp_all only
+  -- · simp only [whiskerRight_snd, assoc]
+
 /-⁠[x] ++ xs = x :: xs-/
 lemma singleton_append_eq_cons {A : C} : (list.singleton ▷ list A) ≫ (β_ _ _).hom ≫
-   list.append  = list.cons (A := A) := by {
+   list.append = list.cons (A := A) := by {
   dsimp [list.cons, rec]
   dsimp [append]
   dsimp [list.singleton]
@@ -641,9 +647,19 @@ lemma singleton_append_eq_cons {A : C} : (list.singleton ▷ list A) ≫ (β_ _ 
   rw [assoc]
   dsimp [list.cons]
   have := plist.rec_cons (f := (𝟙 (list A))) (g := plist.cons)
+  dsimp [rec]
+  simp only [whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc,
+    BraidedCategory.braiding_naturality_left_assoc, BraidedCategory.braiding_tensor_left_hom,
+    Iso.inv_hom_id_assoc]
   sorry
-  }
 
+
+  -- have : list A ◁ plist.cons ≫ rec (𝟙 (list A)) plist.cons =
+  --  (α_ (list A) A (plist A (𝟙_ C))).hom ≫ (list A ◁ (A ◁ plist.rec (𝟙 (list A)) plist.cons)) ≫ (list A ◁ plist.cons) ≫ list.cons
+  --   := sorry
+
+  }
+#exit
 /- rev [x] = [x] -/
 lemma rev_singleton_eq_singleton {A : C} :
   list.singleton (A := A) ≫ list.rev (A := A) = list.singleton (A := A) := by {
@@ -705,22 +721,13 @@ lemma rev_rev_append_singleton_distrib {A : C} :
   nth_rw 1 [H]
   simp only [comp_whiskerRight]}
 
-/-rev [x] ++ rev (rev xs) = rev [x] ++ xs-/
-lemma rev_singleton_append_rev_rev_eq_rev_singleton_append_id {A : C} :
-  ((list.singleton (A := A) ▷ list A) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫
-     list.append (A := A) ≫ list.rev ≫ list.rev (A := A)) =
-  ((list.singleton ▷ list A)) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ append (C := C) (A := A) := by {
-  have H := (rev_singleton_eq_singleton (C:=C) (A:=A)).symm
-  sorry
-  }
--- Then
--- rev (xs ++ [x])
--- = rev [x] ++ rev (rev xs)
--- = rev [x] ++ xs
-
--- Note
--- - rev  [x] = [x]
--- - ⁠[x] ++ xs = x :: xs
+lemma whisker_right_singleton_rev {A : C} (H :=rev_singleton_eq_singleton (A:=A)) :
+    (list.singleton ) ▷ list A = ((list.singleton ) ≫ (list.rev (A := A))) ▷ list A := by
+  simp only [comp_whiskerRight]
+  ext
+  · simp only [whiskerRight_fst, assoc, whiskerRight_fst_assoc]
+    simp_all only
+  · simp only [whiskerRight_snd, assoc]
 
 /-- list.rev is an involution, i.e. `list.rev ≫ list.rev = 𝟙`. -/
 theorem rev_rev {A : C} : list.rev ≫ list.rev = 𝟙 (list A) := by {
@@ -733,21 +740,69 @@ theorem rev_rev {A : C} : list.rev ≫ list.rev = 𝟙 (list A) := by {
     dsimp [list.nil]
     simp only [plist.rec_nil]
   · rw [rev_rev_cons_eq_rev_append_singleton]
-    simp only [rev_rev_append_singleton_distrib]
-    rw [rev_singleton_append_rev_rev_eq_rev_singleton_append_id]
-    have H := (rev_singleton_eq_singleton (C:=C) (A:=A)).symm
-    rw [← assoc]
-    rw [← assoc]
-    simp only [assoc, BraidedCategory.braiding_naturality_left,
-      BraidedCategory.braiding_naturality_left_assoc]
-    have : (β_ A (list A)).hom ≫ list A ◁ list.singleton ≫ list A ◁ rev ≫ append=
-     (β_ A (list A)).hom ≫ (list A ◁ list.singleton ≫ list A ◁ rev) ≫ append := by {simp only [assoc]}
-    rw [this]
+
+    -- have : list.singleton ▷ list A ≫ (β_ (list A) (list A)).hom ≫ append ≫ rev ≫ rev=
+    --  (list.singleton ▷ list A ≫ (β_ (list A) (list A)).hom ≫ append) ≫ rev ≫ rev := sorry
+    -- rw [this]
+    --rw [rev_rev_cons_eq_rev_append_singleton]
+    -- rw [singleton_append_eq_cons (C:=C) (A:=A)]
+    -- simp only [rev_rev_append_singleton_distrib]
+    -- rw [← assoc]
+    -- rw [← comp_whiskerRight]
+    -- rw [←  whisker_right_singleton_rev ]
+    --rw [singleton_append_eq_cons (C:=C) (A:=A)]
+
+
+
+
+    --rw [rev_singleton_append_rev_rev_eq_rev_singleton_append_id]
+    -- have H := (rev_singleton_eq_singleton (C:=C) (A:=A)).symm
+    -- rw [← assoc]
+    -- rw [← assoc]
+    -- simp only [assoc, BraidedCategory.braiding_naturality_left,
+    --   BraidedCategory.braiding_naturality_left_assoc]
+    -- have : (β_ A (list A)).hom ≫ list A ◁ list.singleton ≫ list A ◁ rev ≫ append=
+    --  (β_ A (list A)).hom ≫ (list A ◁ list.singleton ≫ list A ◁ rev) ≫ append := by {simp only [assoc]}
+    -- rw [this]
     --simp only [singleton_append_eq_cons]
     -- dsimp [list.cons]
     -- exact Eq.symm (comp_id plist.cons)
     sorry
     }
+
+  -- /-rev [x] ++ rev (rev xs) = rev [x] ++ xs-/
+-- lemma rev_singleton_append_rev_rev_eq_rev_singleton_append_id {A : C} :
+
+--   ((list.singleton ▷ list A) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ list.append ≫ list.rev ≫ list.rev) =
+
+--   ((list.singleton ▷ list A)) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ append := by {
+
+--   have H := (rev_singleton_eq_singleton (C:=C) (A:=A)).symm
+--   have foo := whisker_right_singleton_rev (A:=A)
+--   simp only [comp_whiskerRight] at foo
+--   rw [← assoc]
+--   rw [← assoc]
+--   rw [← assoc]
+--   rw [← assoc]
+--   rw [← assoc]
+--   rw [← assoc]
+--   nth_rw 2 [foo]
+--   simp only [assoc, BraidedCategory.braiding_naturality_left,
+--     BraidedCategory.braiding_naturality_left_assoc, Iso.cancel_iso_hom_left]
+--   have := rev_append (A:=A)
+--   refine list A ◁ list.singleton ≫= ?_
+--   --refine list A ◁ rev ≫= ?_
+--   sorry
+--   }
+-- Then
+-- rev (xs ++ [x])
+-- = rev [x] ++ rev (rev xs)
+-- = rev [x] ++ xs
+
+-- Note
+-- - rev  [x] = [x]
+-- - ⁠[x] ++ xs = x :: xs
+
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
 def flatten {A : C} : list (list A) ⟶ list A :=
