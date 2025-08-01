@@ -11,6 +11,7 @@ import PolyML.ListArithmetic
 
 /-
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.
+Our development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic` for types.
 -/
 
 namespace CategoryTheory
