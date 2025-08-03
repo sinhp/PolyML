@@ -43,14 +43,24 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   dsimp [lift]
   dsimp [list.foldl]
   rw [← Category.assoc]
-  sorry
+  dsimp [Mon_Class.one]
+  dsimp [list.nil]
+  rw [plist.rec_nil]
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
+  rw [tensorHom_def']
+  simp only [Category.assoc]
+  dsimp [Mon_Class.mul]
   dsimp [lift]
   rw [← lift_one (f := f)]
+  dsimp [list.foldl]
+  have map_append {A B : C} {f : A ⟶ B} :
+  list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := list.map_append
+  dsimp [list.map, plist.map] at map_append
+  rw [lift_one]
+  --dsimp [Mon_Class.mul]
   sorry
-
 
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
@@ -63,22 +73,30 @@ def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.f
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
   left_inv := by {
-    simp only [Mon_.forget_obj]
-    intros f
-    simp only
-    refine Mon_.Hom.ext' ?_
-    simp only [freeMon_obj_X]
-    dsimp [list.lift]
-    dsimp [list.foldl]
     sorry
   }
   right_inv := sorry
+
+#check plist.map_comp
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
 def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
   Adjunction.mkOfHomEquiv {
     homEquiv (X : C) (Y : Mon_ C) := homEquiv X Y
-    homEquiv_naturality_left_symm := sorry
+    homEquiv_naturality_left_symm f g := by {
+      ext : 1
+      dsimp [homEquiv]
+      dsimp [list.map]
+      dsimp [plist.map]
+      rw [← plist.rec_uniq]
+      · dsimp [lift]
+        dsimp [list.foldl]
+        simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
+        sorry
+      · apply plist.map f
+      · exact plist.map_nil
+      · exact plist.map_cons
+    }
     homEquiv_naturality_right := sorry
   }
 
@@ -91,17 +109,79 @@ variable {C}
 
 def join {A : C} : list (list A) ⟶ list A := (monad C).μ.app A
 
-theorem join_eq_flatten {A : C} : list.join (A:= C) = list.flatten := by
-  sorry
+theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
+  dsimp [list.join]
+  dsimp [list.flatten]
+  dsimp [list.rec']
+  rw [← plist.rec_uniq]
+  · dsimp [list.nil]
+    dsimp [monad]
+    dsimp [freeMonoidAdjunction, homEquiv]
+    dsimp [lift]
+    dsimp [list.foldl]
+    exact plist.rec_nil
+  · dsimp [monad]
+    dsimp [freeMonoidAdjunction, homEquiv]
+    dsimp [lift]
+    dsimp [list.foldl]
+    simp only [MonoidalCategory.whiskerLeft_id, id_comp]
+    rw [plist.rec_cons]
+    --simp only [plist.rec_nil, BraidedCategory.braiding_naturality_right_assoc]
+    letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+    refine list A ◁ plist.rec η ((β_ (list A) (list A)).hom ≫ μ) ≫= ?_
+    dsimp [Mon_Class.mul]
+    sorry
+}
 
 namespace algebra
+
+open Category
 
 /-- A monoid structure on `A` gives rise to an algebra for the `list` monad. -/
 def ofMon (M : Mon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
-  unit := sorry
-  assoc := sorry
+  unit := by {
+    dsimp [monad, freeMonoidAdjunction, homEquiv, lift, list.foldl]
+    simp only [comp_id, MonoidalCategory.whiskerLeft_id, id_comp]
+    dsimp [list.singleton]
+    rw [Category.assoc, Category.assoc]
+    dsimp [list.cons]
+    rw [plist.rec_cons]
+    letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+    have : M.X ◁ list.nil ≫ M.X ◁ plist.rec η ((β_ M.X M.X).hom ≫ μ) =
+    M.X ◁ (list.nil ≫ plist.rec η ((β_ M.X M.X).hom ≫ μ))  := by {
+      simp only [MonoidalCategory.whiskerLeft_comp]}
+    have h1 : (ρ_ M.X).inv ≫ M.X ◁ list.nil ≫ M.X ◁ plist.rec η
+     ((β_ M.X M.X).hom ≫ μ) ≫ (β_ M.X M.X).hom ≫ μ =
+     (ρ_ M.X).inv ≫ (M.X ◁ list.nil ≫ M.X ◁ plist.rec η
+     ((β_ M.X M.X).hom ≫ μ)) ≫ (β_ M.X M.X).hom ≫ μ  := by {
+      simp only [BraidedCategory.braiding_naturality_right_assoc,
+        braiding_tensorUnit_right, Category.assoc, Iso.inv_hom_id_assoc]}
+    rw [h1]
+    rw [this]
+    dsimp [list.nil]
+    rw [plist.rec_nil]
+    simp only [BraidedCategory.braiding_naturality_right_assoc, braiding_tensorUnit_right,
+      Mon_Class.one_mul, Category.assoc, Iso.inv_hom_id, comp_id]
+    }
+  assoc := by {
+    dsimp [monad, freeMonoidAdjunction, homEquiv, lift, list.foldl]
+    dsimp [list.map]
+    rw [← plist.rec_uniq]
+    · dsimp [plist.map]; rw [plist.rec_nil]; rfl
+    · dsimp [plist.map]
+      rw [plist.rec_cons]
+      letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+      simp only [MonoidalCategory.whiskerLeft_id, id_comp]
+      refine
+        list M.X ◁
+            plist.rec plist.nil
+              (plist.rec η ((β_ M.X M.X).hom ≫ μ) ▷ plist M.X (𝟙_ C) ≫ plist.cons) ≫=
+          ?_
+      dsimp [Mon_Class.mul]
+      sorry
+  }
 
 end algebra
 
@@ -111,24 +191,62 @@ def aggregator (M : Mon_ C) : list M.X ⟶ M.X :=
   (ofMon M).a
 
 theorem aggregator_one {M : Mon_ C} :
-  η ≫ aggregator M = η := by
-  sorry
+  η ≫ aggregator M = η :=
+    lift_one
 
 theorem aggregator_mul {M : Mon_ C} :
-  μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := by
-  sorry
+  μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := lift_mul
 
 theorem aggregator_singleton {M : Mon_ C} :
-  list.singleton ≫ aggregator M = 𝟙 M.X := by
-  sorry
+    list.singleton ≫ aggregator M = 𝟙 M.X := by
+  dsimp [aggregator, ofMon, list.singleton]
+  simp only [Category.assoc]
+  dsimp [lift, list.foldl, list.cons]
+  rw [plist.rec_cons]
+  dsimp [list.nil]
+  letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+  have h1 : M.X ◁ list.nil ≫ M.X ◁ plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ) =
+    M.X ◁ (list.nil ≫ plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ)) := by {
+      simp only [MonoidalCategory.whiskerLeft_comp]}
+  dsimp [list.nil] at h1
+  have : (ρ_ M.X).inv ≫
+    M.X ◁ plist.nil ≫ M.X ◁ plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ)
+    ≫ (β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ =
+  (ρ_ M.X).inv ≫
+    (M.X ◁ plist.nil ≫ M.X ◁ plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ))
+    ≫ (β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ := by {
+      rw [Category.assoc]}
+  rw [this, h1]
+  simp only [MonoidalCategory.whiskerLeft_id, id_comp, plist.rec_nil,
+    BraidedCategory.braiding_naturality_right_assoc,
+    braiding_tensorUnit_right, Mon_Class.one_mul,
+    Category.assoc, Iso.inv_hom_id, comp_id]
 
 theorem aggregator_join {M : Mon_ C} :
   list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
-  sorry
+  rw [CategoryTheory.list.join_eq_flatten]
+  dsimp [list.flatten]
+  dsimp [list.rec']
+  dsimp [aggregator, ofMon, list.singleton]
+  dsimp [lift, list.foldl, list.cons]
+  dsimp [list.map]
+  dsimp [plist.map]
+  nth_rw 3 [← plist.rec_uniq]
+  · exact plist.rec_nil
+  · simp only [MonoidalCategory.whiskerLeft_id, id_comp]
+    rw [plist.rec_cons]
+    nth_rw 2 [list.append]
+    refine list M.X ◁ plist.rec list.nil list.append ≫= ?_
+    dsimp [list.rec,plistIsoTensor]
+    sorry
 
 /-- Theorem: Aggregator is functorial. -/
 theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
   list.map f ≫ aggregator M' = aggregator M ≫ f := by
+  dsimp [aggregator, ofMon, list.singleton]
+  dsimp [lift, list.foldl, list.cons]
+  dsimp [list.map]
+  dsimp [plist.map]
   sorry
 
 end list
