@@ -13,6 +13,8 @@ the left adjoint to the forgetful functor from commutative monoids to types
 is given by the multiset functor.
 -/
 
+noncomputable section
+
 namespace CategoryTheory
 
 open Category CategoryTheory MonoidalCategory Mon_Class CommMon_ Monad Finsupp Multiset
@@ -30,15 +32,6 @@ universe v u
 
 -- def iso [DecidableEq α] : Multiset α ≃ ℕ[α] := Multiset.toFinsupp.toEquiv
 
--- instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
---   one := fun _ => 0
---   mul := Add.add.uncurry
---   one_mul := sorry
---   mul_one := sorry
---   mul_assoc := sorry
-
--- instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] :  IsCommMon α where
---   mul_comm := sorry
 
 -- attribute [local instance] CommMonTypeEquivalenceCommMon.commMonCommMonoid
 
@@ -65,12 +58,10 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 namespace bagType
 
-noncomputable
 def functor : Type u ⥤ AddCommMonCat where
   obj α := AddCommMonCat.of (α →₀ ℕ)
   map {α β} f := AddCommMonCat.ofHom <| mapDomain.addMonoidHom f
 
-noncomputable
 def adjunction : functor ⊣  forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
@@ -87,7 +78,6 @@ theorem CommMon_forget_aux :
     (CommMonTypeEquivalenceCommMon.functor ⋙ AddCommMonCat.equivalence.inverse) ⋙ (forget AddCommMonCat) := by
   rfl
 
-noncomputable
 instance : WithBags (Type u) where
   functor := functor ⋙ (AddCommMonCat.equivalence.functor ⋙ CommMonTypeEquivalenceCommMon.inverse)
   adj := by
@@ -96,8 +86,28 @@ instance : WithBags (Type u) where
     refine Adjunction.comp AddCommMonCat.equivalence.toAdjunction
       commMonTypeEquivalenceCommMon.symm.toAdjunction
 
-def equivMultiset (α : Type u) [DecidableEq α] : bag α ≃ Multiset α :=
-  Multiset.toFinsupp.toEquiv.symm
+def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
+  have := Classical.decEq α
+  exact Multiset.toFinsupp.toEquiv.symm
+
+instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
+  one := fun _ => 0
+  mul := Add.add.uncurry
+  one_mul := sorry
+  mul_one := sorry
+  mul_assoc := sorry
+
+instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] :  IsCommMon α where
+  mul_comm := sorry
+
+def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
+
+theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
+    (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) =
+    Multiset.sum (M:= α) := by
+  simp [bag.aggregator, bag.algebra.ofCommMon_a]
+  sorry
+
 
 end bagType
 

@@ -11,6 +11,7 @@ import PolyML.ListArithmetic
 
 /-
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.
+Our development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic` for types.
 -/
 
 namespace CategoryTheory
@@ -99,10 +100,14 @@ def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
     homEquiv_naturality_right := sorry
   }
 
+variable (C)
+
 def monad : Monad C :=
   freeMonoidAdjunction |> Adjunction.toMonad
 
-def join {A : C} : list (list A) ⟶ list A := monad.μ.app A
+variable {C}
+
+def join {A : C} : list (list A) ⟶ list A := (monad C).μ.app A
 
 theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
   dsimp [list.join]
@@ -133,7 +138,7 @@ namespace algebra
 open Category
 
 /-- A monoid structure on `A` gives rise to an algebra for the `list` monad. -/
-def ofMon (M : Mon_ C) : Algebra (list.monad (C:= C)) where
+def ofMon (M : Mon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
   unit := by {
