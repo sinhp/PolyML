@@ -211,7 +211,6 @@ instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   mul_one := sorry
   mul_assoc := sorry
 
-#check map_singleton
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by {
     dsimp [Mon_Class.mul]
