@@ -505,7 +505,7 @@ instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) := by
   rw [ListArithmetic.hom_inv_id]
   rw [ListArithmetic.inv_hom_id]
 
-/-- In a list-arithmetic category, `plist A B` is isomorphic to `(list A) ⊗ B`. -/
+/-- In a list-arithmetic category, `plist A P` is isomorphic to `(list A) ⊗ P`. -/
 def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
   hom := plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P
   inv := cmpInv A (𝟙_ C) P ≫ ((plist.map' A (λ_ P).hom))
