@@ -506,26 +506,26 @@ instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) := by
   rw [ListArithmetic.inv_hom_id]
 
 /-- In a list-arithmetic category, `plist A B` is isomorphic to `(list A) ⊗ B`. -/
-def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
-  hom := plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B
-  inv := cmpInv A (𝟙_ C) B ≫ ((plist.map' A (λ_ B).hom))
+def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
+  hom := plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P
+  inv := cmpInv A (𝟙_ C) P ≫ ((plist.map' A (λ_ P).hom))
   hom_inv_id := by
-    refine (hom_comp_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
-    have := ListArithmetic.inv_hom_id (A:=A) (P :=(𝟙_ C)) (Y := B)
+    refine (hom_comp_eq_id (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)).mpr ?_
+    have := ListArithmetic.inv_hom_id (A:= A) (P:= (𝟙_ C)) (Y:= P)
     simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
     refine Eq.symm (IsIso.inv_eq_of_inv_hom_id ?_)
     rw [← this]
     rw [assoc]
     rw [assoc]
-    refine cmpInv A (𝟙_ C) B ≫= ?_
+    refine cmpInv A (𝟙_ C) P ≫= ?_
     rw [← assoc]
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id]
     rw [plist.map'_id_tensor]
     simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]
   inv_hom_id := by
-    refine (comp_hom_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
-    have := ListArithmetic.hom_inv_id (A:=A) (P :=(𝟙_ C)) (Y := B)
+    refine (comp_hom_eq_id (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)).mpr ?_
+    have := ListArithmetic.hom_inv_id (A:= A) (P:= (𝟙_ C)) (Y:= P)
     simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
     refine Eq.symm (IsIso.inv_eq_of_hom_inv_id ?_)
     rw [← this]
