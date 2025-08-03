@@ -163,39 +163,43 @@ the permutation relation on lists, i.e. `l1 ~ l2` if `l1` can be obtained from `
 Tip: can we show for instance that this map is an effective epi? If so, every effective epi is regular and therefore W is `perm` relation.
 -/
 
+variable (C)
+
 def monad : Monad C :=
   WithBags.adj |> Adjunction.toMonad
 
-theorem monad_obj : monad.obj A = bag A := rfl
+variable {C}
 
-def join : bag (bag A) ⟶ bag A := monad.μ.app A
+theorem monad_obj : (monad C).obj A = bag A := rfl
+
+def join : bag (bag A) ⟶ bag A := (monad C).μ.app A
 
 namespace algebra
 
 /-- A commutative monoid structure on `A` gives rise to an algebra for the `bag` monad. -/
 @[simps!]
-def ofCommMon (M : CommMon_ C) : Algebra bag.monad (C:= C) where
+def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
   unit := sorry
   assoc := sorry
 
-instance monClassOfAlgebra {α : Algebra bag.monad (C:= C)} : Mon_Class (monad.obj α.A) := by
+instance monClassOfAlgebra {α : Algebra (monad C)} : Mon_Class ((monad C).obj α.A) := by
   dsimp [monad_obj]
   infer_instance
 
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
-instance monClassOf (α : Algebra bag.monad (C:= C)) : Mon_Class (α.A) where
+instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
   one_mul := sorry
   mul_one := sorry
   mul_assoc := sorry
 
-instance isCommMon {α : Algebra bag.monad (C:= C)} : IsCommMon (α.A) where
+instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by sorry
 
-def commMonOf (α : Algebra bag.monad (C:= C)) : CommMon_ C where
+def commMonOf (α : Algebra (monad C)) : CommMon_ C where
   X := α.A
 
 end algebra
