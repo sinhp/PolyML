@@ -215,13 +215,15 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
+/-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `f` and composes with `plist.cons`
+to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
 @[simp]
-/- The action morphism is unique. -/
-theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
-  (h : plist A P ⟶ C') (hh₁ : plist.nil ≫ h = f) (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) :
-    h = plist.rec f g := by {
-      sorry
-    }
+theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} (r : plist A P ⟶ Y)
+    (h_nil : plist.nil ≫ r = f) (h_cons : plist.cons ≫ r = A ◁ r ≫ g) :
+    r = plist.rec f g := by
+  {
+    sorry -- SH: `rec` is defined as adjoint transpose. use the uniquness of adjunction transpose.
+  }
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
   rw [← rec_uniq]
