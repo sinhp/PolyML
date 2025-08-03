@@ -444,9 +444,14 @@ lemma cons_len_eq_map_toUnit_cons :
   rfl
 
 /-- The length of a list, defined recursively. -/
-def list.len' {A : C} : list A ⟶ N_ C := by
-  apply list.rec' nno.zero
-  apply CartesianMonoidalCategory.snd (X := A) (Y := N_ C ) ≫ nno.succ
+def list.len' {A : C} : list A ⟶ N_ C :=
+  list.rec' nno.zero (snd A (N_ C) ≫ nno.succ)
+
+theorem list.len_eq_len' {A : C} :
+    list.len (A:= A) = list.len' := by
+  simp [list.len, list.len', list.map, plist.map, rec', nno.zero, nno.succ, list.nil, list.cons]
+  congr 1
+  sorry
 
 /- len nil = 0 -/
 lemma list_zero : list.nil (A:=A) ≫ list.len' = nno.zero (C := C) := by {
