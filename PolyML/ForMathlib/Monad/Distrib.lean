@@ -28,13 +28,13 @@ monads `S` and `T` is then defined as `⟨S ⋙ T, S.η ≫ T·η, TλS ≫ S.μ
 -/
 
 
-universe u v
+universe v₁ v₂ u₁ u₂
 
 namespace CategoryTheory
 
 open Category MonoidalCategory Endofunctor Functor
 
-variable {C : Type u} [Category.{v} C]
+variable {C : Type u₁} [Category.{v₁} C] {D : Type u₁} [Category.{v₂} D]
 
 
 attribute [local instance] CategoryTheory.endofunctorMonoidalCategory
@@ -48,53 +48,60 @@ class DistribLaw (S T : Monad C) where
   mul_left :  T.1 ◁ δ ≫ δ ▷ T.1 ≫ S.1 ◁ T.μ = T.μ ▷ S.1 ≫ δ
   mul_right : δ ▷ S.1 ≫ S.1 ◁ δ ≫ S.μ ▷ T.1 = T.1 ◁ S.μ ≫ δ
 
+class Lift (S T : Monad C) extends Monad (S.Algebra) where
+  w : toFunctor ⋙ S.forget = S.forget ⋙ T.1
+  respects_unit : whiskerRight η S.forget ≫ eqToHom w = whiskerLeft S.forget T.η
+  respects_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
+
 namespace DistribLaw
 
-#check CategoryTheory.RelCat
+variable {S : Monad C}
 
-#check CategoryTheory.Endofunctor.Algebra
+theorem distrib_naturality {T : Monad C} [DistribLaw S T] {X Y : C} (f : X ⟶ Y) :
+    S.map (T.map f) ≫ δ.app Y = δ.app X ≫ T.map (S.map f) :=
+  δ.naturality f
 
 /- If `S` distributes over `T`, `T` maps algebras of `S` to algebras of `S`. -/
-def liftToMonadAlgebra (S T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
+def liftToAlgebra (T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := sorry
   assoc := sorry
 
 @[reassoc (attr := simp)]
-theorem liftToMonadAlgebra_str {S T : Monad C} [DistribLaw S T] {α : S.Algebra} :
-    (liftToMonadAlgebra S T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
+theorem liftToAlgebra_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
+    (liftToAlgebra T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
   rfl
 
-theorem distrib_naturality {S T : Monad C} [DistribLaw S T] {X Y : C} (f : X ⟶ Y) :
-    S.map (T.map f) ≫ δ.app Y = δ.app X ≫ T.map (S.map f) :=
-  δ.naturality f
-
 /-- If `S` distributes over `T`, the monad `T` lifts to an endofucntor on the category of algebras of `S`. -/
-def liftToMonadAlgebraEndoFunctor (S T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
-  obj := liftToMonadAlgebra S T
+def liftToAlgebraEndoFunctor (T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
+  obj := liftToAlgebra T
   map {α β} g := {
     f := T.map g.f
     h := by
-      rw [liftToMonadAlgebra_str]
+      rw [liftToAlgebra_str]
       rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
-      simp only [liftToMonadAlgebra_str]
+      simp only [liftToAlgebra_str]
   }
-  map_id := sorry
-  map_comp := sorry
 
-theorem liftToMonadAlgebraEndoFunctor_forget {S T : Monad C} [DistribLaw S T] :
-    liftToMonadAlgebraEndoFunctor S T ⋙ S.forget = S.forget ⋙ T.1 := by
+theorem liftToMonadAlgebraEndoFunctor_forget {T : Monad C} [DistribLaw S T] :
+    liftToAlgebraEndoFunctor T ⋙ S.forget = S.forget ⋙ T.1 := by
   rfl
 
 /-- If `S` distributes over `T` then `T` lifts to monad on the category of algebras of `S`. -/
-def liftToMonadAlgebraMonad {S T : Monad C} [DistribLaw S T] : Monad S.Algebra :=
-  { liftToMonadAlgebraEndoFunctor S T with
-    η := sorry,
-    μ := sorry,
-    assoc := sorry,
-    left_unit := sorry,
-    right_unit := sorry}
+def liftToAlgebraMonad (T : Monad C) [DistribLaw S T] : Monad S.Algebra where
+  toFunctor := liftToAlgebraEndoFunctor T
+  η := sorry
+  μ := sorry
+  assoc := sorry
+  left_unit := sorry
+  right_unit := sorry
+
+instance {T : Monad C} [DistribLaw S T] : Lift S T where
+  toMonad := liftToAlgebraMonad T
+  w := rfl
+  respects_unit := sorry
+  respects_mul := sorry
 
 
 end DistribLaw
