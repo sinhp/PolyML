@@ -48,49 +48,53 @@ class DistribLaw (S T : Monad C) where
   mul_left :  T.1 ◁ δ ≫ δ ▷ T.1 ≫ S.1 ◁ T.μ = T.μ ▷ S.1 ≫ δ
   mul_right : δ ▷ S.1 ≫ S.1 ◁ δ ≫ S.μ ▷ T.1 = T.1 ◁ S.μ ≫ δ
 
-class Lift (S T : Monad C) extends Monad (S.Algebra) where
-  w : toFunctor ⋙ S.forget = S.forget ⋙ T.1
-  respects_unit : whiskerRight η S.forget ≫ eqToHom w = whiskerLeft S.forget T.η
-  respects_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
 
 namespace DistribLaw
 
-variable {S : Monad C}
-
-theorem distrib_naturality {T : Monad C} [DistribLaw S T] {X Y : C} (f : X ⟶ Y) :
+theorem distrib_naturality {S T : Monad C} [DistribLaw S T] {X Y : C} (f : X ⟶ Y) :
     S.map (T.map f) ≫ δ.app Y = δ.app X ≫ T.map (S.map f) :=
   δ.naturality f
 
+end DistribLaw
+
+class Lift (S T : Monad C) extends Monad (S.Algebra) where
+  w : toFunctor ⋙ S.forget = S.forget ⋙ T.1
+  respect_unit : whiskerRight η S.forget ≫ eqToHom w = whiskerLeft S.forget T.η
+  respect_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
+
+
+namespace Lifting
+
+open DistribLaw
+
+variable {S : Monad C}
+
 /- If `S` distributes over `T`, `T` maps algebras of `S` to algebras of `S`. -/
-def liftToAlgebra (T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
+def map (T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := sorry
   assoc := sorry
 
 @[reassoc (attr := simp)]
-theorem liftToAlgebra_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
-    (liftToAlgebra T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
+theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
+    (map T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
   rfl
 
 /-- If `S` distributes over `T`, the monad `T` lifts to an endofucntor on the category of algebras of `S`. -/
-def liftToAlgebraEndoFunctor (T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
-  obj := liftToAlgebra T
+def endoFunctor (T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
+  obj := map T
   map {α β} g := {
     f := T.map g.f
     h := by
-      rw [liftToAlgebra_str]
+      rw [map_str]
       rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
-      simp only [liftToAlgebra_str]
+      simp only [map_str]
   }
 
-theorem liftToMonadAlgebraEndoFunctor_forget {T : Monad C} [DistribLaw S T] :
-    liftToAlgebraEndoFunctor T ⋙ S.forget = S.forget ⋙ T.1 := by
-  rfl
-
 /-- If `S` distributes over `T` then `T` lifts to monad on the category of algebras of `S`. -/
-def liftToAlgebraMonad (T : Monad C) [DistribLaw S T] : Monad S.Algebra where
-  toFunctor := liftToAlgebraEndoFunctor T
+def monad (T : Monad C) [DistribLaw S T] : Monad S.Algebra where
+  toFunctor := endoFunctor T
   η := sorry
   μ := sorry
   assoc := sorry
@@ -98,13 +102,10 @@ def liftToAlgebraMonad (T : Monad C) [DistribLaw S T] : Monad S.Algebra where
   right_unit := sorry
 
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
-  toMonad := liftToAlgebraMonad T
+  toMonad := monad T
   w := rfl
-  respects_unit := sorry
-  respects_mul := sorry
-
-
-end DistribLaw
+  respect_unit := sorry
+  respect_mul := sorry
 
 instance [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C] :
     DistribLaw (list.monad C) (bag.monad C) where
@@ -116,6 +117,37 @@ instance [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C] :
   unit_right := sorry
   mul_left := sorry
   mul_right := sorry
+
+end Lifting
+
+open DistribLaw
+
+@[simp]
+theorem unit_exchange {S T : Monad C} : S.η ≫ (S.1 ◁ T.η) = T.η ≫ (S.η ▷ T.1) := by
+  ext X
+  exact T.η.naturality <| S.η.app X
+
+#check NatTrans.hcomp
+
+@[simps]
+def comp (S T : Monad C) [DistribLaw S T] : Monad C where
+  toFunctor := S.toFunctor ⋙ T.toFunctor
+  η := S.η ≫ (S.1 ◁ T.η)
+  μ := by
+    let w := S.μ ⊗ₘ T.μ
+    exact (S.1 ◁ δ ▷ T.1) ≫ w
+  assoc := sorry
+  left_unit := sorry
+  right_unit := sorry
+
+theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
+  simp only [comp_η, unit_exchange]
+
+
+
+
+
+
 
 
 
