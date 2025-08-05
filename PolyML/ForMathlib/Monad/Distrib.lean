@@ -48,22 +48,43 @@ class DistribLaw (S T : Monad C) where
   mul_left :  T.1 ◁ δ ≫ δ ▷ T.1 ≫ S.1 ◁ T.μ = T.μ ▷ S.1 ≫ δ
   mul_right : δ ▷ S.1 ≫ S.1 ◁ δ ≫ S.μ ▷ T.1 = T.1 ◁ S.μ ≫ δ
 
+attribute [reassoc (attr := simp)] DistribLaw.unit_left DistribLaw.unit_right DistribLaw.mul_left DistribLaw.mul_right
 
 namespace DistribLaw
 
-theorem distrib_naturality {S T : Monad C} [DistribLaw S T] {X Y : C} (f : X ⟶ Y) :
+variable {S T : Monad C} [DistribLaw S T]
+
+theorem distrib_naturality {X Y : C} (f : X ⟶ Y) :
     S.map (T.map f) ≫ δ.app Y = δ.app X ≫ T.map (S.map f) :=
   δ.naturality f
+
+@[reassoc (attr := simp)]
+theorem unit_left_components {X : C} : S.map (T.η.app X) ≫ δ.app X = T.η.app (S.obj X) :=
+  NatTrans.congr_app unit_left X
+
+@[reassoc (attr := simp)]
+theorem unit_right_components {X : C} : S.η.app (T.obj X) ≫ δ.app X = T.map (S.η.app X) :=
+  NatTrans.congr_app unit_right X
+
+@[reassoc (attr := simp)]
+theorem mul_left_components {X : C} :
+    δ.app (T.obj X) ≫ T.map (δ.app X) ≫ T.μ.app (S.obj X) = S.map (T.μ.app X) ≫ δ.app X :=
+  NatTrans.congr_app mul_left X
+
+@[reassoc (attr := simp)]
+theorem mul_right_components {X : C} :
+    S.map (δ.app X) ≫ δ.app (S.obj X) ≫ T.map (S.μ.app X) = S.μ.app (T.obj X) ≫ δ.app X :=
+  NatTrans.congr_app mul_right X
 
 end DistribLaw
 
 class Lift (S T : Monad C) extends Monad (S.Algebra) where
   w : toFunctor ⋙ S.forget = S.forget ⋙ T.1
   respect_unit : whiskerRight η S.forget ≫ eqToHom w = whiskerLeft S.forget T.η
-  respect_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
+  respect_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom
+    (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
 
-
-namespace Lifting
+namespace LiftingToAlg
 
 open DistribLaw
 
@@ -73,7 +94,7 @@ variable {S : Monad C}
 def map (T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
-  unit := sorry
+  unit := by simp only [unit_right_components_assoc, ← map_comp, α.unit, map_id]
   assoc := sorry
 
 @[reassoc (attr := simp)]
@@ -82,6 +103,7 @@ theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
   rfl
 
 /-- If `S` distributes over `T`, the monad `T` lifts to an endofucntor on the category of algebras of `S`. -/
+@[simps]
 def endoFunctor (T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
   obj := map T
   map {α β} g := {
@@ -95,8 +117,14 @@ def endoFunctor (T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
 /-- If `S` distributes over `T` then `T` lifts to monad on the category of algebras of `S`. -/
 def monad (T : Monad C) [DistribLaw S T] : Monad S.Algebra where
   toFunctor := endoFunctor T
-  η := sorry
-  μ := sorry
+  η := {
+    app X := ⟨T.η.app X.A, by simp; erw [T.η.naturality X.a]⟩
+    naturality := sorry
+  }
+  μ := {
+    app X := ⟨T.μ.app X.A , sorry⟩
+    naturality := sorry
+  }
   assoc := sorry
   left_unit := sorry
   right_unit := sorry
@@ -107,18 +135,7 @@ instance {T : Monad C} [DistribLaw S T] : Lift S T where
   respect_unit := sorry
   respect_mul := sorry
 
-instance [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C] :
-    DistribLaw (list.monad C) (bag.monad C) where
-  δ := {
-    app X := sorry
-    naturality := sorry
-  }
-  unit_left := sorry
-  unit_right := sorry
-  mul_left := sorry
-  mul_right := sorry
-
-end Lifting
+end LiftingToAlg
 
 open DistribLaw
 
@@ -126,8 +143,6 @@ open DistribLaw
 theorem unit_exchange {S T : Monad C} : S.η ≫ (S.1 ◁ T.η) = T.η ≫ (S.η ▷ T.1) := by
   ext X
   exact T.η.naturality <| S.η.app X
-
-#check NatTrans.hcomp
 
 @[simps]
 def comp (S T : Monad C) [DistribLaw S T] : Monad C where
@@ -143,9 +158,23 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
 theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
 
+#check Mon_
+#check Semiring
 
+variable (C)
 
+instance [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C] :
+    DistribLaw (list.monad C) (bag.monad C) where
+  δ := {
+    app X := sorry
+    naturality := sorry
+  }
+  unit_left := sorry
+  unit_right := sorry
+  mul_left := sorry
+  mul_right := sorry
 
+-- def Semiring_ :=
 
 
 
