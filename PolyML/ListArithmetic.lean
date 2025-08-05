@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Adjunction.Mates
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
+import Mathlib.CategoryTheory.Adjunction.Unique
 
 /-! # List Arithmetic Categories
 
@@ -215,13 +216,52 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
+/--
+If `(F, G, η, ε)` is an adjunction between categories `C` and `D`, then for each
+`X : C` and `Y : D`, there is a bijection between morphisms `φ : F.obj X ⟶ Y`
+and `ψ : X ⟶ G.obj Y`, given by the adjunction hom-set equivalence.
+This correspondence is unique.
+
+So if two morphisms `f, g : F.obj X ⟶ Y` correspond to the same `X ⟶ G.obj Y`, then they must be equal.
+-/
+theorem adjunction_hom_equiv_unique
+  {C D : Type*} [Category C] [Category D] {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X : C} {Y : D} :
+  Function.Bijective (adj.homEquiv X Y) :=
+  (adj.homEquiv X Y).bijective
+
 @[simp]
 /- The action morphism is unique. -/
 theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
   (h : plist A P ⟶ C') (hh₁ : plist.nil ≫ h = f) (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) :
-    h = plist.rec f g := by {
-      sorry
-    }
+  h = plist.rec f g := by {
+  have : Function.Bijective ((freeForgetAdj A).homEquiv P ⟨C', g⟩) :=
+      adjunction_hom_equiv_unique (freeForgetAdj A) (X := P) (Y := ⟨C', g⟩)
+  dsimp [Function.Bijective] at this
+  obtain ⟨h1,h2⟩ := this
+  dsimp [Function.Injective] at *
+  have : nil ≫ rec f g = f := by {apply plist.rec_nil}
+  let htest : (freeActionFunctor A).obj P ⟶ { a := C', str := g } := by {
+    constructor
+    simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
+    exact _root_.id (Eq.symm hh₂)}
+  let htest2 : (freeActionFunctor A).obj P ⟶ { a := C', str := g } := by {
+    constructor
+    simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
+    have := plist.rec_cons (C:=C) (f := f) (g:=g)
+    exact _root_.id (Eq.symm this)}
+  have hntp : ((freeForgetAdj A).homEquiv P { a := C', str := g }) htest =
+    ((freeForgetAdj A).homEquiv P { a := C', str := g }) htest2 := by {
+      unfold htest htest2
+      have H1 : nil ≫ rec f g = f := by {exact rec_nil}
+      have H2 : nil ≫ h = f := by {exact hh₁}
+      have : nil ≫ rec f g = nil ≫ h := by {
+        rw [← H1] at H2
+        exact _root_.id (Eq.symm H2)}
+      exact _root_.id (Eq.symm this)}
+  have this := h1 (a₁ := htest) (a₂ := htest2) hntp
+  unfold htest htest2 at this
+  injection this
+}
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
   rw [← rec_uniq]
@@ -567,7 +607,9 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom
 /-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
 lemma plist.ext {A P Y : C} {f g : plist A P ⟶ Y}
   (h₀ : plist.nil ≫ f = plist.nil ≫ g)
-  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {sorry}
+  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {
+    sorry
+  }
 
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
