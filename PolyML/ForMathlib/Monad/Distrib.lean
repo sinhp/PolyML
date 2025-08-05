@@ -32,10 +32,9 @@ universe v₁ v₂ u₁ u₂
 
 namespace CategoryTheory
 
-open Category MonoidalCategory Endofunctor Functor
+open Category MonoidalCategory Endofunctor Functor Recursive
 
 variable {C : Type u₁} [Category.{v₁} C] {D : Type u₁} [Category.{v₂} D]
-
 
 attribute [local instance] CategoryTheory.endofunctorMonoidalCategory
 
@@ -183,6 +182,10 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
 theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
 
+theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
+    (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
+
+
 #check Mon_
 #check Semiring
 
@@ -190,7 +193,7 @@ variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 
 instance distribLawListBag: DistribLaw (list.monad C) (bag.monad C) where
   δ := {
-    app X := sorry
+    app X := list.lift <| bag.map list.singleton
     naturality := sorry
   }
   unit_left := sorry
@@ -222,7 +225,6 @@ instance commMon : CommMon_ C where
   X := α.X
   mon := sorry
   comm := sorry
-
 
 end Semiring_
 
