@@ -27,7 +27,6 @@ is given the the composition of their respective underlying functors, and in fac
 monads `S` and `T` is then defined as `⟨S ⋙ T, S.η ≫ T·η, TλS ≫ S.μ  ⟩`.
 -/
 
-
 universe u v
 
 namespace CategoryTheory
@@ -35,7 +34,6 @@ namespace CategoryTheory
 open Category MonoidalCategory Endofunctor Functor
 
 variable {C : Type u} [Category.{v} C]
-
 
 attribute [local instance] CategoryTheory.endofunctorMonoidalCategory
 
@@ -80,8 +78,8 @@ def liftToMonadAlgebraEndoFunctor (S T : Monad C) [DistribLaw S T] : S.Algebra �
       rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
       simp only [liftToMonadAlgebra_str]
   }
-  map_id := sorry
-  map_comp := sorry
+  map_id := by aesop_cat
+  map_comp := by aesop_cat
 
 theorem liftToMonadAlgebraEndoFunctor_forget {S T : Monad C} [DistribLaw S T] :
     liftToMonadAlgebraEndoFunctor S T ⋙ S.forget = S.forget ⋙ T.1 := by
