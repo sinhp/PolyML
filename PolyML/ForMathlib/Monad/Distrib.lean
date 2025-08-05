@@ -56,7 +56,9 @@ namespace DistribLaw
 def liftToMonadAlgebra (S T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
-  unit := sorry
+  unit := by {
+
+  }
   assoc := sorry
 
 @[reassoc (attr := simp)]
@@ -93,7 +95,6 @@ def liftToMonadAlgebraMonad {S T : Monad C} [DistribLaw S T] : Monad S.Algebra :
     assoc := sorry,
     left_unit := sorry,
     right_unit := sorry}
-
 
 end DistribLaw
 
