@@ -164,7 +164,9 @@ theorem ofList_cons [ListArithmetic C] :
   refine A ◁ plist.rec η ((β_ A (bagMon A).X).hom ≫ (bagMon A).X ◁ singleton ≫ μ) ≫= ?_
   dsimp [cons]
   dsimp [bag.append]
-  dsimp [bag]
+  rw [← Category.assoc]
+  refine ?_ =≫ μ
+  dsimp [bag, singleton]
   sorry
 
 /-
@@ -192,8 +194,12 @@ namespace algebra
 def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
-  unit := sorry
-  assoc := sorry
+  unit := by {
+    sorry
+  }
+  assoc := by {
+    sorry
+  }
 
 instance monClassOfAlgebra {α : Algebra (monad C)} : Mon_Class ((monad C).obj α.A) := by
   dsimp [monad_obj]
@@ -208,8 +214,15 @@ instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
     simp only [comp_whiskerRight, Category.assoc]
     sorry
   }
-  mul_one := sorry
-  mul_assoc := sorry
+  mul_one := by {
+    simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
+    sorry
+  }
+  mul_assoc := by {
+    simp only [forget₂Mon_obj_mul, comp_whiskerRight, Category.assoc,
+      MonoidalCategory.whiskerLeft_comp]
+    sorry
+  }
 
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by {
@@ -245,12 +258,22 @@ theorem aggregator_singleton {M : CommMon_ C} :
 theorem aggregator_join {M : CommMon_ C} :
     join ≫ aggregator M = (map <| aggregator M) ≫ aggregator M := by
   dsimp [join, aggregator, ofCommMon]
-  sorry
+  have hassoc := (ofCommMon M).assoc
+  dsimp [ofCommMon] at *
+  rw [hassoc]
+  rfl
+
+#check map_singleton
 
 theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
-  dsimp [aggregator, ofCommMon]
+  dsimp [aggregator]
   nth_rw 2 [← lift_singleton (f := f)]
+  have hunit := (ofCommMon M).unit
+  dsimp [ofCommMon] at *
+  have H := map_singleton (C := C) (f := f)
+  nth_rw 1 [map_eq_lift]
+  rw [← map_singleton]
   --dsimp [lift, bagMon.lift,freeCommMon.lift]
   sorry
   --nth_rw 1 [map_eq_lift]
@@ -258,8 +281,15 @@ theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
 theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :
     ofList ≫ bag.aggregator M = list.aggregator M.toMon_ := by
   dsimp [ofList]
-  dsimp [aggregator, ofCommMon]
-  sorry
+  dsimp [list.lift,lift,list.foldl]
+  rw [← Category.assoc]
+  rw [← plist.rec_uniq]
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+
+
 
 end bag
 

@@ -66,11 +66,19 @@ def adjunction : functor ⊣  forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
     invFun g := AddCommMonCat.ofHom (Finsupp.weight (M:= _) (R:= ℕ) g)
-    left_inv := sorry
-    right_inv := sorry
+    left_inv f := by sorry
+    right_inv f := by sorry
   }
-  homEquiv_naturality_left_symm := sorry
-  homEquiv_naturality_right := sorry
+  homEquiv_naturality_left_symm X X' := by {
+    simp only [Equiv.coe_fn_symm_mk]
+    dsimp [weight]
+    sorry
+  }
+  homEquiv_naturality_right X X' := by {
+    simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
+      ConcreteCategory.forget_map_eq_coe]
+    aesop_cat
+  }
 }
 
 theorem CommMon_forget_aux :
@@ -93,12 +101,15 @@ def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
 instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   one := fun _ => 0
   mul := Add.add.uncurry
-  one_mul := sorry
-  mul_one := sorry
-  mul_assoc := sorry
+  one_mul := by sorry
+  mul_one := by sorry
+  mul_assoc := by sorry
 
 instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] :  IsCommMon α where
-  mul_comm := sorry
+  mul_comm := by {
+    dsimp [Mon_Class.mul]
+    sorry
+  }
 
 def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
 
@@ -106,8 +117,16 @@ theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
     (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) =
     Multiset.sum (M:= α) := by
   simp [bag.aggregator, bag.algebra.ofCommMon_a]
-  sorry
-
+  refine
+    types_ext (⇑(equivMultiset α).symm ≫ bag.lift (𝟙 (commMonOfAddCommMonoid α).X)) Multiset.sum ?_
+  · intros m
+    simp only [types_comp_apply]
+    dsimp [bag.lift]
+    dsimp [bagMon.lift]
+    dsimp [Multiset.sum]
+    dsimp [foldr]
+    dsimp [Quot.liftOn]
+    sorry
 
 end bagType
 

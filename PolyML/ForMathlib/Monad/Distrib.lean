@@ -57,7 +57,7 @@ def liftToMonadAlgebra (S T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Alg
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := by {
-
+    sorry
   }
   assoc := sorry
 
