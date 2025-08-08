@@ -57,9 +57,44 @@ def liftToMonadAlgebra (S T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Alg
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := by {
+    have hl := DistribLaw.unit_left (S := S) (T := T)
+    have hr := DistribLaw.unit_right (S := S) (T := T)
+    --have hassocS := Monad.assoc S α.A
+    have hassocT := Monad.assoc T α.A
+    --have hunitS := Monad.left_unit S α.A
+    have hunitT := Monad.left_unit T α.A
+    have hunitSr := Monad.right_unit S α.A
+    have hunitTr := Monad.right_unit T α.A
+    have H1T := Monad.unit_naturality C T
+    --have H1S := Monad.unit_naturality C S
+    --have H2S := Monad.mu_naturality C S
+    have H2T := Monad.mu_naturality C T
+    let f := S.η.app (T.obj α.A)
+    let g:= T.map (T.η.app α.A)
+    simp only [Functor.id_obj] at *
+    rw [← hunitTr]
+    have := H2T g
+    simp only [endofunctorMonoidalCategory_tensorObj_obj]
     sorry
+
+
+    --rw [H2T]
+    --have := H1T
+
+
+
+
+
+
+
   }
-  assoc := sorry
+  assoc := by {
+    have hassocS := Monad.assoc S α.A
+    have hassocT := Monad.assoc T α.A
+    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj, map_comp, Category.assoc]
+
+
+  }
 
 @[reassoc (attr := simp)]
 theorem liftToMonadAlgebra_str {S T : Monad C} [DistribLaw S T] {α : S.Algebra} :

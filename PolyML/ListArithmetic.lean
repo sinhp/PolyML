@@ -239,7 +239,7 @@ theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
   dsimp [Function.Bijective] at this
   obtain ⟨h1,h2⟩ := this
   dsimp [Function.Injective] at *
-  have : nil ≫ rec f g = f := by {apply plist.rec_nil}
+  have : nil ≫ rec f g = f := plist.rec_nil
   let htest : (freeActionFunctor A).obj P ⟶ { a := C', str := g } := by {
     constructor
     simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
@@ -262,6 +262,29 @@ theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
   unfold htest htest2 at this
   injection this
 }
+
+/-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
+lemma ext {A P Y : C} {f g : plist A P ⟶ Y}
+  (h₀ : plist.nil ≫ f = plist.nil ≫ g)
+  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {
+
+  have H : ∀ {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'} (h : plist A P ⟶ C') (hh₁ : plist.nil ≫ h = f)
+  (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) , h = plist.rec f g := by {apply plist.rec_uniq}
+
+  have hf : plist.nil ≫ plist.rec f (snd A Y) = f := by {exact plist.rec_nil}
+
+  --rw [← this]
+  have hh₂ : plist.cons ≫ plist.rec f (snd A Y) = A ◁ plist.rec f (snd A Y) ≫ (snd A Y) := by {
+    exact plist.rec_cons
+  }
+  have hg : plist.nil ≫ plist.rec g (snd A Y) = g := by {exact plist.rec_nil}
+  sorry
+
+
+
+
+  }
+
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
   rw [← rec_uniq]
@@ -604,12 +627,7 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom
   rw [← assoc]
   apply rec_nil
 
-/-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
-lemma plist.ext {A P Y : C} {f g : plist A P ⟶ Y}
-  (h₀ : plist.nil ≫ f = plist.nil ≫ g)
-  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {
-    sorry
-  }
+#check plist.rec_cons
 
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by

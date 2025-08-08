@@ -136,7 +136,6 @@ theorem cons_map {B : C} {f : A ⟶ B} :
   dsimp [cons, append, bag]
   rw [Category.assoc, ← append_map]
   have := map_singleton (C:=C) (f:= (map f ⊗ₘ map f))
-  simp only [forget₂Mon_obj_mul]
   rw [← Category.assoc, ← Category.assoc]
   refine ?_ =≫ μ
   ext
@@ -195,9 +194,29 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
   unit := by {
+    have hunitT := Monad.left_unit (C:=C) (monad C) M.X
+    have hunitSr := Monad.right_unit (C:=C) (monad C) M.X
+    -- have hunitTr := Monad.left_unit (C:=C) (monad C) M.X
+    have H1T := Monad.unit_naturality (C:=C) (monad C)
+    have H2T := Monad.mu_naturality (C:=C) (monad C)
+    have H1T := H1T (lift (𝟙 M.X))
+    have H2T := H2T (lift (𝟙 M.X))
+    simp only [Functor.id_obj, comp_obj] at *
     sorry
+    --dsimp [lift,bagMon.lift,freeCommMon.lift] at *
+    --dsimp [Adjunction.homEquiv]
+    --simp only [map_id, id', Mon_.id_hom', toMon__X]
+    --dsimp [monad] at *
+    --dsimp [forget₂Mon_] at *
   }
   assoc := by {
+    have hunitT := Monad.left_unit (C:=C) (monad C) M.X
+    have hunitSr := Monad.right_unit (C:=C) (monad C) M.X
+    have H1T := Monad.unit_naturality (C:=C) (monad C)
+    have H2T := Monad.mu_naturality (C:=C) (monad C)
+    have H1T := H1T (lift (𝟙 M.X))
+    have H2T := H2T (lift (𝟙 M.X))
+    simp only [Functor.id_obj, comp_obj] at *
     sorry
   }
 
@@ -205,24 +224,25 @@ instance monClassOfAlgebra {α : Algebra (monad C)} : Mon_Class ((monad C).obj �
   dsimp [monad_obj]
   infer_instance
 
+#check append_map
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
 instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
   one_mul := by {
-    dsimp [Mon_Class.mul]
+    dsimp [Mon_Class.one]
     simp only [comp_whiskerRight, Category.assoc]
     sorry
-  }
+
+    }
   mul_one := by {
     simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
-    sorry
-  }
+
+    sorry}
   mul_assoc := by {
     simp only [forget₂Mon_obj_mul, comp_whiskerRight, Category.assoc,
       MonoidalCategory.whiskerLeft_comp]
-    sorry
-  }
+    sorry}
 
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by {
@@ -272,8 +292,9 @@ theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
   have hunit := (ofCommMon M).unit
   dsimp [ofCommMon] at *
   have H := map_singleton (C := C) (f := f)
-  nth_rw 1 [map_eq_lift]
-  rw [← map_singleton]
+  
+  --nth_rw 1 [map_eq_lift]
+  --rw [← map_singleton]
   --dsimp [lift, bagMon.lift,freeCommMon.lift]
   sorry
   --nth_rw 1 [map_eq_lift]
