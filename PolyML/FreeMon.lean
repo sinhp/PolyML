@@ -109,11 +109,6 @@ def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.f
       braiding_tensorUnit_right, Category.assoc, Iso.cancel_iso_hom_left]
     refine (Iso.inv_comp_eq (λ_ X)).mpr ?_
     sorry
-
-
-
-    --apply?
-
     }
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
@@ -193,38 +188,12 @@ theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
     dsimp [lift, list.foldl]
     --simp only [MonoidalCategory.whiskerLeft_id, id_comp]
     rw [plist.rec_cons]
+    letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+    nth_rw 2 [← BraidedCategory.braiding_naturality_left_assoc]
     rw [plist.rec_cons]
-    dsimp [Mon_Class.mul]
-    haveI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    have : (β_ (list A) (list A)).hom ≫ list A ◁ 𝟙 (list A) ≫ μ = list.append := by {
-      simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-      dsimp [Mon_Class.mul]
-      sorry
-    }
-    --rw [← this]
-
-
-  --rw [← plist.rec_uniq]
-  -- · dsimp [list.nil]
-  --   dsimp [monad]
-  --   dsimp [freeMonoidAdjunction, homEquiv]
-  --   dsimp [lift]
-  --   dsimp [list.foldl]
-  --   exact plist.rec_nil
-  -- · dsimp [monad]
-  --   dsimp [freeMonoidAdjunction, homEquiv]
-  --   dsimp [lift]
-  --   dsimp [list.foldl]
-  --   simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-  --   rw [plist.rec_cons]
-  --   --simp only [plist.rec_nil, BraidedCategory.braiding_naturality_right_assoc]
-  --   letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-  --   --refine list A ◁ plist.rec η ((β_ (list A) (list A)).hom ≫ μ) ≫= ?_
-  --   dsimp [Mon_Class.mul]
-  --   nth_rw 2 [list.append]
-
+    nth_rw 2 [list.append]
     sorry
-
+    --simp?
 }
 
 namespace algebra
