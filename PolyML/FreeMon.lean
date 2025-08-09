@@ -56,7 +56,9 @@ theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
   rw [← BraidedCategory.braiding_naturality_left_assoc]
   sorry
-#check IsCommMon.mul_comm
+
+--#check IsCommMon.mul_comm
+
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
 theorem functor_obj (A : C) : functor.obj A = list A := rfl
