@@ -195,7 +195,13 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
     have H2T := Monad.mu_naturality (C:=C) (monad C)
     have H1T := H1T (lift (𝟙 M.X))
     have H2T := H2T (lift (𝟙 M.X))
-    simp only [Functor.id_obj, comp_obj] at *
+    --simp only [Functor.id_obj, comp_obj] at *
+    --unfold monad
+    --simp only [Adjunction.toMonad_coe, comp_obj, CommMon_.forget_obj, Adjunction.toMonad_η]
+    have := lift_one (f:= (𝟙 M.X))
+    have := IsMon_Hom.one_hom (f:=𝟙 M.X)
+
+
     sorry
     --dsimp [lift,bagMon.lift,freeCommMon.lift] at *
     --dsimp [Adjunction.homEquiv]
@@ -224,11 +230,14 @@ instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
   one_mul := by {
-    simp only [forget₂Mon_obj_one, comp_whiskerRight, tensorHom_def', forget₂Mon_obj_mul,
+    simp only [forget₂Mon_obj_one, comp_whiskerRight, tensorHom_def, forget₂Mon_obj_mul,
       Category.assoc]
     have Hunit := Algebra.unit (C:=C) α
     have Hassoc := Algebra.assoc (C:=C) α
-    refine (Iso.inv_comp_eq_id (λ_ α.A)).mp ?_
+
+    --refine (Iso.inv_comp_eq_id (λ_ α.A)).mp ?_
+    --rw [id_whiskerLeft_symm]
+    --rw [← leftUnitor_inv_naturality]
     sorry
     --rw [← Hunit]
 

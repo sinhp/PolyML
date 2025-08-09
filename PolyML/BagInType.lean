@@ -62,22 +62,44 @@ def functor : Type u ⥤ AddCommMonCat where
   obj α := AddCommMonCat.of (α →₀ ℕ)
   map {α β} f := AddCommMonCat.ofHom <| mapDomain.addMonoidHom f
 
-def adjunction : functor ⊣  forget AddCommMonCat := Adjunction.mkOfHomEquiv {
+
+def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
     invFun g := AddCommMonCat.ofHom (Finsupp.weight (M:= _) (R:= ℕ) g)
-    left_inv f := by sorry
-    right_inv f := by sorry
+    left_inv f := by {
+      ext g
+      simp only [AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply,
+        singleAddHom_apply]
+      congr 1
+      unfold weight
+      ext l
+      simp only [AddMonoidHom.coe_comp, LinearMap.toAddMonoidHom_coe, Function.comp_apply,
+        singleAddHom_apply, linearCombination_single, one_smul]
+      rfl
+    }
+    right_inv f := by {
+      apply types_ext
+      intros a
+      simp only [AddCommMonCat.hom_ofHom]
+      unfold weight
+      sorry
+    }
   }
-  homEquiv_naturality_left_symm X X' := by {
+  homEquiv_naturality_left_symm := by {
+    intros X X' f g h
     simp only [Equiv.coe_fn_symm_mk]
     dsimp [weight]
+    ext x
+    simp only [AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply,
+      singleAddHom_apply, AddCommMonCat.hom_comp]
+    rw [types_comp]
     sorry
   }
   homEquiv_naturality_right X X' := by {
     simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
       ConcreteCategory.forget_map_eq_coe]
-    aesop_cat
+    rfl
   }
 }
 
@@ -101,32 +123,57 @@ def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
 instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   one := fun _ => 0
   mul := Add.add.uncurry
-  one_mul := by sorry
-  mul_one := by sorry
+  one_mul := by {
+    ext f
+    simp only [types_comp_apply, whiskerRight_apply, Function.uncurry_apply_pair]
+    cases' f with h1 h2
+    simp only [leftUnitor_hom_apply]
+    sorry
+  }
+  mul_one := by {
+    ext f
+    simp only [types_comp_apply, whiskerLeft_apply, Function.uncurry_apply_pair]
+    simp only at f
+    cases' f with h1 h2
+    simp only [rightUnitor_hom_apply]
+    sorry
+  }
   mul_assoc := by sorry
 
-instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] :  IsCommMon α where
+instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon α where
   mul_comm := by {
+    ext l
+    simp only [types_comp_apply]
+    cases' l with h1 h2
+    simp only [braiding_hom_apply]
     dsimp [Mon_Class.mul]
+    congr 1
+    sorry
     sorry
   }
 
 def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
 
 theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
-    (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) =
-    Multiset.sum (M:= α) := by
+    (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) = Multiset.sum (M:= α) := by
   simp [bag.aggregator, bag.algebra.ofCommMon_a]
-  refine
-    types_ext (⇑(equivMultiset α).symm ≫ bag.lift (𝟙 (commMonOfAddCommMonoid α).X)) Multiset.sum ?_
-  · intros m
-    simp only [types_comp_apply]
-    dsimp [bag.lift]
-    dsimp [bagMon.lift]
-    dsimp [Multiset.sum]
-    dsimp [foldr]
-    dsimp [Quot.liftOn]
-    sorry
+  ext m
+  simp only [types_comp_apply]
+  sorry
+
+  -- refine
+  --   types_ext (⇑(equivMultiset α).symm ≫ bag.lift (𝟙 (commMonOfAddCommMonoid α).X)) Multiset.sum ?_
+  -- intros m
+  -- simp only [types_comp_apply]
+  -- dsimp [bag.lift]
+  -- dsimp [bagMon.lift]
+  -- dsimp [Multiset.sum]
+  -- dsimp [foldr]
+  -- dsimp [Quot.liftOn]
+  -- unfold List.foldr
+  -- dsimp [equivMultiset]
+  -- dsimp [toFinsupp]
+
 
 end bagType
 

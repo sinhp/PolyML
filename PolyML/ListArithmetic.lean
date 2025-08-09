@@ -209,12 +209,39 @@ theorem whisker_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_nil]
    }
 
+@[reassoc (attr := simp)]
+theorem rec_whisker {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+  plist.nil ▷ A ≫ plist.rec f g ▷ A = f ▷ A := by {
+   ext : 1
+   · simp only [assoc, whiskerRight_fst, whiskerRight_fst_assoc, rec_nil]
+   · simp_all only [assoc, whiskerRight_snd]
+  }
+
 open CategoryTheory.Adjunction
 
 theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     plist.cons ≫ plist.rec f g = A ◁ plist.rec f g ≫ g := by
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
+
+
+@[reassoc (attr := simp)]
+theorem whisker_cons_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+  A ◁ plist.cons ≫ A ◁ plist.rec f g = A ◁ (A ◁ plist.rec f g ≫ g) := by {
+   ext : 1
+   · simp_all only [assoc, whiskerLeft_fst]
+   · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_cons]
+  }
+
+@[reassoc (attr := simp)]
+theorem cons_rec_whisker {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+  plist.cons ▷ A ≫ plist.rec f g ▷ A = (A ◁ plist.rec f g ≫ g) ▷ A := by {
+   ext : 1
+   ·
+     rw [← rec_cons]
+     simp only [assoc, whiskerRight_fst, whiskerRight_fst_assoc, comp_whiskerRight]
+   · simp_all only [assoc, whiskerRight_snd]
+  }
 
 /--
 If `(F, G, η, ε)` is an adjunction between categories `C` and `D`, then for each
@@ -252,8 +279,8 @@ theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
   have hntp : ((freeForgetAdj A).homEquiv P { a := C', str := g }) htest =
     ((freeForgetAdj A).homEquiv P { a := C', str := g }) htest2 := by {
       unfold htest htest2
-      have H1 : nil ≫ rec f g = f := by {exact rec_nil}
-      have H2 : nil ≫ h = f := by {exact hh₁}
+      have H1 : nil ≫ rec f g = f := rec_nil
+      have H2 : nil ≫ h = f := hh₁
       have : nil ≫ rec f g = nil ≫ h := by {
         rw [← H1] at H2
         exact _root_.id (Eq.symm H2)}
@@ -280,11 +307,7 @@ lemma ext {A P Y : C} {f g : plist A P ⟶ Y}
   have hg : plist.nil ≫ plist.rec g (snd A Y) = g := by {exact plist.rec_nil}
   sorry
 
-
-
-
   }
-
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
   rw [← rec_uniq]
@@ -627,36 +650,49 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom
   rw [← assoc]
   apply rec_nil
 
-#check plist.rec_cons
-
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
   --refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
   dsimp [append]
+  dsimp [list.nil]
   dsimp [rec]
-  dsimp [list]
-  dsimp [plistIsoTensor]
-  simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil, assoc]
-  rw [← assoc]
-  rw [plist.map'_eq_rec]
-  simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil_assoc,
-    assoc]
+  refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
+  simp only [assoc]
   sorry
 
+  -- dsimp [list]
+  -- dsimp [plistIsoTensor]
+  -- simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil, assoc]
+  -- rw [← assoc]
+  -- rw [plist.map'_eq_rec]
+  -- simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil_assoc,
+  --   assoc]
+  -- rw [← Category.assoc]
+  -- dsimp [list.nil]
+  -- simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil_assoc,
+  --   assoc]
+  -- rw [← Category.assoc]
+
+
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
-theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
+theorem append_assoc {A : C} : list.append ▷ list A ≫ list.append =
   (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by {
   dsimp [append]
   dsimp [rec]
+  refine (Iso.inv_comp_eq (α_ (list A) (list A) (list A))).mp ?_
   dsimp [plistIsoTensor]
-  rw [plist.map'_eq_rec]
-  simp only [assoc, comp_whiskerRight, whiskerLeft_comp]
-  dsimp [list.cons]
-  rw [← plist.rec_uniq (C:=C) (f := 𝟙 (list A)) (g := plist.cons)]
-  · sorry
-  · sorry
-  · sorry
-  · sorry
+  sorry
+
+
+  -- dsimp [plistIsoTensor]
+  -- rw [plist.map'_eq_rec]
+  -- simp only [assoc, comp_whiskerRight, whiskerLeft_comp]
+  -- dsimp [list.cons]
+  -- rw [← plist.rec_uniq (C:=C) (f := 𝟙 (list A)) (g := plist.cons)]
+  -- · sorry
+  -- · sorry
+  -- · sorry
+  -- · sorry
   }
 
 -- map f (xs ++ ys) = map f xs ++ map f ys
@@ -694,11 +730,11 @@ lemma singleton_append_eq_cons {A : C} : (list.singleton ▷ list A) ≫ (β_ _ 
   dsimp [list.cons]
   have := plist.rec_cons (f := (𝟙 (list A))) (g := plist.cons)
   dsimp [rec]
+  unfold plistIsoTensor
   simp only [whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc,
     BraidedCategory.braiding_naturality_left_assoc, BraidedCategory.braiding_tensor_left_hom,
     Iso.inv_hom_id_assoc]
-  unfold plistIsoTensor
-  simp only
+  rw [plist.map'_eq_rec]
   sorry
   }
 
@@ -825,7 +861,9 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 end list
 
 instance : Recursive (Type u) where
-  withRec := sorry
+  withRec := by {
+    sorry
+  }
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
