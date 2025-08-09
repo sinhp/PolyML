@@ -161,19 +161,6 @@ theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
   simp only [types_comp_apply]
   sorry
 
-  -- refine
-  --   types_ext (⇑(equivMultiset α).symm ≫ bag.lift (𝟙 (commMonOfAddCommMonoid α).X)) Multiset.sum ?_
-  -- intros m
-  -- simp only [types_comp_apply]
-  -- dsimp [bag.lift]
-  -- dsimp [bagMon.lift]
-  -- dsimp [Multiset.sum]
-  -- dsimp [foldr]
-  -- dsimp [Quot.liftOn]
-  -- unfold List.foldr
-  -- dsimp [equivMultiset]
-  -- dsimp [toFinsupp]
-
 
 end bagType
 
