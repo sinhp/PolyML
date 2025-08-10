@@ -62,7 +62,6 @@ def functor : Type u ⥤ AddCommMonCat where
   obj α := AddCommMonCat.of (α →₀ ℕ)
   map {α β} f := AddCommMonCat.ofHom <| mapDomain.addMonoidHom f
 
-
 def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
@@ -93,9 +92,9 @@ def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
     ext x
     simp only [AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply,
       singleAddHom_apply, AddCommMonCat.hom_comp]
-    rw [types_comp]
     sorry
   }
+
   homEquiv_naturality_right X X' := by {
     simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
       ConcreteCategory.forget_map_eq_coe]
@@ -124,11 +123,13 @@ instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   one := fun _ => 0
   mul := Add.add.uncurry
   one_mul := by {
+    letI :MonoidalCategory (Type u):= by {exact typesCartesianMonoidalCategory.toMonoidalCategory}
     ext f
     simp only [types_comp_apply, whiskerRight_apply, Function.uncurry_apply_pair]
     cases' f with h1 h2
     simp only [leftUnitor_hom_apply]
     sorry
+
   }
   mul_one := by {
     ext f
@@ -140,6 +141,9 @@ instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   }
   mul_assoc := by sorry
 
+
+#check CategoryTheory.braiding_hom_apply
+
 instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon α where
   mul_comm := by {
     ext l
@@ -147,7 +151,7 @@ instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon �
     cases' l with h1 h2
     simp only [braiding_hom_apply]
     dsimp [Mon_Class.mul]
-    congr 1
+    congr
     sorry
     sorry
   }

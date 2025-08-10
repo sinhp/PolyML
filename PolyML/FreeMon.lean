@@ -186,13 +186,19 @@ theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
     rfl
   · dsimp [monad, freeMonoidAdjunction, homEquiv]
     dsimp [lift, list.foldl]
-    --simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-    rw [plist.rec_cons]
     letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    nth_rw 2 [← BraidedCategory.braiding_naturality_left_assoc]
+    rw [← BraidedCategory.braiding_naturality_left_assoc]
+    simp only [id_whiskerRight, id_comp]
+    -- --simp only [MonoidalCategory.whiskerLeft_id, id_comp]
     rw [plist.rec_cons]
-    nth_rw 2 [list.append]
+    rw [plist.rec_cons]
     sorry
+    --simp only [BraidedCategory.braiding_naturality_right_assoc]
+    -- letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+    -- nth_rw 2 [← BraidedCategory.braiding_naturality_left_assoc]
+    -- rw [plist.rec_cons]
+    -- nth_rw 2 [list.append]
+    -- sorry
     --simp?
 }
 
@@ -334,7 +340,7 @@ theorem aggregator_join {M : Mon_ C} :
   rw [CategoryTheory.list.join_eq_flatten]
   dsimp [list.flatten]
   dsimp [list.rec']
-  dsimp [aggregator, ofMon, list.singleton]
+  dsimp [aggregator, ofMon]
   rw [← plist.rec_uniq]
   · sorry
   · have := list.map_cons (C:=C) (f:= (lift (𝟙 M.X)))

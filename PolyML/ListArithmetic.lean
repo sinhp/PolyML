@@ -206,8 +206,7 @@ theorem whisker_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
    A ◁ plist.nil ≫ A ◁ plist.rec f g = A ◁ f := by {
     ext : 1
     · simp_all only [assoc, whiskerLeft_fst]
-    · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_nil]
-   }
+    · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_nil]}
 
 @[reassoc (attr := simp)]
 theorem rec_whisker {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
@@ -259,8 +258,8 @@ theorem adjunction_hom_equiv_unique
 @[simp]
 /- The action morphism is unique. -/
 theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
-  (h : plist A P ⟶ C') (hh₁ : plist.nil ≫ h = f) (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) :
-  h = plist.rec f g := by {
+  (h : plist A P ⟶ C') (hh₁ : nil ≫ h = f) (hh₂ : cons ≫ h = A ◁ h ≫ g) :
+  h = rec f g := by {
   have : Function.Bijective ((freeForgetAdj A).homEquiv P ⟨C', g⟩) :=
       adjunction_hom_equiv_unique (freeForgetAdj A) (X := P) (Y := ⟨C', g⟩)
   dsimp [Function.Bijective] at this
@@ -287,25 +286,35 @@ theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
       exact _root_.id (Eq.symm this)}
   have this := h1 (a₁ := htest) (a₂ := htest2) hntp
   unfold htest htest2 at this
-  injection this
-}
+  injection this}
 
 /-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
-lemma ext {A P Y : C} {f g : plist A P ⟶ Y}
-  (h₀ : plist.nil ≫ f = plist.nil ≫ g)
-  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {
+lemma ext {A P Y : C} {f g : plist A P ⟶ Y} (h₀ : nil ≫ f = nil ≫ g)
+  (h₁ : cons ≫ f = cons ≫ g)  : f = g := by {
+  rw [plist.rec_uniq (h := f)]
+  · rw [plist.rec_uniq (h := g)]
+    rfl
+    rw [← h₁]
+    sorry
+    sorry
+  · exact h₀
+  · rw [h₁]
+    sorry
+  -- have H : ∀ {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'} (h : plist A P ⟶ C') (hh₁ : plist.nil ≫ h = f)
+  -- (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) , h = plist.rec f g := by {apply plist.rec_uniq}
 
-  have H : ∀ {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'} (h : plist A P ⟶ C') (hh₁ : plist.nil ≫ h = f)
-  (hh₂ : plist.cons ≫ h = A ◁ h ≫ g) , h = plist.rec f g := by {apply plist.rec_uniq}
+  -- have hf : plist.nil ≫ plist.rec f (snd A Y) = f := by {exact plist.rec_nil}
 
-  have hf : plist.nil ≫ plist.rec f (snd A Y) = f := by {exact plist.rec_nil}
+  -- --rw [← this]
+  -- have hh₂ : plist.cons ≫ plist.rec f (snd A Y) = A ◁ plist.rec f (snd A Y) ≫ (snd A Y) := by {
+  --   exact plist.rec_cons
+  -- }
+  -- have hg : plist.nil ≫ plist.rec g (snd A Y) = g := by {exact plist.rec_nil}
+  -- rw [← hf]
+  -- rw [← hg]
+  -- rw [← plist.rec_uniq]
+  -- sorry
 
-  --rw [← this]
-  have hh₂ : plist.cons ≫ plist.rec f (snd A Y) = A ◁ plist.rec f (snd A Y) ≫ (snd A Y) := by {
-    exact plist.rec_cons
-  }
-  have hg : plist.nil ≫ plist.rec g (snd A Y) = g := by {exact plist.rec_nil}
-  sorry
 
   }
 
@@ -644,11 +653,12 @@ theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 def append {A : C} : list A ⊗ list A ⟶ list A :=
   list.rec (𝟙 _) (list.cons)
 
--- [] ++ xs= xs
+-- [] ++ xs = xs
 theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   refine (Iso.inv_comp_eq_id (λ_ (list A))).mp ?_
   rw [← assoc]
   apply rec_nil
+
 
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
@@ -658,7 +668,12 @@ theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom
   dsimp [rec]
   refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
   simp only [assoc]
-  sorry
+  rw [← plist.rec_uniq]
+  · dsimp [plistIsoTensor]
+    sorry
+  · sorry
+  · sorry
+  · sorry
 
   -- dsimp [list]
   -- dsimp [plistIsoTensor]

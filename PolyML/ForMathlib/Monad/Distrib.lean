@@ -56,44 +56,38 @@ namespace DistribLaw
 def liftToMonadAlgebra (S T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
+
   unit := by {
-    have hl := DistribLaw.unit_left (S := S) (T := T)
-    have hr := DistribLaw.unit_right (S := S) (T := T)
-    --have hassocS := Monad.assoc S α.A
-    have hassocT := Monad.assoc T α.A
-    --have hunitS := Monad.left_unit S α.A
-    have hunitT := Monad.left_unit T α.A
-    have hunitSr := Monad.right_unit S α.A
-    have hunitTr := Monad.right_unit T α.A
-    have H1T := Monad.unit_naturality C T
-    --have H1S := Monad.unit_naturality C S
-    --have H2S := Monad.mu_naturality C S
-    have H2T := Monad.mu_naturality C T
-    let f := S.η.app (T.obj α.A)
-    let g:= T.map (T.η.app α.A)
-    simp only [Functor.id_obj] at *
-    rw [← hunitTr]
-    have := H2T g
-    simp only [endofunctorMonoidalCategory_tensorObj_obj]
-    sorry
+    have hrST := DistribLaw.unit_right (S := S) (T := T)
+    have hδ2 := congr_arg (fun f => (NatTrans.app f α.A)) hrST
+    simp only [endofunctorMonoidalCategory_tensorObj_obj, Functor.id_obj, NatTrans.comp_app,
+      endofunctorMonoidalCategory_whiskerLeft_app,
+      endofunctorMonoidalCategory_whiskerRight_app] at hδ2
+    rw [← Category.assoc, hδ2, ← T.map_id, ← map_comp]
+    rw [Algebra.unit (C:=C) α]}
 
-
-    --rw [H2T]
-    --have := H1T
-
-
-
-
-
-
-
-  }
   assoc := by {
-    have hassocS := Monad.assoc S α.A
-    have hassocT := Monad.assoc T α.A
-    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj, map_comp, Category.assoc]
-
-
+    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj]
+    have hδ1 := congr_arg (fun f => (NatTrans.app f α.A)) (DistribLaw.mul_right (S := S) (T := T))
+    have hδ2 := congr_arg (fun f => (NatTrans.app f α.A)) (DistribLaw.mul_left (S := S) (T := T))
+    simp only [endofunctorMonoidalCategory_tensorObj_obj, NatTrans.comp_app,
+      endofunctorMonoidalCategory_whiskerLeft_app, endofunctorMonoidalCategory_whiskerRight_app,
+      comp_obj] at *
+    rw [← Category.assoc]
+    have h2 := Algebra.assoc (C:=C) α
+    rw [← hδ1]
+    rw [Category.assoc]
+    rw [Category.assoc]
+    rw [map_comp]
+    rw [← map_comp]
+    rw [h2]
+    simp only [map_comp]
+    simp only [Category.assoc]
+    refine S.map (δ.app α.A) ≫= ?_
+    rw [← Category.assoc]
+    rw [← Category.assoc]
+    refine ?_ =≫ T.map α.a
+    sorry
   }
 
 @[reassoc (attr := simp)]
@@ -143,9 +137,6 @@ instance [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C] :
   unit_right := sorry
   mul_left := sorry
   mul_right := sorry
-
-
-
 
 end Monad
 
