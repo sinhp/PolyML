@@ -134,14 +134,42 @@ def monad : Monad S.Algebra where
   toFunctor := endoFunctor T
   η := {
     app X := ⟨T.η.app X.A, by simp; erw [T.η.naturality X.a]⟩
-    naturality := sorry
+    naturality := by {
+      intros X Y f
+      simp only [Functor.id_obj, endoFunctor_obj, Functor.id_map]
+      ext
+      simp only [Algebra.comp_f, endoFunctor_map_f]
+      sorry
+    }
   }
   μ := {
-    app X := ⟨T.μ.app X.A , sorry⟩
+    app X := ⟨T.μ.app X.A , by {
+      simp only [comp_obj, endoFunctor_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj,
+        map_comp, Category.assoc]
+      sorry
+    }⟩
     naturality := sorry
   }
-  assoc := sorry
-  left_unit := sorry
+  assoc := by {
+    intros α
+    simp only [comp_obj, endoFunctor_obj]
+    ext
+    simp only [Algebra.comp_f, endoFunctor_map_f]
+    sorry
+
+  }
+  left_unit := by {
+    intros α
+    simp only [endoFunctor_obj, Functor.id_obj, comp_obj]
+    ext
+    simp only [Algebra.comp_f, Algebra.id_f]
+    have :=  (map T α).unit
+
+    -- rw [← this]
+    -- simp only [Functor.id_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj]
+    -- rw [← Category.assoc]
+
+  }
   right_unit := sorry
 
 variable {S T}
@@ -208,7 +236,10 @@ variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 instance distribLawListBag: DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality := sorry
+    naturality := by {
+      intros X Y f
+      sorry
+    }
   }
   unit_left := sorry
   unit_right := sorry
