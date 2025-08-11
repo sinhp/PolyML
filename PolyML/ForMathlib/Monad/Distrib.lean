@@ -25,7 +25,13 @@ the units and multiplications of the two monads. The natural transformation `δ`
 
 In the presence of a distributive law, the underlying functor of the composition of the two monads
 is given the the composition of their respective underlying functors, and in fact, the the composition of two
-monads `S` and `T` is then defined as `⟨S ⋙ T, S.η ≫ T·η, TλS ≫ S.μ  ⟩`.
+monads `S` and `T` is then defined as `⟨S ⋙ T, S.η ≫ T·η, TλS ≫ S.μ⟩`. A complete graphical proof
+of unital and associativity laws for the composition monad is given on pages 34 and 35 of
+[Marsden, Category Theory Using String Diagrams][https://arxiv.org/pdf/1401.7220]
+
+The notion of distributive law was first introduced by Beck in 1969, and it is a central concept in the theory of monads. The paper is
+
+Jon Beck, Distributive Laws, in: Seminar on Triples and Categorical Homology Theory, ETH 1966/67, Lecture Notes in Mathemativs, Springer (1969), Reprints in Theory and Applications of Categories 18 (2008) 1-303.
 -/
 set_option linter.simpsNoConstructor false
 
