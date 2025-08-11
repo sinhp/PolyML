@@ -96,22 +96,19 @@ def map (α : S.Algebra) : S.Algebra where
   unit := by simp only [unit_right_components_assoc, ← map_comp, α.unit, map_id]
   assoc := by {
     simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj]
-    have hδ1 := congr_arg (fun f => (NatTrans.app f α.A)) (DistribLaw.mul_right (S := S) (T := T))
+    have hδ1 := congr_arg (fun f => (NatTrans.app f α.A))
+      (DistribLaw.mul_right (S := S) (T := T))
     simp only [endofunctorMonoidalCategory_tensorObj_obj, NatTrans.comp_app,
       endofunctorMonoidalCategory_whiskerLeft_app,
       endofunctorMonoidalCategory_whiskerRight_app,
       comp_obj] at *
     rw [← Category.assoc,← hδ1]
-    have h2 := Algebra.assoc (C:=C) α
-    rw [Category.assoc, Category.assoc, ← map_comp]
-    rw [h2]
-    simp only [map_comp]
-    simp only [Category.assoc]
+    rw [Category.assoc, Category.assoc, ← map_comp, Algebra.assoc (C:=C) α]
+    simp only [map_comp, Category.assoc]
     refine S.map (δ.app α.A) ≫= ?_
     rw [← Category.assoc, ← Category.assoc]
     refine ?_ =≫ T.map α.a
-    have :=distrib_naturality (S:=S) (T:=T) (f:= α.a)
-    exact _root_.id (Eq.symm this)}
+    exact _root_.id (Eq.symm (distrib_naturality (S:=S) (T:=T) (f:= α.a)))}
 
 @[reassoc (attr := simp)]
 theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
