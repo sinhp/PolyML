@@ -26,7 +26,7 @@ In the presence of a distributive law, the underlying functor of the composition
 is given the the composition of their respective underlying functors, and in fact, the the composition of two
 monads `S` and `T` is then defined as `⟨S ⋙ T, S.η ≫ T·η, TλS ≫ S.μ  ⟩`.
 -/
-
+set_option linter.simpsNoConstructor false
 
 universe v₁ v₂ u₁ u₂
 
@@ -157,7 +157,8 @@ def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
 def sndAlg (α : (monad S T).Algebra) : T.Algebra where
   A := α.A.A
   a := α.a.f
-  unit := sorry
+  unit := by {sorry
+  }
   assoc := sorry
 
 @[reassoc (attr := simp)]
@@ -168,8 +169,14 @@ def distrib (α : (monad S T).Algebra) :
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
   toMonad := monad S T
   w := rfl
-  respect_unit := sorry
-  respect_mul := sorry
+  respect_unit := by {
+    simp only [eqToHom_refl, comp_id]
+    rfl
+  }
+  respect_mul := by {
+    simp only [eqToHom_refl, comp_id, id_comp]
+    rfl
+  }
 
 end LiftingMonad
 
@@ -187,8 +194,91 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   μ := by
     let w := S.μ ⊗ₘ T.μ
     exact (S.1 ◁ δ ▷ T.1) ≫ w
-  assoc := sorry
-  left_unit := sorry
+  assoc X := by {
+    simp only [comp_obj, NatTrans.comp_app,
+      endofunctorMonoidalCategory_tensorObj_obj,
+      endofunctorMonoidalCategory_whiskerLeft_app,
+      endofunctorMonoidalCategory_whiskerRight_app,
+      endofunctorMonoidalCategory_tensorMap_app,
+      Functor.comp_map, map_comp, Category.assoc]
+    have := Monad.mu_naturality (T:= T)
+    stop
+
+
+
+
+
+    rw [← Category.assoc]
+    rw [← Category.assoc]
+    rw [← map_comp]
+    rw [Category.assoc]
+    rw [← map_comp]
+    rw [← Category.assoc]
+    rw [← map_comp]
+    have :   T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫
+    T.μ.app (S.obj (S.obj (T.obj (S.obj X)))) ≫
+      T.map (S.μ.app (T.obj (S.obj X))) ≫ T.map (δ.app (S.obj X)) ≫
+      T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X)=
+        T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫
+    T.μ.app (S.obj (S.obj (T.obj (S.obj X)))) ≫
+      (T.map (S.μ.app (T.obj (S.obj X))) ≫ T.map (δ.app (S.obj X))) ≫
+      T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X) := by {
+        simp only [endofunctorMonoidalCategory_tensorObj_obj, Category.assoc]}
+    rw [this]
+    rw [← map_comp]
+    rw [← map_comp]
+    have : T.map (S.map ((T.map (δ.app (S.obj X)) ≫
+    T.μ.app (S.obj (S.obj X))) ≫ T.map (S.μ.app X))) ≫
+    T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X)=
+      (T.map (S.map ((T.map (δ.app (S.obj X)) ≫
+    T.μ.app (S.obj (S.obj X))) ≫ (T.map (S.μ.app X)))) ≫
+    T.map (δ.app (S.obj X))) ≫
+      T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X) := sorry
+    rw [this]
+    rw [← map_comp]
+    --have := distrib_naturality
+    have := unit_left_components (S:=S) (T:=T) (X:=(S.obj X))
+    have := unit_right_components (S:=S) (T:=T) (X:=(S.obj X))
+    have := mul_left_components (S:=S) (T:=T) (X:=(S.obj X))
+    have := mul_right_components (S:=S) (T:=T) (X:=(S.obj X))
+
+
+
+
+
+
+
+  }
+  left_unit X := by {
+    sorry
+    -- simp only [comp_obj, Functor.id_obj, unit_exchange, NatTrans.comp_app,
+    --   endofunctorMonoidalCategory_whiskerRight_app, endofunctorMonoidalCategory_tensorObj_obj,
+    --   endofunctorMonoidalCategory_whiskerLeft_app, endofunctorMonoidalCategory_tensorMap_app,
+    --   ]
+    -- have :  (T.η.app (T.obj (S.obj X)) ≫ T.map (S.η.app (T.obj (S.obj X)))) ≫
+    -- T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X) =
+    --  (T.η.app (T.obj (S.obj X)) ≫ (T.map (S.η.app (T.obj (S.obj X)))) ≫
+    -- T.map (δ.app (S.obj X))) ≫ T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X)  := by {
+    --   simp only [Functor.id_obj, endofunctorMonoidalCategory_tensorObj_obj, Category.assoc]
+    -- }
+    -- --rw [this]
+    -- --rw [← map_comp]
+    -- have:= Monad.left_unit (C:=C) T (X:=((S.obj X)))
+    -- simp only [Functor.id_obj] at this
+    -- simp only [Category.assoc]
+    -- rw [← this]
+    -- refine T.η.app (T.obj (S.obj X)) ≫= ?_
+
+
+
+
+
+
+
+
+
+
+  }
   right_unit := sorry
 
 theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
@@ -196,7 +286,6 @@ theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S
 
 theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
     (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
-
 
 #check Mon_
 #check Semiring
@@ -208,7 +297,12 @@ instance distribLawListBag: DistribLaw (list.monad C) (bag.monad C) where
     app X := list.lift <| bag.map list.singleton
     naturality := by {
       intros X Y f
+      simp only [endofunctorMonoidalCategory_tensorObj_obj,
+        endofunctorMonoidalCategory_tensorObj_map]
       sorry
+
+
+
     }
   }
   unit_left := sorry
