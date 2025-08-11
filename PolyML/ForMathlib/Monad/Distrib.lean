@@ -27,13 +27,14 @@ is given the the composition of their respective underlying functors, and in fac
 monads `S` and `T` is then defined as `⟨S ⋙ T, S.η ≫ T·η, TλS ≫ S.μ  ⟩`.
 -/
 
-universe u v
+
+universe v₁ v₂ u₁ u₂
 
 namespace CategoryTheory
 
-open Category MonoidalCategory Endofunctor Functor
+open Category MonoidalCategory Endofunctor Functor Recursive
 
-variable {C : Type u} [Category.{v} C]
+variable {C : Type u₁} [Category.{v₁} C] {D : Type u₁} [Category.{v₂} D]
 
 attribute [local instance] CategoryTheory.endofunctorMonoidalCategory
 
@@ -46,97 +47,186 @@ class DistribLaw (S T : Monad C) where
   mul_left :  T.1 ◁ δ ≫ δ ▷ T.1 ≫ S.1 ◁ T.μ = T.μ ▷ S.1 ≫ δ
   mul_right : δ ▷ S.1 ≫ S.1 ◁ δ ≫ S.μ ▷ T.1 = T.1 ◁ S.μ ≫ δ
 
+attribute [reassoc (attr := simp)] DistribLaw.unit_left DistribLaw.unit_right DistribLaw.mul_left DistribLaw.mul_right
+
 namespace DistribLaw
 
-#check CategoryTheory.RelCat
+variable {S T : Monad C} [DistribLaw S T]
 
-#check CategoryTheory.Endofunctor.Algebra
-
-/- If `S` distributes over `T`, `T` maps algebras of `S` to algebras of `S`. -/
-def liftToMonadAlgebra (S T : Monad C) [DistribLaw S T] (α : S.Algebra) : S.Algebra where
-  A := T.obj α.A
-  a := DistribLaw.δ.app α.A ≫ T.map α.a
-
-  unit := by {
-    have hrST := DistribLaw.unit_right (S := S) (T := T)
-    have hδ2 := congr_arg (fun f => (NatTrans.app f α.A)) hrST
-    simp only [endofunctorMonoidalCategory_tensorObj_obj, Functor.id_obj, NatTrans.comp_app,
-      endofunctorMonoidalCategory_whiskerLeft_app,
-      endofunctorMonoidalCategory_whiskerRight_app] at hδ2
-    rw [← Category.assoc, hδ2, ← T.map_id, ← map_comp]
-    rw [Algebra.unit (C:=C) α]}
-
-  assoc := by {
-    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj]
-    have hδ1 := congr_arg (fun f => (NatTrans.app f α.A)) (DistribLaw.mul_right (S := S) (T := T))
-    have hδ2 := congr_arg (fun f => (NatTrans.app f α.A)) (DistribLaw.mul_left (S := S) (T := T))
-    simp only [endofunctorMonoidalCategory_tensorObj_obj, NatTrans.comp_app,
-      endofunctorMonoidalCategory_whiskerLeft_app, endofunctorMonoidalCategory_whiskerRight_app,
-      comp_obj] at *
-    rw [← Category.assoc]
-    have h2 := Algebra.assoc (C:=C) α
-    rw [← hδ1]
-    rw [Category.assoc]
-    rw [Category.assoc]
-    rw [map_comp]
-    rw [← map_comp]
-    rw [h2]
-    simp only [map_comp]
-    simp only [Category.assoc]
-    refine S.map (δ.app α.A) ≫= ?_
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    refine ?_ =≫ T.map α.a
-    sorry
-  }
-
-@[reassoc (attr := simp)]
-theorem liftToMonadAlgebra_str {S T : Monad C} [DistribLaw S T] {α : S.Algebra} :
-    (liftToMonadAlgebra S T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
-  rfl
-
-theorem distrib_naturality {S T : Monad C} [DistribLaw S T] {X Y : C} (f : X ⟶ Y) :
+theorem distrib_naturality {X Y : C} (f : X ⟶ Y) :
     S.map (T.map f) ≫ δ.app Y = δ.app X ≫ T.map (S.map f) :=
   δ.naturality f
 
-/-- If `S` distributes over `T`, the monad `T` lifts to an endofucntor on the category of algebras of `S`. -/
-def liftToMonadAlgebraEndoFunctor (S T : Monad C) [DistribLaw S T] : S.Algebra ⥤ S.Algebra where
-  obj := liftToMonadAlgebra S T
-  map {α β} g := {
-    f := T.map g.f
-    h := by
-      rw [liftToMonadAlgebra_str]
-      rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
-      simp only [liftToMonadAlgebra_str]
-  }
-  map_id := by aesop_cat
-  map_comp := by aesop_cat
+@[reassoc (attr := simp)]
+theorem unit_left_components {X : C} : S.map (T.η.app X) ≫ δ.app X = T.η.app (S.obj X) :=
+  NatTrans.congr_app unit_left X
 
-theorem liftToMonadAlgebraEndoFunctor_forget {S T : Monad C} [DistribLaw S T] :
-    liftToMonadAlgebraEndoFunctor S T ⋙ S.forget = S.forget ⋙ T.1 := by
-  rfl
+@[reassoc (attr := simp)]
+theorem unit_right_components {X : C} : S.η.app (T.obj X) ≫ δ.app X = T.map (S.η.app X) :=
+  NatTrans.congr_app unit_right X
 
-/-- If `S` distributes over `T` then `T` lifts to monad on the category of algebras of `S`. -/
-def liftToMonadAlgebraMonad {S T : Monad C} [DistribLaw S T] : Monad S.Algebra :=
-  { liftToMonadAlgebraEndoFunctor S T with
-    η := sorry,
-    μ := sorry,
-    assoc := sorry,
-    left_unit := sorry,
-    right_unit := sorry}
+@[reassoc (attr := simp)]
+theorem mul_left_components {X : C} :
+    δ.app (T.obj X) ≫ T.map (δ.app X) ≫ T.μ.app (S.obj X) = S.map (T.μ.app X) ≫ δ.app X :=
+  NatTrans.congr_app mul_left X
+
+@[reassoc (attr := simp)]
+theorem mul_right_components {X : C} :
+    S.map (δ.app X) ≫ δ.app (S.obj X) ≫ T.map (S.μ.app X) = S.μ.app (T.obj X) ≫ δ.app X :=
+  NatTrans.congr_app mul_right X
 
 end DistribLaw
 
-instance [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C] :
-    DistribLaw (list.monad C) (bag.monad C) where
+class Lift (S T : Monad C) extends Monad (S.Algebra) where
+  w : toFunctor ⋙ S.forget = S.forget ⋙ T.1
+  respect_unit : whiskerRight η S.forget ≫ eqToHom w = whiskerLeft S.forget T.η
+  respect_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom
+    (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
+
+namespace LiftingMonad
+
+open DistribLaw
+
+variable {S : Monad C} (T : Monad C) [DistribLaw S T]
+
+/- If `S` distributes over `T`, `T` maps algebras of `S` to algebras of `S`. -/
+def map (α : S.Algebra) : S.Algebra where
+  A := T.obj α.A
+  a := DistribLaw.δ.app α.A ≫ T.map α.a
+  unit := by simp only [unit_right_components_assoc, ← map_comp, α.unit, map_id]
+  assoc := sorry
+
+@[reassoc (attr := simp)]
+theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
+    (map T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
+  rfl
+
+/-- If `S` distributes over `T`, the monad `T` lifts to an endofucntor on the category of algebras of `S`. -/
+@[simps]
+def endoFunctor : S.Algebra ⥤ S.Algebra where
+  obj := map T
+  map {α β} g := {
+    f := T.map g.f
+    h := by
+      rw [map_str]
+      rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
+      simp only [map_str]
+  }
+
+variable (S)
+
+/-- If `S` distributes over `T` then `T` lifts to monad on the category of algebras of `S`. -/
+def monad : Monad S.Algebra where
+  toFunctor := endoFunctor T
+  η := {
+    app X := ⟨T.η.app X.A, by simp; erw [T.η.naturality X.a]⟩
+    naturality := sorry
+  }
+  μ := {
+    app X := ⟨T.μ.app X.A , sorry⟩
+    naturality := sorry
+  }
+  assoc := sorry
+  left_unit := sorry
+  right_unit := sorry
+
+variable {S T}
+
+def fstAlg (α : (monad S T).Algebra) : S.Algebra := α.A
+
+def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
+  obj := fstAlg
+  map {α β} g := {
+    f := sorry
+    h := sorry
+  }
+
+@[simps]
+def sndAlg (α : (monad S T).Algebra) : T.Algebra where
+  A := α.A.A
+  a := α.a.f
+  unit := sorry
+  assoc := sorry
+
+@[reassoc (attr := simp)]
+def distrib (α : (monad S T).Algebra) :
+    δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a = S.map (sndAlg α).a ≫ (fstAlg α).a := by
+  sorry
+
+instance {T : Monad C} [DistribLaw S T] : Lift S T where
+  toMonad := monad S T
+  w := rfl
+  respect_unit := sorry
+  respect_mul := sorry
+
+end LiftingMonad
+
+open DistribLaw
+
+@[simp]
+theorem unit_exchange {S T : Monad C} : S.η ≫ (S.1 ◁ T.η) = T.η ≫ (S.η ▷ T.1) := by
+  ext X
+  exact T.η.naturality <| S.η.app X
+
+@[simps]
+def comp (S T : Monad C) [DistribLaw S T] : Monad C where
+  toFunctor := S.toFunctor ⋙ T.toFunctor
+  η := S.η ≫ (S.1 ◁ T.η)
+  μ := by
+    let w := S.μ ⊗ₘ T.μ
+    exact (S.1 ◁ δ ▷ T.1) ≫ w
+  assoc := sorry
+  left_unit := sorry
+  right_unit := sorry
+
+theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
+  simp only [comp_η, unit_exchange]
+
+theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
+    (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
+
+
+#check Mon_
+#check Semiring
+
+variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
+
+instance distribLawListBag: DistribLaw (list.monad C) (bag.monad C) where
   δ := {
-    app X := sorry
+    app X := list.lift <| bag.map list.singleton
     naturality := sorry
   }
   unit_left := sorry
   unit_right := sorry
   mul_left := sorry
   mul_right := sorry
+
+def Semiring_ :=  LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
+
+namespace Semiring_
+
+variable (α : Semiring_ C)
+
+def X : C := α.A.A
+
+instance mon_Class : Mon_Class α.X where
+  one := sorry
+  mul := sorry
+  one_mul := sorry
+  mul_one := sorry
+  mul_assoc := sorry
+
+def mon : Mon_ C where
+  X := α.X
+
+attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+
+instance commMon : CommMon_ C where
+  X := α.X
+  mon := sorry
+  comm := sorry
+
+end Semiring_
 
 end Monad
 

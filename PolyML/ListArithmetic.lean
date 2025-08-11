@@ -255,32 +255,33 @@ theorem adjunction_hom_equiv_unique
   Function.Bijective (adj.homEquiv X Y) :=
   (adj.homEquiv X Y).bijective
 
+/-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `f` and composes with `plist.cons`
+to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
 @[simp]
-/- The action morphism is unique. -/
-theorem rec_uniq {A P C' : C} {f : P ⟶ C'} {g : A ⊗ C' ⟶ C'}
-  (h : plist A P ⟶ C') (hh₁ : nil ≫ h = f) (hh₂ : cons ≫ h = A ◁ h ≫ g) :
-  h = rec f g := by {
-  have : Function.Bijective ((freeForgetAdj A).homEquiv P ⟨C', g⟩) :=
-      adjunction_hom_equiv_unique (freeForgetAdj A) (X := P) (Y := ⟨C', g⟩)
+theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
+  (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
+   r = rec f g := by {
+  have : Function.Bijective ((freeForgetAdj A).homEquiv P ⟨Y, g⟩) :=
+      adjunction_hom_equiv_unique (freeForgetAdj A) (X := P) (Y := ⟨Y, g⟩)
   dsimp [Function.Bijective] at this
   obtain ⟨h1,h2⟩ := this
   dsimp [Function.Injective] at *
   have : nil ≫ rec f g = f := plist.rec_nil
-  let htest : (freeActionFunctor A).obj P ⟶ { a := C', str := g } := by {
+  let htest : (freeActionFunctor A).obj P ⟶ { a := Y, str := g } := by {
     constructor
     simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
-    exact _root_.id (Eq.symm hh₂)}
-  let htest2 : (freeActionFunctor A).obj P ⟶ { a := C', str := g } := by {
+    exact _root_.id (Eq.symm h_cons)}
+  let htest2 : (freeActionFunctor A).obj P ⟶ { a := Y, str := g } := by {
     constructor
     simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
     have := plist.rec_cons (C:=C) (f := f) (g:=g)
     exact _root_.id (Eq.symm this)}
-  have hntp : ((freeForgetAdj A).homEquiv P { a := C', str := g }) htest =
-    ((freeForgetAdj A).homEquiv P { a := C', str := g }) htest2 := by {
+  have hntp : ((freeForgetAdj A).homEquiv P { a := Y, str := g }) htest =
+    ((freeForgetAdj A).homEquiv P { a := Y, str := g }) htest2 := by {
       unfold htest htest2
       have H1 : nil ≫ rec f g = f := rec_nil
-      have H2 : nil ≫ h = f := hh₁
-      have : nil ≫ rec f g = nil ≫ h := by {
+      have H2 : nil ≫ r = f := h_nil
+      have : nil ≫ rec f g = nil ≫ r := by {
         rw [← H1] at H2
         exact _root_.id (Eq.symm H2)}
       exact _root_.id (Eq.symm this)}
@@ -511,9 +512,14 @@ lemma cons_len_eq_map_toUnit_cons :
   rfl
 
 /-- The length of a list, defined recursively. -/
-def list.len' {A : C} : list A ⟶ N_ C := by
-  apply list.rec' nno.zero
-  apply CartesianMonoidalCategory.snd (X := A) (Y := N_ C ) ≫ nno.succ
+def list.len' {A : C} : list A ⟶ N_ C :=
+  list.rec' nno.zero (snd A (N_ C) ≫ nno.succ)
+
+theorem list.len_eq_len' {A : C} :
+    list.len (A:= A) = list.len' := by
+  simp [list.len, list.len', list.map, plist.map, rec', nno.zero, nno.succ, list.nil, list.cons]
+  congr 1
+  sorry
 
 /- len nil = 0 -/
 lemma list_zero : list.nil (A:=A) ≫ list.len' = nno.zero (C := C) := by {
@@ -567,27 +573,27 @@ instance is_iso_instance {A P Y : C} : IsIso (plist.cmp A P Y) := by
   rw [ListArithmetic.hom_inv_id]
   rw [ListArithmetic.inv_hom_id]
 
-/-- In a list-arithmetic category, `plist A B` is isomorphic to `(list A) ⊗ B`. -/
-def plistIsoTensor (A B : C) : plist A B ≅ list A ⊗ B where
-  hom := plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B
-  inv := cmpInv A (𝟙_ C) B ≫ ((plist.map' A (λ_ B).hom))
+/-- In a list-arithmetic category, `plist A P` is isomorphic to `(list A) ⊗ P`. -/
+def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
+  hom := plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P
+  inv := cmpInv A (𝟙_ C) P ≫ ((plist.map' A (λ_ P).hom))
   hom_inv_id := by
-    refine (hom_comp_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
-    have := ListArithmetic.inv_hom_id (A:=A) (P :=(𝟙_ C)) (Y := B)
+    refine (hom_comp_eq_id (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)).mpr ?_
+    have := ListArithmetic.inv_hom_id (A:= A) (P:= (𝟙_ C)) (Y:= P)
     simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
     refine Eq.symm (IsIso.inv_eq_of_inv_hom_id ?_)
     rw [← this]
     rw [assoc]
     rw [assoc]
-    refine cmpInv A (𝟙_ C) B ≫= ?_
+    refine cmpInv A (𝟙_ C) P ≫= ?_
     rw [← assoc]
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id]
     rw [plist.map'_id_tensor]
     simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil]
   inv_hom_id := by
-    refine (comp_hom_eq_id (plist.map' A (λ_ B).inv ≫ plist.cmp A (𝟙_ C) B)).mpr ?_
-    have := ListArithmetic.hom_inv_id (A:=A) (P :=(𝟙_ C)) (Y := B)
+    refine (comp_hom_eq_id (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)).mpr ?_
+    have := ListArithmetic.hom_inv_id (A:= A) (P:= (𝟙_ C)) (Y:= P)
     simp only [IsIso.inv_comp, IsIso.eq_comp_inv, assoc]
     refine Eq.symm (IsIso.inv_eq_of_hom_inv_id ?_)
     rw [← this]
