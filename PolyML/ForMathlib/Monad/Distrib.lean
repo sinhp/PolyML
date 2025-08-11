@@ -282,7 +282,8 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   }
   right_unit := sorry
 
-theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
+theorem comp_unit {S T : Monad C} [DistribLaw S T] :
+    (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
 
 theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
@@ -301,6 +302,8 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
       simp only [endofunctorMonoidalCategory_tensorObj_obj,
         endofunctorMonoidalCategory_tensorObj_map]
       sorry
+
+
 
 
 

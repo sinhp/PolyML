@@ -62,6 +62,8 @@ def functor : Type u ⥤ AddCommMonCat where
   obj α := AddCommMonCat.of (α →₀ ℕ)
   map {α β} f := AddCommMonCat.ofHom <| mapDomain.addMonoidHom f
 
+open LinearMap CommMonCat
+
 def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
@@ -77,9 +79,34 @@ def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
         singleAddHom_apply, linearCombination_single, one_smul]
       rfl
     }
-    right_inv f := sorry
+    right_inv f := by {
+      ext g
+      simp only [AddCommMonCat.hom_ofHom]
+      unfold weight
+      have : (linearCombination ℕ f).toAddMonoidHom (single g 1)=
+       (linearCombination ℕ f) (single g 1) := by {
+        simp only [toAddMonoidHom_coe, linearCombination_single, one_smul]}
+      rw [linearCombination_single] at this
+      simp only [one_smul] at this
+      exact this
+    }
   }
-  homEquiv_naturality_left_symm := sorry
+  homEquiv_naturality_left_symm := by {
+    intros X X' Y f g
+    simp only [Equiv.coe_fn_symm_mk]
+    ext h
+    unfold weight
+    simp only [ AddMonoidHom.coe_comp, Function.comp_apply, singleAddHom_apply]
+    unfold functor
+    simp_all only [AddCommMonCat.hom_comp,
+      AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply, mapDomain.addMonoidHom_apply,
+      mapDomain_single]
+    have h1 : (linearCombination ℕ (f ≫ g)).toAddMonoidHom (single h 1) =
+      (linearCombination ℕ g).toAddMonoidHom (single (f h) 1) := by {
+        simp only [toAddMonoidHom_coe, linearCombination_single, types_comp_apply, one_smul]}
+    exact h1
+  }
+
   homEquiv_naturality_right X X' := by {
     simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
       ConcreteCategory.forget_map_eq_coe]
@@ -113,13 +140,23 @@ instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
     ext f
     simp_all only [types_comp_apply, whiskerRight_apply, Function.uncurry_apply_pair]
     apply AddZeroClass.zero_add
-  mul_one := sorry
-  mul_assoc := by sorry
-
-#check CategoryTheory.braiding_hom_apply
+  mul_one := by
+    ext f
+    simp only [types_comp_apply, whiskerLeft_apply, Function.uncurry_apply_pair]
+    apply AddZeroClass.add_zero
+  mul_assoc := by
+    ext f
+    simp only [types_comp_apply, whiskerRight_apply, Function.uncurry_apply_pair, whiskerLeft_apply,
+      associator_hom_apply_1]
+    apply AddSemigroup.add_assoc
 
 instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon α where
-  mul_comm := sorry
+  mul_comm := by
+    ext f
+    simp only [types_comp_apply]
+    dsimp [Mon_Class.mul]
+    unfold Function.uncurry
+    apply AddCommMonoid.add_comm
 
 def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
 
