@@ -94,21 +94,14 @@ def map (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := by simp only [unit_right_components_assoc, ← map_comp, α.unit, map_id]
-  assoc := by {
-    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj]
-    have hδ1 := congr_arg (fun f => (NatTrans.app f α.A))
-      (DistribLaw.mul_right (S := S) (T := T))
-    simp only [endofunctorMonoidalCategory_tensorObj_obj, NatTrans.comp_app,
-      endofunctorMonoidalCategory_whiskerLeft_app,
-      endofunctorMonoidalCategory_whiskerRight_app,
-      comp_obj] at *
-    rw [← Category.assoc,← hδ1]
+  assoc := by
+    rw [← Category.assoc,← mul_right_components]
     rw [Category.assoc, Category.assoc, ← map_comp, Algebra.assoc (C:=C) α]
     simp only [map_comp, Category.assoc]
     refine S.map (δ.app α.A) ≫= ?_
     rw [← Category.assoc, ← Category.assoc]
     refine ?_ =≫ T.map α.a
-    exact _root_.id (Eq.symm (distrib_naturality (S:=S) (T:=T) (f:= α.a)))}
+    exact _root_.id (Eq.symm (distrib_naturality (S:=S) (T:=T) (f:= α.a)))
 
 @[reassoc (attr := simp)]
 theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
@@ -134,43 +127,20 @@ def monad : Monad S.Algebra where
   toFunctor := endoFunctor T
   η := {
     app X := ⟨T.η.app X.A, by simp; erw [T.η.naturality X.a]⟩
-    naturality := by {
-      intros X Y f
-      simp only [Functor.id_obj, endoFunctor_obj, Functor.id_map]
-      ext
-      simp only [Algebra.comp_f, endoFunctor_map_f]
-      sorry
-    }
-  }
+    naturality α β f := by ext; apply Monad.unit_naturality}
   μ := {
     app X := ⟨T.μ.app X.A , by {
       simp only [comp_obj, endoFunctor_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj,
         map_comp, Category.assoc]
-      sorry
+      rw [← Category.assoc, ← mul_left_components]
+      rw [Monad.mu_naturality (T:=T) (f:=X.a), ← Category.assoc, ← Category.assoc]
+      exact Category.assoc
+        (δ.app (T.obj X.A) ≫ T.map (δ.app X.A)) (T.μ.app (S.obj X.A)) (T.map X.a)
     }⟩
-    naturality := sorry
-  }
-  assoc := by {
-    intros α
-    simp only [comp_obj, endoFunctor_obj]
-    ext
-    simp only [Algebra.comp_f, endoFunctor_map_f]
-    sorry
-
-  }
-  left_unit := by {
-    intros α
-    simp only [endoFunctor_obj, Functor.id_obj, comp_obj]
-    ext
-    simp only [Algebra.comp_f, Algebra.id_f]
-    have :=  (map T α).unit
-
-    -- rw [← this]
-    -- simp only [Functor.id_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj]
-    -- rw [← Category.assoc]
-
-  }
-  right_unit := sorry
+    naturality α β f := by ext; apply Monad.mu_naturality}
+  assoc α := by ext; apply Monad.assoc
+  left_unit α := by ext; apply Monad.left_unit
+  right_unit α := by ext; apply Monad.right_unit
 
 variable {S T}
 
