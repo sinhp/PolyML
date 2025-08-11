@@ -92,13 +92,15 @@ theorem CommMon_forget_aux :
     (CommMonTypeEquivalenceCommMon.functor ⋙ AddCommMonCat.equivalence.inverse) ⋙ (forget AddCommMonCat) := by
   rfl
 
-instance : WithBags (Type u) where
+instance withBags : WithBags (Type u) where
   functor := functor ⋙ (AddCommMonCat.equivalence.functor ⋙ CommMonTypeEquivalenceCommMon.inverse)
   adj := by
     rw [CommMon_forget_aux]
     refine Adjunction.comp adjunction ?_
     refine Adjunction.comp AddCommMonCat.equivalence.toAdjunction
       commMonTypeEquivalenceCommMon.symm.toAdjunction
+
+theorem eq_Finsupp (α : Type u) : bag α = (α →₀ ℕ) := by rfl
 
 def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
   have := Classical.decEq α
@@ -124,7 +126,6 @@ theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
   ext m
   simp only [types_comp_apply]
   sorry
-
 
 end bagType
 

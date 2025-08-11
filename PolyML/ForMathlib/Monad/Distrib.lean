@@ -9,6 +9,7 @@ import Mathlib.CategoryTheory.Monad.Algebra
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib
 import PolyML.FreeCommMon
+import PolyML.BagInType
 
 /-
 There is no reason any two monads `S` and `T` on the same category can be composed to give
@@ -292,7 +293,7 @@ theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
 
 variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 
-instance distribLawListBag: DistribLaw (list.monad C) (bag.monad C) where
+instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
     naturality := by {
@@ -309,6 +310,9 @@ instance distribLawListBag: DistribLaw (list.monad C) (bag.monad C) where
   unit_right := sorry
   mul_left := sorry
   mul_right := sorry
+
+theorem foo : (distribLawListBag (Type u)).δ = sorry := sorry
+
 
 def Semiring_ :=  LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
 

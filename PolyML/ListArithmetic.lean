@@ -259,35 +259,14 @@ theorem adjunction_hom_equiv_unique
 to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
 @[simp]
 theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
-  (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
-   r = rec f g := by {
-  have : Function.Bijective ((freeForgetAdj A).homEquiv P ⟨Y, g⟩) :=
-      adjunction_hom_equiv_unique (freeForgetAdj A) (X := P) (Y := ⟨Y, g⟩)
-  dsimp [Function.Bijective] at this
-  obtain ⟨h1,h2⟩ := this
-  dsimp [Function.Injective] at *
-  have : nil ≫ rec f g = f := plist.rec_nil
-  let htest : (freeActionFunctor A).obj P ⟶ { a := Y, str := g } := by {
-    constructor
-    simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
-    exact _root_.id (Eq.symm h_cons)}
-  let htest2 : (freeActionFunctor A).obj P ⟶ { a := Y, str := g } := by {
-    constructor
-    simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
-    have := plist.rec_cons (C:=C) (f := f) (g:=g)
-    exact _root_.id (Eq.symm this)}
-  have hntp : ((freeForgetAdj A).homEquiv P { a := Y, str := g }) htest =
-    ((freeForgetAdj A).homEquiv P { a := Y, str := g }) htest2 := by {
-      unfold htest htest2
-      have H1 : nil ≫ rec f g = f := rec_nil
-      have H2 : nil ≫ r = f := h_nil
-      have : nil ≫ rec f g = nil ≫ r := by {
-        rw [← H1] at H2
-        exact _root_.id (Eq.symm H2)}
-      exact _root_.id (Eq.symm this)}
-  have this := h1 (a₁ := htest) (a₂ := htest2) hntp
-  unfold htest htest2 at this
-  injection this}
+    (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
+    r = rec f g := by
+  let adj := freeForgetAdj A
+  let rAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, g⟩ := ⟨r, h_cons.symm⟩
+  let recAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, g⟩ := ⟨rec f g, plist.rec_cons.symm⟩
+  have r_tr_eq_rec_tr : adj.homEquiv P ⟨Y, g⟩ rAlgHom = adj.homEquiv P ⟨Y, g⟩ recAlgHom := by
+    rwa [← rec_nil (f:= f) (g:= g)] at h_nil
+  injection (adjunction_hom_equiv_unique adj).1 r_tr_eq_rec_tr
 
 /-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
 lemma ext {A P Y : C} {f g : plist A P ⟶ Y} (h₀ : nil ≫ f = nil ≫ g)
