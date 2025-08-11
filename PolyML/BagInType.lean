@@ -77,24 +77,9 @@ def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
         singleAddHom_apply, linearCombination_single, one_smul]
       rfl
     }
-    right_inv f := by {
-      apply types_ext
-      intros a
-      simp only [AddCommMonCat.hom_ofHom]
-      unfold weight
-      sorry
-    }
+    right_inv f := sorry
   }
-  homEquiv_naturality_left_symm := by {
-    intros X X' f g h
-    simp only [Equiv.coe_fn_symm_mk]
-    dsimp [weight]
-    ext x
-    simp only [AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply,
-      singleAddHom_apply, AddCommMonCat.hom_comp]
-    sorry
-  }
-
+  homEquiv_naturality_left_symm := sorry
   homEquiv_naturality_right X X' := by {
     simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
       ConcreteCategory.forget_map_eq_coe]
@@ -122,39 +107,14 @@ def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
 instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   one := fun _ => 0
   mul := Add.add.uncurry
-  one_mul := by {
-    letI :MonoidalCategory (Type u):= by {exact typesCartesianMonoidalCategory.toMonoidalCategory}
-    ext f
-    simp only [types_comp_apply, whiskerRight_apply, Function.uncurry_apply_pair]
-    cases' f with h1 h2
-    simp only [leftUnitor_hom_apply]
-    sorry
-
-  }
-  mul_one := by {
-    ext f
-    simp only [types_comp_apply, whiskerLeft_apply, Function.uncurry_apply_pair]
-    simp only at f
-    cases' f with h1 h2
-    simp only [rightUnitor_hom_apply]
-    sorry
-  }
+  one_mul := sorry
+  mul_one := sorry
   mul_assoc := by sorry
-
 
 #check CategoryTheory.braiding_hom_apply
 
 instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon α where
-  mul_comm := by {
-    ext l
-    simp only [types_comp_apply]
-    cases' l with h1 h2
-    simp only [braiding_hom_apply]
-    dsimp [Mon_Class.mul]
-    congr
-    sorry
-    sorry
-  }
+  mul_comm := sorry
 
 def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
 

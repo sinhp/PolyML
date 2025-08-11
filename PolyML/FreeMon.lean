@@ -47,13 +47,7 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   rw [plist.rec_nil]
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
-    μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
-  dsimp [Mon_Class.mul]
-  dsimp [list.append]
-  nth_rw 1 [lift,list.foldl]
-  rw [tensorHom_def']
-  letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-  rw [← BraidedCategory.braiding_naturality_left_assoc]
+    μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ :=
   sorry
 
 --#check IsCommMon.mul_comm
@@ -68,47 +62,8 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := rfl
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := fun f => by {
-    simp only [Mon_.forget_obj]
-    dsimp [Mon_.Hom.mk']
-    ext
-    simp only [freeMon_obj_X]
-
-
-    sorry
-    --dsimp [lift,list.foldl]
-
-    -- --nth_rw 2 [← plist.rec_nil (f:=f.hom)]
-    -- apply plist.ext
-    -- dsimp [list.lift,list.foldl]
-    -- --simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc, plist.rec_nil]
-    -- rw [← lift_one (f:=f.hom)]
-    -- --simp only [freeMon_obj_X, MonoidalCategory.whiskerLeft_comp, Category.assoc, plist.rec_nil]
-    -- --dsimp [list.lift,list.foldl]
-    -- sorry
-    -- sorry
-  }
-
-  right_inv := fun f => by {
-    simp only [Mon_.forget_obj]
-    dsimp [list.singleton]
-    dsimp [lift,list.foldl]
-    rw [← Category.assoc]
-    rw [Category.assoc]
-    dsimp [list.cons]
-    rw [plist.rec_cons]
-    rw [← Category.assoc]
-    letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    simp only [Category.assoc]
-    refine (Iso.inv_comp_eq (ρ_ X)).mpr ?_
-    dsimp [list.nil]
-    rw [← Category.assoc]
-    simp only [plist.whisker_rec, BraidedCategory.braiding_naturality_right_assoc,
-      braiding_tensorUnit_right, Category.assoc, Iso.cancel_iso_hom_left]
-    refine (Iso.inv_comp_eq (λ_ X)).mpr ?_
-    rw [← Category.assoc]
-    sorry
-    }
+  left_inv := fun f => sorry
+  right_inv := fun f => sorry
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
 def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
@@ -137,14 +92,18 @@ def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
       rw [plist.rec_cons]
       simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
       refine X ◁ plist.rec plist.nil (g ▷ plist X' (𝟙_ C) ≫ plist.cons) ≫= ?_
-      have :  g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫ (β_ X' f.X).hom ≫ f.X ◁ h ≫ μ =
-        (g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫ (β_ X' f.X).hom) ≫ f.X ◁ h ≫ μ := by {
+      have :  g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
+        (β_ X' f.X).hom ≫ f.X ◁ h ≫ μ =
+        (g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
+         (β_ X' f.X).hom) ≫ f.X ◁ h ≫ μ := by {
           simp only [Mon_.forget_obj,BraidedCategory.braiding_naturality_right_assoc,
             BraidedCategory.braiding_naturality_left_assoc,
             BraidedCategory.braiding_naturality_right, Category.assoc]}
       rw [this]
-      have :  X ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫ (β_ X f.X).hom ≫ f.X ◁ g ≫ f.X ◁ h ≫ μ=
-       (X ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫ (β_ X f.X).hom ≫ f.X ◁ g) ≫ f.X ◁ h ≫ μ := by {
+      have :  X ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
+      (β_ X f.X).hom ≫ f.X ◁ g ≫ f.X ◁ h ≫ μ=
+       (X ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
+       (β_ X f.X).hom ≫ f.X ◁ g) ≫ f.X ◁ h ≫ μ := by {
         simp only [Mon_.forget_obj, BraidedCategory.braiding_naturality_right_assoc, Category.assoc]}
       rw [this]
       refine ?_ =≫ f.X ◁ h ≫ μ
@@ -193,48 +152,9 @@ theorem flatten_cons {A : C} :
   rw [plist.rec_cons]
 
 theorem join_cons {A : C} :
-  list.cons ≫ list.join = list A ◁ list.join (A:=A) ≫ list.append := by
-  dsimp [list.join]
-  dsimp [monad, freeMonoidAdjunction, homEquiv]
-  dsimp [list.lift,list.foldl]
-  dsimp [list.cons]
-  rw [plist.rec_cons]
-  letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-  refine list A ◁ plist.rec η ((β_ (list A) (list A)).hom ≫ list A ◁ 𝟙 (list A) ≫ μ) ≫= ?_
-  simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-  dsimp [list.append]
-  dsimp [Mon_Class.mul]
-  dsimp [list.append]
-  rw [← id_comp (f:=list.rec (𝟙 (list A)) list.cons)]
-  rw [← Category.assoc]
-  refine ?_ =≫ list.rec (𝟙 (list A)) list.cons
-  simp only [comp_id]
-  sorry
-  --refine CartesianMonoidalCategory.hom_ext_iff.mpr ?_
+  list.cons ≫ list.join = list A ◁ list.join (A:=A) ≫ list.append := sorry
 
-theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
-  dsimp [list.join]
-  dsimp [list.flatten]
-  dsimp [list.rec']
-  rw [← plist.rec_uniq]
-  · dsimp [list.nil]
-    dsimp [monad]
-    dsimp [freeMonoidAdjunction, homEquiv]
-    dsimp [lift]
-    dsimp [list.foldl]
-    simp only [MonoidalCategory.whiskerLeft_id, id_comp, plist.rec_nil]
-    rfl
-  · dsimp [monad, freeMonoidAdjunction, homEquiv]
-    dsimp [lift, list.foldl]
-    letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    rw [← BraidedCategory.braiding_naturality_left_assoc]
-    simp only [id_whiskerRight, id_comp]
-    -- --simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-    rw [plist.rec_cons]
-    dsimp [list.append]
-    dsimp [list.rec]
-    sorry
-}
+theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := sorry
 
 namespace algebra
 
@@ -268,67 +188,7 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
     simp only [BraidedCategory.braiding_naturality_right_assoc, braiding_tensorUnit_right,
       Mon_Class.one_mul, Category.assoc, Iso.inv_hom_id, comp_id]
     }
-  assoc := by {
-    dsimp [monad, freeMonoidAdjunction, homEquiv,lift, list.foldl]
-    simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-    letI :  BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    refine ?_ =≫ plist.rec η ((β_ M.X M.X).hom ≫ μ)
-    dsimp [list.map]
-    dsimp [list]
-    dsimp [plist.map]
-    congr 1
-    sorry
-
-      -- rw [plist.rec_cons]
-      -- simp only [plist.rec_nil, BraidedCategory.braiding_naturality_right_assoc]
-      -- aesop_cat
-
-    -- apply plist.ext
-    -- · dsimp [monad, freeMonoidAdjunction, homEquiv]
-    --   have := list.lift_one (C:=C) (f:= (𝟙 M.X))
-    --   have := list.map_nil (C:=C) (f:= (lift (𝟙 M.X)))
-    --   dsimp [list,list.nil] at this
-    --   rw [← Category.assoc]
-    --   rw [← Category.assoc]
-    --   rw [this]
-    --   simp only [Category.assoc]
-    --   rw [← Category.assoc]
-    --   refine ?_ =≫ lift (𝟙 M.X)
-    --   dsimp [lift,list.foldl]
-    --   simp only [MonoidalCategory.whiskerLeft_id, id_comp, plist.rec_nil]
-    --   rfl
-    -- · dsimp [monad, freeMonoidAdjunction, homEquiv]
-    --   rw [← Category.assoc]
-    --   rw [← Category.assoc]
-    --   dsimp [list.map]
-    --   rw [plist.map_cons]
-    --   refine ?_ =≫ lift (𝟙 M.X)
-    --   nth_rw 1 [lift,list.foldl]
-    --   simp only [freeMon_obj_X, freeMon_obj_mon, MonoidalCategory.whiskerLeft_id, id_comp]
-    --   rw [plist.rec_cons]
-    --   simp only [BraidedCategory.braiding_naturality_right_assoc]
-    --   dsimp [Mon_Class.mul]
-    --   nth_rw 2 [list.append]
-
-      -- have := list.map_cons (C:=C) (f:= (lift (𝟙 M.X)))
-      -- dsimp [list.cons] at this
-      -- rw [this]
-      -- refine ?_ =≫ lift (𝟙 M.X)
-      -- nth_rw 1 [lift,list.foldl]
-      -- rw [plist.rec_cons]
-
-      -- simp only [freeMon_obj_X, freeMon_obj_mon, MonoidalCategory.whiskerLeft_id, id_comp,
-      --   plist.rec_nil, BraidedCategory.braiding_naturality_right_assoc]
-      -- dsimp [Mon_Class.mul]
-      -- dsimp [list.append]
-      -- dsimp [list.rec]
-      -- nth_rw 2 [lift]
-      -- nth_rw 1 [list.foldl]
-      -- simp only [freeMon_obj_X, freeMon_obj_mon, MonoidalCategory.whiskerLeft_id, id_comp]
-      -- rw [plist.rec_cons]
-      -- dsimp [list.map, plist.map]
-
-  }
+  assoc := by sorry
 
 end algebra
 
@@ -370,100 +230,11 @@ theorem aggregator_singleton {M : Mon_ C} :
     Category.assoc, Iso.inv_hom_id, comp_id]
 
 theorem aggregator_join {M : Mon_ C} :
-  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
-  rw [CategoryTheory.list.join_eq_flatten]
-  dsimp [list.flatten]
-  dsimp [list.rec']
-  dsimp [aggregator, ofMon]
-  rw [← plist.rec_uniq]
-  · sorry
-  · have := list.map_cons (C:=C) (f:= (lift (𝟙 M.X)))
-    dsimp [list.cons] at this
-    rw [this]
-    --refine list M.X ◁ list.map (lift (𝟙 M.X)) ≫= ?_
-    --dsimp [list.append]
-    --dsimp [list.rec]
-    dsimp [lift, list.foldl]
-    letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    refine list M.X ◁ list.map (plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ)) ≫= ?_
-    simp only [MonoidalCategory.whiskerLeft_id, id_comp]
-    dsimp [list.append,list.rec]
-    refine (Iso.eq_inv_comp (plistIsoTensor M.X (list M.X))).mpr ?_
-    refine
-      plist.rec_uniq
-        ((plistIsoTensor M.X (list M.X)).hom ≫
-          plist.rec η ((β_ M.X M.X).hom ≫ μ) ▷ list M.X ≫ plist.cons)
-        ?_ ?_
-    dsimp [plistIsoTensor]
-    rw [plist.map'_eq_rec]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [plist.rec_nil]
-    simp only [Category.assoc]
-    --refine (Iso.inv_comp_eq_id (λ_ (list M.X))).mpr ?_
-    unfold plist.cmp
-    simp only [plist.rec_nil_assoc]
-    rw [← Category.assoc]
-    letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    dsimp [list]
-    simp only [plist.rec_nil, Category.assoc, comp_id, MonoidalCategory.whiskerLeft_id, id_comp,
-      plist.rec_uniq]
-    · sorry
-    · dsimp [plistIsoTensor]
-      simp only [Category.assoc]
-      rw [plist.map'_eq_rec]
-      rw [← Category.assoc]
-      rw [plist.rec_cons]
-      dsimp [list.cons]
-      rw [← Category.assoc]
-      simp only [Category.assoc,
-        MonoidalCategory.whiskerLeft_comp]
-      refine M.X ◁ plist.rec ((λ_ (list M.X)).inv ≫ plist.nil) plist.cons ≫= ?_
-      unfold plist.cmp
-      rw [← Category.assoc]
-      rw [plist.rec_cons]
-      simp only [Category.assoc]
-      refine
-        M.X ◁
-            plist.rec (plist.nil ▷ list M.X)
-              ((α_ M.X (plist M.X (𝟙_ C)) (list M.X)).inv ≫ plist.cons ▷ list M.X) ≫=
-          ?_
-      refine (Iso.inv_comp_eq (α_ M.X (plist M.X (𝟙_ C)) (list M.X))).mpr ?_
-      rw [← Category.assoc]
-      rw [← Category.assoc]
-      rw [← Category.assoc]
-      refine ?_ =≫ plist.cons
-      simp only [Category.assoc]
-      sorry
+  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by sorry
 
 /-- Theorem: Aggregator is functorial. -/
 theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
-  list.map f ≫ aggregator M' = aggregator M ≫ f := by
-  have := list.lift_one (C:=C) (f:= f)
-  have := list.map_nil (C:=C) (f:= (lift (𝟙 M.X)))
-  dsimp [aggregator, ofMon, list.singleton]
-  dsimp [list.map]
-  apply plist.ext
-  simp only [plist.map_nil_assoc]
-  · sorry
-  · rw [← Category.assoc]
-    rw [plist.map_cons]
-    dsimp [lift,list.foldl]
-    rw [Category.assoc]
-    rw [Category.assoc]
-    rw [plist.rec_cons]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [← Category.assoc]
-    rw [plist.rec_cons]
-    simp only [MonoidalCategory.whiskerLeft_id, comp_id, Category.assoc,
-      BraidedCategory.braiding_naturality_right, BraidedCategory.braiding_naturality_left_assoc,
-      BraidedCategory.braiding_naturality_right_assoc, id_comp, Iso.cancel_iso_hom_left]
-    sorry
+  list.map f ≫ aggregator M' = aggregator M ≫ f := by sorry
 
 end list
 
