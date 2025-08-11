@@ -109,7 +109,10 @@ def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
 instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   one := fun _ => 0
   mul := Add.add.uncurry
-  one_mul := sorry
+  one_mul := by
+    ext f
+    simp_all only [types_comp_apply, whiskerRight_apply, Function.uncurry_apply_pair]
+    apply AddZeroClass.zero_add
   mul_one := sorry
   mul_assoc := by sorry
 
