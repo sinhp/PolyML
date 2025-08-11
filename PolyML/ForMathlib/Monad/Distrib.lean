@@ -133,7 +133,7 @@ def monad : Monad S.Algebra where
       simp only [comp_obj, endoFunctor_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj,
         map_comp, Category.assoc]
       rw [← Category.assoc, ← mul_left_components]
-      rw [Monad.mu_naturality (T:=T) (f:=X.a), ← Category.assoc, ← Category.assoc]
+      rw [Monad.mu_naturality (T:= T) (f:= X.a), ← Category.assoc, ← Category.assoc]
       exact Category.assoc
         (δ.app (T.obj X.A) ≫ T.map (δ.app X.A)) (T.μ.app (S.obj X.A)) (T.map X.a)
     }⟩
