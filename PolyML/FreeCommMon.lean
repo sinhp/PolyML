@@ -136,15 +136,16 @@ theorem cons_map {B : C} {f : A ⟶ B} :
   dsimp [cons, append, bag]
   rw [Category.assoc, ← append_map]
   have := map_singleton (C:=C) (f:= (map f ⊗ₘ map f))
-  simp only [forget₂Mon_obj_mul]
   rw [← Category.assoc, ← Category.assoc]
   refine ?_ =≫ μ
   ext
   · simp only [Category.assoc, CartesianMonoidalCategory.whiskerRight_fst,
-    CartesianMonoidalCategory.tensorHom_fst_assoc, CartesianMonoidalCategory.tensorHom_fst,
+    CartesianMonoidalCategory.tensorHom_fst_assoc,
+    CartesianMonoidalCategory.tensorHom_fst,
     CartesianMonoidalCategory.whiskerRight_fst_assoc, map_singleton]
   · simp only [Category.assoc, CartesianMonoidalCategory.whiskerRight_snd,
-    CartesianMonoidalCategory.tensorHom_snd, CartesianMonoidalCategory.whiskerRight_snd_assoc]}
+    CartesianMonoidalCategory.tensorHom_snd,
+    CartesianMonoidalCategory.whiskerRight_snd_assoc]}
 
 def ofList [ListArithmetic C] : list A ⟶ bag A :=
   list.lift (bag.singleton)
@@ -156,16 +157,12 @@ theorem ofList_nil [ListArithmetic C] :
 
 theorem ofList_cons [ListArithmetic C] :
     list.cons ≫ ofList = A ◁ ofList ≫ bag.cons := by
-  dsimp [ofList]
-  dsimp [list.lift]
-  dsimp [list.foldl]
-  dsimp [list.cons]
+  dsimp [ofList, list.lift, list.foldl, list.cons]
   rw [plist.rec_cons]
   refine A ◁ plist.rec η ((β_ A (bagMon A).X).hom ≫ (bagMon A).X ◁ singleton ≫ μ) ≫= ?_
-  dsimp [cons]
-  dsimp [bag.append]
-  dsimp [bag]
-  sorry
+  dsimp [cons, bag.append, bag]
+  rw [← BraidedCategory.braiding_naturality_left_assoc]
+  rw [IsCommMon.mul_comm, forget₂Mon_obj_mul]
 
 /-
 TODO: show that `ofList` is a quotient morphism. The relation should be thought of as
@@ -195,27 +192,29 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   unit := sorry
   assoc := sorry
 
-instance monClassOfAlgebra {α : Algebra (monad C)} : Mon_Class ((monad C).obj α.A) := by
+instance monClassOfAlgebra {α : Algebra (monad C)} :
+    Mon_Class ((monad C).obj α.A) := by
   dsimp [monad_obj]
   infer_instance
 
+--#check append_map
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
 instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
-  one_mul := by {
-    dsimp [Mon_Class.mul]
-    simp only [comp_whiskerRight, Category.assoc]
-    sorry
-  }
+  one_mul := sorry
   mul_one := sorry
   mul_assoc := sorry
 
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by {
-    dsimp [Mon_Class.mul]
-    sorry
-  }
+  dsimp [Mon_Class.mul]
+  rw [tensorHom_def', ← Category.assoc]
+  rw [← BraidedCategory.braiding_naturality_left_assoc]
+  rw [← BraidedCategory.braiding_naturality_right]
+  rw [Category.assoc, Category.assoc]
+  simp only [IsCommMon.mul_comm_assoc, forget₂Mon_obj_mul, Category.assoc]
+  exact Eq.symm (whisker_exchange_assoc singleton singleton (μ ≫ α.a))}
 
 def commMonOf (α : Algebra (monad C)) : CommMon_ C where
   X := α.A
@@ -245,23 +244,18 @@ theorem aggregator_singleton {M : CommMon_ C} :
 theorem aggregator_join {M : CommMon_ C} :
     join ≫ aggregator M = (map <| aggregator M) ≫ aggregator M := by
   dsimp [join, aggregator, ofCommMon]
-  sorry
+  have hassoc := (ofCommMon M).assoc
+  dsimp [ofCommMon] at *
+  rw [hassoc]
+  rfl
 
 theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
-  dsimp [aggregator, ofCommMon]
-  nth_rw 2 [← lift_singleton (f := f)]
-  --dsimp [lift, bagMon.lift,freeCommMon.lift]
   sorry
-  --nth_rw 1 [map_eq_lift]
 
 theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :
     ofList ≫ bag.aggregator M = list.aggregator M.toMon_ := by
-  dsimp [ofList]
-  dsimp [aggregator, ofCommMon]
   sorry
 
 end bag
-
-
 end CategoryTheory

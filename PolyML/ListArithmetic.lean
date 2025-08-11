@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Adjunction.Mates
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
+import Mathlib.CategoryTheory.Adjunction.Unique
 
 /-! # List Arithmetic Categories
 
@@ -205,8 +206,15 @@ theorem whisker_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
    A ◁ plist.nil ≫ A ◁ plist.rec f g = A ◁ f := by {
     ext : 1
     · simp_all only [assoc, whiskerLeft_fst]
-    · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_nil]
-   }
+    · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_nil]}
+
+@[reassoc (attr := simp)]
+theorem rec_whisker {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+  plist.nil ▷ A ≫ plist.rec f g ▷ A = f ▷ A := by {
+   ext : 1
+   · simp only [assoc, whiskerRight_fst, whiskerRight_fst_assoc, rec_nil]
+   · simp_all only [assoc, whiskerRight_snd]
+  }
 
 open CategoryTheory.Adjunction
 
@@ -215,15 +223,75 @@ theorem rec_cons {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
+
+@[reassoc (attr := simp)]
+theorem whisker_cons_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+  A ◁ plist.cons ≫ A ◁ plist.rec f g = A ◁ (A ◁ plist.rec f g ≫ g) := by {
+   ext : 1
+   · simp_all only [assoc, whiskerLeft_fst]
+   · simp_all only [assoc, whiskerLeft_snd, whiskerLeft_snd_assoc, rec_cons]
+  }
+
+@[reassoc (attr := simp)]
+theorem cons_rec_whisker {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+  plist.cons ▷ A ≫ plist.rec f g ▷ A = (A ◁ plist.rec f g ≫ g) ▷ A := by {
+   ext : 1
+   ·
+     rw [← rec_cons]
+     simp only [assoc, whiskerRight_fst, whiskerRight_fst_assoc, comp_whiskerRight]
+   · simp_all only [assoc, whiskerRight_snd]
+  }
+
+/--
+If `(F, G, η, ε)` is an adjunction between categories `C` and `D`, then for each
+`X : C` and `Y : D`, there is a bijection between morphisms `φ : F.obj X ⟶ Y`
+and `ψ : X ⟶ G.obj Y`, given by the adjunction hom-set equivalence.
+This correspondence is unique.
+
+So if two morphisms `f, g : F.obj X ⟶ Y` correspond to the same `X ⟶ G.obj Y`, then they must be equal.
+-/
+theorem adjunction_hom_equiv_unique
+  {C D : Type*} [Category C] [Category D] {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X : C} {Y : D} :
+  Function.Bijective (adj.homEquiv X Y) :=
+  (adj.homEquiv X Y).bijective
+
 /-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `f` and composes with `plist.cons`
 to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
 @[simp]
-theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} (r : plist A P ⟶ Y)
-    (h_nil : plist.nil ≫ r = f) (h_cons : plist.cons ≫ r = A ◁ r ≫ g) :
-    r = plist.rec f g := by
-  {
-    sorry -- SH: `rec` is defined as adjoint transpose. use the uniquness of adjunction transpose.
-  }
+theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
+  (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
+   r = rec f g := by {
+  have : Function.Bijective ((freeForgetAdj A).homEquiv P ⟨Y, g⟩) :=
+      adjunction_hom_equiv_unique (freeForgetAdj A) (X := P) (Y := ⟨Y, g⟩)
+  dsimp [Function.Bijective] at this
+  obtain ⟨h1,h2⟩ := this
+  dsimp [Function.Injective] at *
+  have : nil ≫ rec f g = f := plist.rec_nil
+  let htest : (freeActionFunctor A).obj P ⟶ { a := Y, str := g } := by {
+    constructor
+    simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
+    exact _root_.id (Eq.symm h_cons)}
+  let htest2 : (freeActionFunctor A).obj P ⟶ { a := Y, str := g } := by {
+    constructor
+    simp only [curriedTensor_obj_obj, curriedTensor_obj_map]
+    have := plist.rec_cons (C:=C) (f := f) (g:=g)
+    exact _root_.id (Eq.symm this)}
+  have hntp : ((freeForgetAdj A).homEquiv P { a := Y, str := g }) htest =
+    ((freeForgetAdj A).homEquiv P { a := Y, str := g }) htest2 := by {
+      unfold htest htest2
+      have H1 : nil ≫ rec f g = f := rec_nil
+      have H2 : nil ≫ r = f := h_nil
+      have : nil ≫ rec f g = nil ≫ r := by {
+        rw [← H1] at H2
+        exact _root_.id (Eq.symm H2)}
+      exact _root_.id (Eq.symm this)}
+  have this := h1 (a₁ := htest) (a₂ := htest2) hntp
+  unfold htest htest2 at this
+  injection this}
+
+/-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
+lemma ext {A P Y : C} {f g : plist A P ⟶ Y} (h₀ : nil ≫ f = nil ≫ g)
+  (h₁ : cons ≫ f = cons ≫ g)  : f = g := sorry
 
 theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by {
   rw [← rec_uniq]
@@ -565,53 +633,24 @@ theorem rec_nil {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 def append {A : C} : list A ⊗ list A ⟶ list A :=
   list.rec (𝟙 _) (list.cons)
 
--- [] ++ xs= xs
+-- [] ++ xs = xs
 theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   refine (Iso.inv_comp_eq_id (λ_ (list A))).mp ?_
   rw [← assoc]
   apply rec_nil
 
-/-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
-lemma plist.ext {A P Y : C} {f g : plist A P ⟶ Y}
-  (h₀ : plist.nil ≫ f = plist.nil ≫ g)
-  (h₁ : plist.cons ≫ f = plist.cons ≫ g) : f = g := by {sorry}
-
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
-  --refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
-  dsimp [append]
-  dsimp [rec]
-  dsimp [list]
-  dsimp [plistIsoTensor]
-  simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil, assoc]
-  rw [← assoc]
-  rw [plist.map'_eq_rec]
-  simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.rec_nil_assoc,
-    assoc]
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
-theorem append_assoc {A : C} : list.append ▷ list A ≫ append =
-  (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by {
-  dsimp [append]
-  dsimp [rec]
-  dsimp [plistIsoTensor]
-  rw [plist.map'_eq_rec]
-  simp only [assoc, comp_whiskerRight, whiskerLeft_comp]
-  dsimp [list.cons]
-  rw [← plist.rec_uniq (C:=C) (f := 𝟙 (list A)) (g := plist.cons)]
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  }
+theorem append_assoc {A : C} : list.append ▷ list A ≫ list.append =
+  (α_ (list A) (list A) (list A)).hom ≫ list A ◁ list.append ≫ list.append := by
+  sorry
 
 -- map f (xs ++ ys) = map f xs ++ map f ys
 theorem map_append {A B : C} {f : A ⟶ B} :
   list.append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ list.append := by
-  rw [tensorHom_def']
-  simp only [assoc]
-  dsimp [list.map]
   sorry
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
@@ -631,23 +670,7 @@ lemma sing_cons_empty {A : C} : list.singleton (A := A) =
 
 /-⁠[x] ++ xs = x :: xs-/
 lemma singleton_append_eq_cons {A : C} : (list.singleton ▷ list A) ≫ (β_ _ _).hom ≫
-   list.append = list.cons (A := A) := by {
-  dsimp [list.cons, rec]
-  dsimp [append]
-  dsimp [list.singleton]
-  rw [← assoc]
-  simp only [comp_whiskerRight]
-  rw [assoc]
-  dsimp [list.cons]
-  have := plist.rec_cons (f := (𝟙 (list A))) (g := plist.cons)
-  dsimp [rec]
-  simp only [whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc,
-    BraidedCategory.braiding_naturality_left_assoc, BraidedCategory.braiding_tensor_left_hom,
-    Iso.inv_hom_id_assoc]
-  unfold plistIsoTensor
-  simp only
-  sorry
-  }
+   list.append = list.cons (A := A) := sorry
 
 /- rev [x] = [x] -/
 lemma rev_singleton_eq_singleton {A : C} :
@@ -718,52 +741,12 @@ lemma whisker_right_singleton_rev {A : C} (H :=rev_singleton_eq_singleton (A:=A)
 
 /-rev [x] ++ rev (rev xs) = rev [x] ++ xs-/
 lemma rev_singleton_append_rev_rev_eq_rev_singleton_append_id {A : C} :
-
   ((list.singleton ▷ list A) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ list.append ≫ list.rev ≫ list.rev) =
-
-  ((list.singleton ▷ list A)) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ append := by {
-
-  have H := (rev_singleton_eq_singleton (C:=C) (A:=A)).symm
-  have foo := whisker_right_singleton_rev (A:=A)
-  simp only [comp_whiskerRight] at foo
-  rw [← assoc]
-  rw [← assoc]
-  rw [← assoc]
-  rw [← assoc]
-  rw [← assoc]
-  rw [← assoc]
-  nth_rw 2 [foo]
-  simp only [assoc, BraidedCategory.braiding_naturality_left,
-    BraidedCategory.braiding_naturality_left_assoc, Iso.cancel_iso_hom_left]
-  have := rev_append (A:=A)
-  refine list A ◁ list.singleton ≫= ?_
-  --refine list A ◁ rev ≫= ?_
-  sorry
-  }
+  ((list.singleton ▷ list A)) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ append := sorry
 
 /-- list.rev is an involution, i.e. `list.rev ≫ list.rev = 𝟙`. -/
-theorem rev_rev {A : C} : list.rev ≫ list.rev = 𝟙 (list A) := by {
-  apply plist.ext
-  · dsimp [rev]
-    dsimp [list.rec']
-    simp only [plist.rec_nil_assoc]
-    dsimp [list]
-    simp only [plist.rec_nil, comp_id, whiskerLeft_id, id_comp, plist.rec_uniq]
-    dsimp [list.nil]
-    simp only [plist.rec_nil]
-  · rw [rev_rev_cons_eq_rev_append_singleton]
-    sorry
-    }
-
--- Then
--- rev (xs ++ [x])
--- = rev [x] ++ rev (rev xs)
--- = rev [x] ++ xs
-
--- Note
--- - rev  [x] = [x]
--- - ⁠[x] ++ xs = x :: xs
-
+theorem rev_rev {A : C} : list.rev ≫ list.rev = 𝟙 (list A) :=
+  sorry
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
 def flatten {A : C} : list (list A) ⟶ list A :=
@@ -772,7 +755,8 @@ def flatten {A : C} : list (list A) ⟶ list A :=
 end list
 
 instance : Recursive (Type u) where
-  withRec := sorry
+  withRec := by {
+    sorry}
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where

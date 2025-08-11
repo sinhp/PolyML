@@ -62,15 +62,29 @@ def functor : Type u ⥤ AddCommMonCat where
   obj α := AddCommMonCat.of (α →₀ ℕ)
   map {α β} f := AddCommMonCat.ofHom <| mapDomain.addMonoidHom f
 
-def adjunction : functor ⊣  forget AddCommMonCat := Adjunction.mkOfHomEquiv {
+def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
   homEquiv α β := {
     toFun f a := f.hom (single a 1)
     invFun g := AddCommMonCat.ofHom (Finsupp.weight (M:= _) (R:= ℕ) g)
-    left_inv := sorry
-    right_inv := sorry
+    left_inv f := by {
+      ext g
+      simp only [AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply,
+        singleAddHom_apply]
+      congr 1
+      unfold weight
+      ext l
+      simp only [AddMonoidHom.coe_comp, LinearMap.toAddMonoidHom_coe, Function.comp_apply,
+        singleAddHom_apply, linearCombination_single, one_smul]
+      rfl
+    }
+    right_inv f := sorry
   }
   homEquiv_naturality_left_symm := sorry
-  homEquiv_naturality_right := sorry
+  homEquiv_naturality_right X X' := by {
+    simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
+      ConcreteCategory.forget_map_eq_coe]
+    rfl
+  }
 }
 
 theorem CommMon_forget_aux :
@@ -97,17 +111,20 @@ instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
   mul := Add.add.uncurry
   one_mul := sorry
   mul_one := sorry
-  mul_assoc := sorry
+  mul_assoc := by sorry
 
-instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] :  IsCommMon α where
+#check CategoryTheory.braiding_hom_apply
+
+instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon α where
   mul_comm := sorry
 
 def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
 
 theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
-    (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) =
-    Multiset.sum (M:= α) := by
+    (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) = Multiset.sum (M:= α) := by
   simp [bag.aggregator, bag.algebra.ofCommMon_a]
+  ext m
+  simp only [types_comp_apply]
   sorry
 
 end bagType

@@ -95,7 +95,14 @@ def map (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := by simp only [unit_right_components_assoc, ← map_comp, α.unit, map_id]
-  assoc := sorry
+  assoc := by
+    rw [← Category.assoc,← mul_right_components]
+    rw [Category.assoc, Category.assoc, ← map_comp, Algebra.assoc (C:=C) α]
+    simp only [map_comp, Category.assoc]
+    refine S.map (δ.app α.A) ≫= ?_
+    rw [← Category.assoc, ← Category.assoc]
+    refine ?_ =≫ T.map α.a
+    exact _root_.id (Eq.symm (distrib_naturality (S:=S) (T:=T) (f:= α.a)))
 
 @[reassoc (attr := simp)]
 theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
@@ -121,15 +128,20 @@ def monad : Monad S.Algebra where
   toFunctor := endoFunctor T
   η := {
     app X := ⟨T.η.app X.A, by simp; erw [T.η.naturality X.a]⟩
-    naturality := sorry
-  }
+    naturality α β f := by ext; apply Monad.unit_naturality}
   μ := {
-    app X := ⟨T.μ.app X.A , sorry⟩
-    naturality := sorry
-  }
-  assoc := sorry
-  left_unit := sorry
-  right_unit := sorry
+    app X := ⟨T.μ.app X.A , by {
+      simp only [comp_obj, endoFunctor_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj,
+        map_comp, Category.assoc]
+      rw [← Category.assoc, ← mul_left_components]
+      rw [Monad.mu_naturality (T:=T) (f:=X.a), ← Category.assoc, ← Category.assoc]
+      exact Category.assoc
+        (δ.app (T.obj X.A) ≫ T.map (δ.app X.A)) (T.μ.app (S.obj X.A)) (T.map X.a)
+    }⟩
+    naturality α β f := by ext; apply Monad.mu_naturality}
+  assoc α := by ext; apply Monad.assoc
+  left_unit α := by ext; apply Monad.left_unit
+  right_unit α := by ext; apply Monad.right_unit
 
 variable {S T}
 
@@ -195,7 +207,10 @@ variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality := sorry
+    naturality := by {
+      intros X Y f
+      sorry
+    }
   }
   unit_left := sorry
   unit_right := sorry
