@@ -13,7 +13,6 @@ import PolyML.ListArithmetic
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.
 Our development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic` for types.
 -/
-
 namespace CategoryTheory
 
 open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory Mon_Class Monad
@@ -172,11 +171,52 @@ variable {C}
 
 def join {A : C} : list (list A) ⟶ list A := (monad C).μ.app A
 
+theorem join_nil {A : C} : list.nil ≫ list.join = list.nil (C:=C) (A:=A)  := by
+  dsimp [list.join, monad, freeMonoidAdjunction, homEquiv, lift, list.foldl]
+  simp only [MonoidalCategory.whiskerLeft_id, id_comp]
+  dsimp [list,list.nil]
+  simp only [plist.rec_nil]
+  rfl
+
+theorem flatten_nil {A : C} : list.nil ≫ list.flatten = list.nil (C:=C) (A:=A) := by
+  dsimp [list.flatten]
+  dsimp [list.rec']
+  dsimp [list,list.nil]
+  simp only [plist.rec_nil]
+
+--flatten (xs:xss) = xs ++ flatten xss
+theorem flatten_cons {A : C} :
+  list.cons ≫ list.flatten = (list A ◁ list.flatten (A:=A)) ≫ list.append (A:=A) := by
+  dsimp [list.flatten]
+  dsimp [list.rec']
+  dsimp [list.cons]
+  rw [plist.rec_cons]
+
+theorem join_cons {A : C} :
+  list.cons ≫ list.join = list A ◁ list.join (A:=A) ≫ list.append := by
+  dsimp [list.join]
+  dsimp [monad, freeMonoidAdjunction, homEquiv]
+  dsimp [list.lift,list.foldl]
+  dsimp [list.cons]
+  rw [plist.rec_cons]
+  letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+  refine list A ◁ plist.rec η ((β_ (list A) (list A)).hom ≫ list A ◁ 𝟙 (list A) ≫ μ) ≫= ?_
+  simp only [MonoidalCategory.whiskerLeft_id, id_comp]
+  dsimp [list.append]
+  dsimp [Mon_Class.mul]
+  dsimp [list.append]
+  rw [← id_comp (f:=list.rec (𝟙 (list A)) list.cons)]
+  rw [← Category.assoc]
+  refine ?_ =≫ list.rec (𝟙 (list A)) list.cons
+  simp only [comp_id]
+  sorry
+  --refine CartesianMonoidalCategory.hom_ext_iff.mpr ?_
+
 theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
   dsimp [list.join]
   dsimp [list.flatten]
   dsimp [list.rec']
-  apply plist.ext
+  rw [← plist.rec_uniq]
   · dsimp [list.nil]
     dsimp [monad]
     dsimp [freeMonoidAdjunction, homEquiv]
@@ -191,15 +231,9 @@ theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
     simp only [id_whiskerRight, id_comp]
     -- --simp only [MonoidalCategory.whiskerLeft_id, id_comp]
     rw [plist.rec_cons]
-    rw [plist.rec_cons]
+    dsimp [list.append]
+    dsimp [list.rec]
     sorry
-    --simp only [BraidedCategory.braiding_naturality_right_assoc]
-    -- letI : BraidedCategory C:= CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    -- nth_rw 2 [← BraidedCategory.braiding_naturality_left_assoc]
-    -- rw [plist.rec_cons]
-    -- nth_rw 2 [list.append]
-    -- sorry
-    --simp?
 }
 
 namespace algebra
@@ -224,7 +258,7 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
     have h1 : (ρ_ M.X).inv ≫ M.X ◁ list.nil ≫ M.X ◁ plist.rec η
      ((β_ M.X M.X).hom ≫ μ) ≫ (β_ M.X M.X).hom ≫ μ =
      (ρ_ M.X).inv ≫ (M.X ◁ list.nil ≫ M.X ◁ plist.rec η
-     ((β_ M.X M.X).hom ≫ μ)) ≫ (β_ M.X M.X).hom ≫ μ  := by {
+     ((β_ M.X M.X).hom ≫ μ)) ≫ (β_ M.X M.X).hom ≫ μ := by {
       simp only [BraidedCategory.braiding_naturality_right_assoc,
         braiding_tensorUnit_right, Category.assoc, Iso.inv_hom_id_assoc]}
     rw [h1]

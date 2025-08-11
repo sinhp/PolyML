@@ -659,7 +659,6 @@ theorem nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom
   rw [← assoc]
   apply rec_nil
 
-
 --xs ++ [] = xs
 theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
   --refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
@@ -667,9 +666,11 @@ theorem append_nil {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom
   dsimp [list.nil]
   dsimp [rec]
   refine (Iso.comp_inv_eq_id (ρ_ (list A))).mp ?_
+  dsimp [list]
+  rw [← plist.map'_id']
   simp only [assoc]
   rw [← plist.rec_uniq]
-  · dsimp [plistIsoTensor]
+  · --dsimp [plistIsoTensor]
     sorry
   · sorry
   · sorry

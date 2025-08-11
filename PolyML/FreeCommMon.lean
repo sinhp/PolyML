@@ -193,9 +193,15 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
     have hunitSr := Monad.right_unit (C:=C) (monad C) M.X
     -- have hunitTr := Monad.left_unit (C:=C) (monad C) M.X
     have H1T := Monad.unit_naturality (C:=C) (monad C)
-    have H2T := Monad.mu_naturality (C:=C) (monad C)
-    have H1T := H1T (lift (𝟙 M.X))
-    have H2T := H2T (lift (𝟙 M.X))
+
+
+    --have H1T := H1T ((𝟙 M.X))
+    --simp only [id_comp, Functor.id_obj] at H1T
+    --rw [H1T]
+
+    --have H2T := H2T (lift (𝟙 M.X))
+    --have Hunit := Algebra.unit (C:=C) α
+    --have Hassoc := Algebra.assoc (C:=C) α
     --simp only [Functor.id_obj, comp_obj] at *
     --unfold monad
     --simp only [Adjunction.toMonad_coe, comp_obj, CommMon_.forget_obj, Adjunction.toMonad_η]
@@ -209,6 +215,7 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
     --simp only [map_id, id', Mon_.id_hom', toMon__X]
     --dsimp [monad] at *
     --dsimp [forget₂Mon_] at *
+
   }
   assoc := by {
     have hunitT := Monad.left_unit (C:=C) (monad C) M.X
@@ -237,6 +244,7 @@ instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
       forget₂Mon_obj_mul, Category.assoc]
     have Hunit := Algebra.unit (C:=C) α
     have Hassoc := Algebra.assoc (C:=C) α
+
 
     --refine (Iso.inv_comp_eq_id (λ_ α.A)).mp ?_
     --rw [id_whiskerLeft_symm]
