@@ -823,9 +823,7 @@ lemma whisker_right_singleton_rev {A : C} (H :=rev_singleton_eq_singleton (A:=A)
 
 /-rev [x] ++ rev (rev xs) = rev [x] ++ xs-/
 lemma rev_singleton_append_rev_rev_eq_rev_singleton_append_id {A : C} :
-
   ((list.singleton ▷ list A) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ list.append ≫ list.rev ≫ list.rev) =
-
   ((list.singleton ▷ list A)) ≫ (rev ▷ list A) ≫ (β_ _ _).hom ≫ append := by {
 
   have H := (rev_singleton_eq_singleton (C:=C) (A:=A)).symm
