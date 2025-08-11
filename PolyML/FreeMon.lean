@@ -190,9 +190,7 @@ open algebra
 def aggregator (M : Mon_ C) : list M.X ⟶ M.X :=
   (ofMon M).a
 
-theorem aggregator_one {M : Mon_ C} :
-  η ≫ aggregator M = η :=
-    lift_one
+theorem aggregator_one {M : Mon_ C} : η ≫ aggregator M = η := lift_one
 
 theorem aggregator_mul {M : Mon_ C} :
   μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := lift_mul
