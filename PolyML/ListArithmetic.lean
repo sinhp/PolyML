@@ -396,48 +396,44 @@ def list (A : C) : C := plist A (𝟙_ C)
 
 namespace list
 
+variable {A : C}
+
 /- ε : 1 ⟶ list A -/
-def nil {A : C} : 𝟙_ C ⟶ list A :=
-  plist.nil (P := 𝟙_ C)
+def nil : 𝟙_ C ⟶ list A := plist.nil (P := 𝟙_ C)
 
 /- cons : A × list A ⟶ list A -/
-def cons {A : C} : A ⊗ list A ⟶ list A :=
-  plist.cons (P := 𝟙_ C)
+def cons : A ⊗ list A ⟶ list A := plist.cons (P := 𝟙_ C)
 
 /-- The weak non-parametized recursion scheme for the list object. See `list.prec` for the
 parameterized version. -/
-def rec {A Y : C} (e : 𝟙_ C ⟶ Y) (f : A ⊗ Y ⟶ Y) : list A ⟶ Y :=
-  plist.rec e f
+def rec {Y : C} (e : 𝟙_ C ⟶ Y) (f : A ⊗ Y ⟶ Y) : list A ⟶ Y := plist.rec e f
 
-def foldr {A Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
-  plist.rec e f
+def foldr {Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e f
 
-def foldl {A Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
-  plist.rec e ((β_ A Y).hom ≫ f)
+def foldl {Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e ((β_ A Y).hom ≫ f)
 
-def map {A B : C} (f : A ⟶ B) : list A ⟶ list B :=
-  plist.map (P := 𝟙_ C) f
+def map {B : C} (f : A ⟶ B) : list A ⟶ list B := plist.map (P := 𝟙_ C) f
 
 @[reassoc (attr := simp)]
-theorem map_nil {A B : C} {f : A ⟶ B} :
+theorem map_nil {B : C} {f : A ⟶ B} :
     (list.nil : 𝟙_ C ⟶ list A) ≫ list.map f = plist.nil := by
   simp only [list.nil, list.map, plist.nil_map]
 
 @[simp]
-theorem cons_map {A B : C} {f : A ⟶ B} :
+theorem cons_map {B : C} {f : A ⟶ B} :
     cons ≫ map f = (A ◁ map f) ≫ (f ▷ list B) ≫ cons := by
   simp only [list, list.cons, list.map, plist.cons_map]
 
 @[simp]
-theorem map_comp {A B B' : C} (f : A ⟶ B) (g : B ⟶ B') :
+theorem map_comp {B B' : C} (f : A ⟶ B) (g : B ⟶ B') :
     map (f ≫ g) = map f ≫ map g := by
   simp only [list.map, plist.map_comp]
 
 @[simp]
-theorem map_id {A : C} : list.map (𝟙 A) = 𝟙 (list A) := by
+theorem map_id : list.map (𝟙 A) = 𝟙 (list A) := by
   simp only [list.map, plist.map_id, list]
 
-def singleton {A : C} : A ⟶ list A :=
+def singleton : A ⟶ list A :=
   (ρ_ A).inv ≫ (A ◁ (list.nil)) ≫ list.cons
 
 end list
@@ -494,16 +490,15 @@ theorem nil_len' : list.nil (A:=A) ≫ list.len' = nno.zero := by
   rw [plist.nil_rec (f:= plist.nil) (g:= (snd A (N_ C) ≫ nno.succ))]
 
 /-- The tail of a list: removes the first element from a non-empty list. -/
-def list.tail : A ⊗ list A ⟶ list A := by {
-  apply CategoryTheory.CartesianMonoidalCategory.snd A}
+def list.tail : A ⊗ list A ⟶ list A := snd _ _
 
 --len (cons x xs) = succ (len xs)
 theorem cons_len :
-  list.cons ≫ list.len' = list.tail (A:=A) ≫ list.len' (C:=C) ≫ nno.succ := by {
+    list.cons ≫ list.len' = list.tail (A:=A) ≫ list.len' (C:=C) ≫ nno.succ := by
   dsimp [list.len', list.rec, list.cons]
   rw [plist.cons_rec]
   simp only [whiskerLeft_snd_assoc]
-  dsimp [list.tail, list]}
+  dsimp [list.tail, list]
 
 theorem list.singleton_len :
     list.singleton ≫ list.len = toUnit A ≫ nno.zero ≫ nno.succ :=
@@ -536,7 +531,7 @@ class ListArithmetic (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C]
 
 namespace ListArithmetic
 
-variable {C} [Category.{v} C] [CartesianMonoidalCategory C][ListArithmetic C]
+variable {C} [ListArithmetic C]
 
 instance plist.cmp.is_iso {A P Y : C} : IsIso (plist.cmp A P Y) := by
   use cmpInv A P Y
@@ -576,7 +571,6 @@ def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
 def list.prec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y :=
   (plistIsoTensor A P).inv ≫ plist.rec e a
 
-
 theorem list.prec_rec {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
     (ρ_ (list A)).inv ≫ list.prec e a = list.rec e a := by
   sorry
@@ -601,8 +595,7 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [plist.cmp]
   simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
 
-def list.foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y :=
-  list.prec e a
+def foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
 
 variable {A : C}
 
@@ -645,8 +638,8 @@ theorem sing_cons_empty : list.singleton (A := A) =
   dsimp [list.singleton, list.cons, list.nil]
 
 /-⁠[x] ++ xs = x :: xs-/
-theorem singleton_append_eq_cons : (list.singleton ▷ list A) ≫ (β_ _ _).hom ≫
-   list.append = list.cons (A := A) := sorry
+theorem singleton_append_eq_cons : (list.singleton ▷ list A) ≫ (β_ _ _).hom ≫ list.append =
+  list.cons (A := A) := sorry
 
 /- rev [x] = [x] -/
 theorem rev_singleton_eq_singleton :
@@ -746,7 +739,7 @@ variable {C}
 
 class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
   nil : P ⟶ L -- nil
-  cons : A ⊗ L  ⟶ L -- con
+  cons : A ⊗ L  ⟶ L -- cons
   split : L ⟶ P ⨿ A ⊗ L -- split
   nil_split : nil ≫ split = coprod.inl
   cons_split : cons ≫ split = coprod.inr

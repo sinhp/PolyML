@@ -112,7 +112,7 @@ theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
 
-theorem map_eq_lift  (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
+theorem map_eq_lift {B : C} (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
   sorry
 
 @[simp]
