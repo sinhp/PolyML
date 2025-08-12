@@ -96,7 +96,7 @@ def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
     simp only [Equiv.coe_fn_symm_mk]
     ext h
     unfold weight
-    simp only [ AddMonoidHom.coe_comp, Function.comp_apply, singleAddHom_apply]
+    simp only [AddMonoidHom.coe_comp, Function.comp_apply, singleAddHom_apply]
     unfold functor
     simp_all only [AddCommMonCat.hom_comp,
       AddCommMonCat.hom_ofHom, AddMonoidHom.coe_comp, Function.comp_apply, mapDomain.addMonoidHom_apply,
@@ -165,6 +165,9 @@ theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
   simp [bag.aggregator, bag.algebra.ofCommMon_a]
   ext m
   simp only [types_comp_apply]
+  dsimp [Multiset.sum]
+  dsimp [commMonOfAddCommMonoid]
+  dsimp [equivMultiset]
   sorry
 
 end bagType

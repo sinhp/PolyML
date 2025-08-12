@@ -125,7 +125,7 @@ def endoFunctor : S.Algebra ⥤ S.Algebra where
       rw [map_str]
       rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
       simp only [map_str]
-  }
+}
 
 variable (S)
 
@@ -166,7 +166,7 @@ def sndAlg (α : (monad S T).Algebra) : T.Algebra where
   a := α.a.f
   unit := by {sorry
   }
-  assoc := sorry
+  assoc := by sorry
 
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :
@@ -308,11 +308,6 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
       simp only [endofunctorMonoidalCategory_tensorObj_obj,
         endofunctorMonoidalCategory_tensorObj_map]
       sorry
-
-
-
-
-
     }
   }
   unit_left := sorry

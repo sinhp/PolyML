@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Monad.Adjunction
 import Mathlib.CategoryTheory.Monad.Algebra
 import PolyML.ListArithmetic
 import PolyML.FreeMon
+import Mathlib.Tactic.CategoryTheory.IsoReassoc
 
 /-
 In this file, we define `bag A` as the free commutative monoid on `A`,
@@ -197,14 +198,21 @@ instance monClassOfAlgebra {α : Algebra (monad C)} :
   dsimp [monad_obj]
   infer_instance
 
---#check append_map
+#check Mathlib.Tactic.Monoidal.naturality_associator
+#check tensor_whiskerLeft
+#check whiskerRight_tensor
+#check whisker_assoc
+
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
 instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
-  one_mul := sorry
+  one_mul := by {
+    sorry
+  }
   mul_one := sorry
-  mul_assoc := sorry
+  mul_assoc := by {
+    sorry}
 
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by {
