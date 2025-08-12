@@ -196,24 +196,39 @@ namespace algebra
 def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
-  unit := sorry
-  assoc := sorry
+  unit := by {
+    have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
+     (WithBags.adj) (A:=M.X) (B:=M) (f:=  (bagMon.lift (𝟙 M.X)))
+    dsimp [monad,lift]
+    simp only [CommMon_.forget_obj, Functor.id_obj, comp_obj,
+      CommMon_.forget_map, comp'] at this
+    rw [this]
+    exact rfl
+  }
+  assoc := by {
+    have := CategoryTheory.Adjunction.eq_unit_comp_map_iff (C:=C)
+     (WithBags.adj) (A:=M.X) (B:=M)
+    dsimp [monad,lift]
+    have := CategoryTheory.Adjunction.counit_naturality (C:=C)
+     (WithBags.adj) (f:= ((bagMon.lift (𝟙 M.X))))--(X:= (WithBags.functor.obj M.X)) (Y:=M)
+    sorry
+  }
 
 instance monClassOfAlgebra {α : Algebra (monad C)} :
     Mon_Class ((monad C).obj α.A) := by
   dsimp [monad_obj]
   infer_instance
 
-#check Mathlib.Tactic.Monoidal.naturality_associator
-#check tensor_whiskerLeft
-#check whiskerRight_tensor
-#check whisker_assoc
-
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
 instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
   one_mul := by {
+    have h1 := α.unit
+    have h2 := α.assoc
+    have h3 := Monad.unit_naturality (C:=C) (monad C) α.a
+    have h4 := Monad.left_unit (C:=C) (monad C) α.A
+    have h5 := Monad.right_unit (C:=C) (monad C) α.A
     sorry
   }
   mul_one := sorry
