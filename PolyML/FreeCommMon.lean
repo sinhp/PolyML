@@ -43,7 +43,7 @@ variable {C} [WithBags C]
 /-- The common monoid structure on `bag A` is given by the free commutative monoid functor. -/
 def freeCommMon (A : C) : CommMon_ C := WithBags.functor.obj A
 
-def freeCommMon.lift {M : CommMon_ C} (f : A ⟶ M.X) : freeCommMon A ⟶ M :=
+def freeCommMon.lift {A : C} {M : CommMon_ C} (f : A ⟶ M.X) : freeCommMon A ⟶ M :=
   (WithBags.adj.homEquiv A M).invFun f
 
 /-- The monoid structure on `bag A`. -/
@@ -78,11 +78,9 @@ theorem append_symm : (β_ (bag A) (bag A)).hom ≫ append = append := by
 
 def singleton : A ⟶ bag A := WithBags.adj.unit.app A
 
-def cons : A ⊗ bag A ⟶ bag A :=
-  (singleton ▷ bag A) ≫ append
+def cons : A ⊗ bag A ⟶ bag A := (singleton ▷ bag A) ≫ append
 
-def snoc : bag A ⊗ A ⟶ bag A :=
-  (bag A ◁ singleton) ≫ append
+def snoc : bag A ⊗ A ⟶ bag A := (bag A ◁ singleton) ≫ append
 
 /-- Appending an element as head or tail is the same operation for bags. -/
 theorem cons_snoc : (β_ A (bag A)).hom ≫ snoc = cons := by
@@ -91,7 +89,7 @@ theorem cons_snoc : (β_ A (bag A)).hom ≫ snoc = cons := by
   simp only [BraidedCategory.braiding_naturality_left_assoc]
 
 /-- Given a commutative monoid object `M` in `C`, this lifts
-  `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
+`f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
 def lift {M : CommMon_ C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
   bagMon.lift f |> (CommMon_.forget C).map
 
@@ -105,14 +103,17 @@ theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
   dsimp [lift]
   simp only [IsMon_Hom.mul_hom]
 
-theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
-    singleton ≫ lift f = f := by
+theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} : singleton ≫ lift f = f := by
   sorry
 
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
 
 theorem map_eq_lift {B : C} (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
+  sorry
+
+theorem map_lift_eq_lift_comp {M : CommMon_ C} {B : C} (f : A ⟶ B) (g : B ⟶ M.X) :
+    map f ≫ lift g = lift (f ≫ g) := by
   sorry
 
 @[simp]
@@ -127,8 +128,7 @@ theorem map_singleton {B : C} {f : A ⟶ B} :
     singleton ≫ map f = f ≫ singleton := by
   rw [map_eq_lift, lift_singleton]
 
-theorem append_map {B : C} {f : A ⟶ B} :
-    (map f ⊗ₘ map f) ≫ μ = μ ≫ map f := by
+theorem append_map {B : C} {f : A ⟶ B} : (map f ⊗ₘ map f) ≫ μ = μ ≫ map f := by
   rw [map_eq_lift, lift_mul]
 
 theorem cons_map {B : C} {f : A ⟶ B} :
@@ -147,8 +147,7 @@ theorem cons_map {B : C} {f : A ⟶ B} :
     CartesianMonoidalCategory.tensorHom_snd,
     CartesianMonoidalCategory.whiskerRight_snd_assoc]}
 
-def ofList [ListArithmetic C] : list A ⟶ bag A :=
-  list.lift (bag.singleton)
+def ofList [ListArithmetic C] : list A ⟶ bag A := list.lift (bag.singleton)
 
 theorem ofList_nil [ListArithmetic C] :
     list.nil ≫ ofList = bag.nil (A:= A) := by
@@ -173,8 +172,7 @@ Tip: can we show for instance that this map is an effective epi? If so, every ef
 
 variable (C)
 
-def monad : Monad C :=
-  WithBags.adj |> Adjunction.toMonad
+def monad : Monad C := WithBags.adj |> Adjunction.toMonad
 
 variable {C}
 
@@ -207,14 +205,14 @@ instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   mul_assoc := sorry
 
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
-  mul_comm := by {
-  dsimp [Mon_Class.mul]
-  rw [tensorHom_def', ← Category.assoc]
-  rw [← BraidedCategory.braiding_naturality_left_assoc]
-  rw [← BraidedCategory.braiding_naturality_right]
-  rw [Category.assoc, Category.assoc]
-  simp only [IsCommMon.mul_comm_assoc, forget₂Mon_obj_mul, Category.assoc]
-  exact Eq.symm (whisker_exchange_assoc singleton singleton (μ ≫ α.a))}
+  mul_comm := by
+    dsimp [Mon_Class.mul]
+    rw [tensorHom_def', ← Category.assoc]
+    rw [← BraidedCategory.braiding_naturality_left_assoc]
+    rw [← BraidedCategory.braiding_naturality_right]
+    rw [Category.assoc, Category.assoc]
+    simp only [IsCommMon.mul_comm_assoc, forget₂Mon_obj_mul, Category.assoc]
+    exact Eq.symm (whisker_exchange_assoc singleton singleton (μ ≫ α.a))
 
 def commMonOf (α : Algebra (monad C)) : CommMon_ C where
   X := α.A
@@ -223,8 +221,11 @@ end algebra
 
 open algebra
 
-def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X :=
-  (ofCommMon M).a
+def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X := (ofCommMon M).a
+
+theorem aggregator_eq_lift {M : CommMon_ C} :
+    aggregator M = lift (𝟙 M.X) := by
+  dsimp [aggregator, ofCommMon, lift]
 
 theorem aggregator_one {M : CommMon_ C} :
     η ≫ aggregator M = η := by
