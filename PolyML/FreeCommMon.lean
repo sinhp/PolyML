@@ -160,12 +160,12 @@ def ofList [ListArithmetic C] : list A ⟶ bag A :=
 theorem ofList_nil [ListArithmetic C] :
     list.nil ≫ ofList = bag.nil (A:= A) := by
   simp only [bag.nil, ofList, singleton, list.nil, list.lift,list.foldl]
-  simp only [plist.rec_nil]
+  simp only [plist.nil_rec]
 
 theorem ofList_cons [ListArithmetic C] :
     list.cons ≫ ofList = A ◁ ofList ≫ bag.cons := by
   dsimp [ofList, list.lift, list.foldl, list.cons]
-  rw [plist.rec_cons]
+  rw [plist.cons_rec]
   refine A ◁ plist.rec η ((β_ A (bagMon A).X).hom ≫ (bagMon A).X ◁ singleton ≫ μ) ≫= ?_
   dsimp [cons, bag.append, bag]
   rw [← BraidedCategory.braiding_naturality_left_assoc]
