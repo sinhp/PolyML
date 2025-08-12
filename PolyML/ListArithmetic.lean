@@ -42,9 +42,9 @@ products where the comparison morphisms `plist.cmp` are isomorphisms.
 
 - In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
 -/
+set_option linter.unusedSectionVars false
 
 universe u v
-
 
 namespace CategoryTheory
 
@@ -601,7 +601,7 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [plist.cmp]
   simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
 
-def list.foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y :=
+def foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y :=
   list.prec e a
 
 variable {A : C}
@@ -761,7 +761,11 @@ instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C]
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
-  split := sorry
+  split := by { sorry
+    -- apply plist.rec
+    -- exact coprod.inl
+    -- exact snd A (𝟙_ C ⨿ A ⊗ list A)
+  }
   nil_split := sorry
   cons_split := sorry
   split_nil_cons := sorry
