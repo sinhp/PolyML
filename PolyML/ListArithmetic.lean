@@ -576,7 +576,6 @@ def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
 def list.prec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y :=
   (plistIsoTensor A P).inv ≫ plist.rec e a
 
-
 theorem list.prec_rec {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
     (ρ_ (list A)).inv ≫ list.prec e a = list.rec e a := by
   sorry

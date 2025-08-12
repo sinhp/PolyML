@@ -223,17 +223,9 @@ instance monClassOfAlgebra {α : Algebra (monad C)} :
 instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
-  one_mul := by {
-    have h1 := α.unit
-    have h2 := α.assoc
-    have h3 := Monad.unit_naturality (C:=C) (monad C) α.a
-    have h4 := Monad.left_unit (C:=C) (monad C) α.A
-    have h5 := Monad.right_unit (C:=C) (monad C) α.A
-    sorry
-  }
+  one_mul := sorry
   mul_one := sorry
-  mul_assoc := by {
-    sorry}
+  mul_assoc := sorry
 
 instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
   mul_comm := by {
