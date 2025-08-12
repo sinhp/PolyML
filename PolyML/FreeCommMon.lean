@@ -108,7 +108,12 @@ theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
 theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
     singleton ≫ lift f = f := by
   dsimp [singleton, lift]
-  sorry
+  have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
+     (WithBags.adj) (A:=A) (B:=M)
+  simp only [CommMon_.forget_obj, Functor.id_obj, comp_obj,
+    CommMon_.forget_map, comp'] at this
+  rw [this]
+  exact rfl
 
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
