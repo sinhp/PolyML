@@ -756,24 +756,33 @@ instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
     IsIso (Semirecursive.split : L ⟶ P ⨿ A ⊗ L) := by
   sorry
 
-instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
-  split := by { sorry
-    -- apply plist.rec
-    -- exact coprod.inl
-    -- exact snd A (𝟙_ C ⨿ A ⊗ list A)
+  split := by {
+    apply plist.rec
+    exact coprod.inl
+    exact snd A (𝟙_ C ⨿ A ⊗ list A)
   }
-  nil_split := sorry
-  cons_split := sorry
+  nil_split := by {
+    dsimp [list.nil]
+    simp only [plist.nil_rec]
+  }
+  cons_split := by {
+    sorry
+  }
   split_nil_cons := sorry
 
-instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
-  split := sorry
+  split := by {
+    refine plist.rec ?_ ?_
+    exact coprod.inl
+    exact snd A (P ⨿ A ⊗ plist A P)
+  }
   nil_split := sorry
   cons_split := sorry
   split_nil_cons := sorry

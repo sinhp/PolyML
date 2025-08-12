@@ -198,7 +198,7 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   a := lift (𝟙 _)
   unit := by {
     have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
-     (WithBags.adj) (A:=M.X) (B:=M) (f:=  (bagMon.lift (𝟙 M.X)))
+     (WithBags.adj) (A:=M.X) (B:=M) (f:= (bagMon.lift (𝟙 M.X)))
     dsimp [monad,lift]
     simp only [CommMon_.forget_obj, Functor.id_obj, comp_obj,
       CommMon_.forget_map, comp'] at this
