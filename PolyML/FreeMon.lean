@@ -21,6 +21,10 @@ universe v u
 
 variable (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
 
+attribute [local instance] CartesianMonoidalCategory.toSymmetricCategory
+attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+
+
 /-- The free monoid functor given by the list objects of a list-arithmetic category. -/
 @[simps]
 def freeMon : C ⥤ Mon_ C where
