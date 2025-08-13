@@ -104,15 +104,9 @@ theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
   simp only [IsMon_Hom.mul_hom]
 
 theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
-    singleton ≫ lift f = f := by
-  dsimp [singleton, lift]
-  dsimp [bagMon.lift,freeCommMon.lift]
-  have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
-     (WithBags.adj) (A:=A) (B:=M)
-  simp only [CommMon_.forget_obj, Functor.id_obj, comp_obj,
-    CommMon_.forget_map, comp'] at this
-  rw [this]
-  exact rfl
+  singleton ≫ lift f = f := by
+  dsimp [singleton, lift, bagMon.lift, freeCommMon.lift]
+  exact (WithBags.adj.homEquiv A M).right_inv f
 
 /-- The functorial action of `bag` on morphisms. -/
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
@@ -122,12 +116,9 @@ theorem map_eq_lift {B : C} (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
 
 theorem map_lift_eq_lift_comp {M : CommMon_ C} {B : C} (f : A ⟶ B) (g : B ⟶ M.X) :
     map f ≫ lift g = lift (f ≫ g) := by
-  --rw [map_eq_lift]
-  --rw [← lift_singleton (f:=g)]
   dsimp [lift]
   have := Adjunction.homEquiv_naturality_left_symm (C:=C) (WithBags.adj) (Y:=M) (X:=B) (X':=A) f g
-  dsimp [Adjunction.homEquiv] at this
-  dsimp [bagMon.lift,freeCommMon.lift,Adjunction.homEquiv,map,endofunctor]
+  dsimp [bagMon.lift, freeCommMon.lift, Adjunction.homEquiv, map, endofunctor]
   simp_all only [map_comp, comp', Category.assoc, Mon_.comp_hom', toMon__X]
 
 @[simp]
