@@ -151,6 +151,8 @@ def monad : Monad S.Algebra where
 
 variable {S T}
 
+open CategoryTheory.Monad.Algebra
+
 def fstAlg (α : (monad S T).Algebra) : S.Algebra := α.A
 
 def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
@@ -175,8 +177,10 @@ def distrib (α : (monad S T).Algebra) :
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
   toMonad := monad S T
   w := rfl
-  respect_unit := sorry
-  respect_mul := sorry
+  respect_unit := by
+    simp only [eqToHom_refl, comp_id]; ext α; rfl
+  respect_mul := by
+    simp only [eqToHom_refl, comp_id, id_comp]; ext α; rfl
 
 end LiftingMonad
 
@@ -204,7 +208,6 @@ theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S
 theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
     (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
 
-
 #check Mon_
 #check Semiring
 
@@ -213,10 +216,7 @@ variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality := by {
-      intros X Y f
-      sorry
-    }
+    naturality X Y f := sorry
   }
   unit_left := sorry
   unit_right := sorry
@@ -225,8 +225,7 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
 
 theorem foo : (distribLawListBag (Type u)).δ = sorry := sorry
 
-
-def Semiring_ :=  LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
+def Semiring_ := LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
 
 namespace Semiring_
 
