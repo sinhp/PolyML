@@ -253,11 +253,29 @@ variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality X Y f := sorry
+    naturality X Y f := by {
+      simp only [endofunctorMonoidalCategory_tensorObj_obj,
+        endofunctorMonoidalCategory_tensorObj_map]
+      sorry
+
+
+    }
   }
-  unit_left := sorry
+  unit_left := by {
+    ext X
+    simp only [endofunctorMonoidalCategory_tensorObj_obj, Functor.id_obj, NatTrans.comp_app,
+      endofunctorMonoidalCategory_whiskerRight_app, endofunctorMonoidalCategory_whiskerLeft_app]
+    --have := Monad.left_unit (bag.monad C) X
+    --have := Monad.left_unit (list.monad C) X
+    sorry
+
+  }
   unit_right := sorry
-  mul_left := sorry
+  mul_left := by {
+    ext X
+    sorry
+
+  }
   mul_right := sorry
 
 def Semiring_ := LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
@@ -272,6 +290,7 @@ instance mon_Class : Mon_Class α.X where
   one := by {
     dsimp [X]
     dsimp [Semiring_] at α
+    sorry
 
 
   }
