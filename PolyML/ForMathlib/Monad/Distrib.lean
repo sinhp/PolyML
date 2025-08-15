@@ -238,7 +238,6 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [right_unit, Functor.id_obj, map_id]
   }
 
-#exit
 theorem comp_unit {S T : Monad C} [DistribLaw S T] :
     (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
@@ -272,12 +271,13 @@ def X : C := α.A.A
 instance mon_Class : Mon_Class α.X where
   one := by {
     dsimp [X]
-    sorry
+    dsimp [Semiring_] at α
+
+
   }
   mul := by {
     dsimp [X]
     sorry
-
   }
   one_mul := by
     sorry
