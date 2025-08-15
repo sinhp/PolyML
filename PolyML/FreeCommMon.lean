@@ -201,7 +201,32 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
     rw [this]
     exact rfl
   }
-  assoc := sorry
+  assoc := by {
+    dsimp [monad,lift]
+    have := CategoryTheory.Adjunction.counit_naturality (WithBags.adj)
+      (f:= (bagMon.lift (𝟙 M.X)))
+    simp only [CommMon_.forget_obj, Functor.id_obj,
+      CommMon_.forget_map, comp'] at this
+    unfold freeCommMon at this
+    have this_hom := congrArg Mon_.Hom.hom this
+    simp only [toMon__X, Mon_.comp_hom', comp_obj, CommMon_.forget_obj] at this_hom
+    rw [← this_hom]
+    let g := bagMon.lift (𝟙 M.X)
+    simp only at g
+    have := CategoryTheory.Adjunction.eq_homEquiv_apply (WithBags.adj) (A := M.X) (B := M)
+      (f:= (bagMon.lift (𝟙 M.X)))
+    sorry
+
+
+
+
+
+
+
+
+
+
+  }
 
 instance monClassOfAlgebra {α : Algebra (monad C)} :
     Mon_Class ((monad C).obj α.A) := by
