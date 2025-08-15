@@ -503,16 +503,30 @@ theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len h =
 
 @[reassoc (attr := simp)]
 theorem nil_len_zero : list.nil (A:= A) ≫ list.len = nno.zero := by
-  sorry
+  dsimp [len,nno.zero]
+  simp only [map_nil]
+  dsimp [nil]
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ :
     list.cons ≫ list.len = (toUnit h A ⊗ₘ list.len) ≫ (λ_ (N_ C)).hom ≫ nno.succ := by
-  sorry
+  dsimp [list.len]
+  rw [list.cons_map]
+  dsimp [nno.succ]
+  simp only [Iso.hom_inv_id_assoc]
+  dsimp [toUnit]
+  rw [← Category.assoc]
+  refine ?_ =≫ cons
+  rw [tensorHom_def']
+  dsimp [nno]
 
+#check whiskerLeft_comp
 -- len ([x]) = 1
 theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit h A ≫ nno.one :=
+    list.singleton ≫ list.len = toUnit h A ≫ nno.one := by
+  dsimp [singleton]
+  rw [Category.assoc]
+  rw [Category.assoc,cons_len_succ h]
   sorry
 
 end length
@@ -576,6 +590,7 @@ def list.prec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y
 theorem list.prec_rec {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
     (ρ_ (list A)).inv ≫ list.prec e a = list.rec e a := by
   sorry
+
 
 def nno.prec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) : N_ C ⊗ P ⟶ Y :=
   list.prec e ((λ_ Y).hom ≫ a)
