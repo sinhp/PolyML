@@ -642,11 +642,6 @@ theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
   sorry
 
--- Commutativity of append via braiding: braiding + append = append + reverse both lists
-theorem append_braiding_comm [BraidedCategory C] {A : C} :
-    (β_ (list A) (list A)).hom ≫ append = append ≫ rev := by
-  sorry
-
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
   list.rec list.nil ((η ▷ list A) ≫ (β_ _ _).hom ≫ append)
@@ -711,8 +706,14 @@ theorem succ_iter {f : P ⟶ P} :
 def add : N_ C ⊗ N_ C ⟶ N_ C :=
   nno.prec (𝟙 _) (nno.succ)
 
+@[reassoc (attr := simp)]
 theorem zero_add {A : C} :
     nno.zero ▷ N_ C ≫ nno.add = (λ_ (N_ C)).hom := by
+  dsimp [nno.add]
+  sorry
+
+theorem succ_add {A : C} :
+    nno.succ ▷ N_ C ≫ nno.add = nno.add ≫ nno.succ := by
   dsimp [nno.add]
   sorry
 
