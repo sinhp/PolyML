@@ -645,11 +645,14 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 
 theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
+  dsimp [prec]
   sorry
+
 
 @[simp]
 theorem prec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
-    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f) (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
+    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f)
+    (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
     r = prec f g := by
   simp [list, prec]
   simp [nil, cons] at *
@@ -684,7 +687,30 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 -- ⁠[x] ++ xs = x :: xs
 theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
-  sorry
+  dsimp [append,list.singleton]
+  simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc]
+  rw [cons_prec]
+  have : A ◁ (λ_ (list A)).inv ≫
+    A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
+    (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons ≫ cons=
+    A ◁ (λ_ (list A)).inv ≫
+    (A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
+     (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons) ≫ cons :=
+       by {simp only [Iso.inv_hom_id_assoc, assoc]}
+  rw [this]
+  clear this
+  refine (IsIso.eq_inv_comp (A ◁ (λ_ (list A)).inv)).mp ?_
+  refine ?_ =≫ cons
+  simp only [Iso.inv_hom_id_assoc, inv_whiskerLeft, IsIso.Iso.inv_inv]
+  refine (inv_comp_eq_id (A ◁ (λ_ (plist A (𝟙_ C))).hom)).mp ?_
+  simp only [inv_whiskerLeft, IsIso.Iso.inv_hom]
+  have {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+     nil ▷ P ≫ prec f g = (λ_ P).hom ≫ f := nil_prec
+  rw [← whiskerLeft_comp]
+  rw [nil_prec]
+  dsimp [list]
+  simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq,
+    plist.nil_rec, whiskerLeft_inv_hom]
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
