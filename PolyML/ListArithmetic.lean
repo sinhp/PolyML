@@ -584,7 +584,7 @@ def nno.prec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) : N_ C ⊗ P ⟶ Y :=
 
 namespace list
 
-scoped notation "η" => list.singleton
+local notation "η" => list.singleton
 
 /--
 ```
@@ -717,10 +717,25 @@ theorem succ_add {A : C} :
   dsimp [nno.add]
   sorry
 
+theorem one_add_zero :
+    (one ⊗ₘ zero) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
+  sorry
+
+theorem zero_add_one :
+    (zero ⊗ₘ one) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
+  sorry
+
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] :
     nno.add = (β_ (N_ C) (N_ C)).hom ≫ nno.add := by
   sorry
+
+-- associativity of addition
+theorem add_assoc [BraidedCategory C] :
+    nno.add ▷ N_ C ≫ nno.add = (α_ _ _ _).hom ≫ (N_ C ◁ nno.add) ≫ nno.add := by
+  dsimp [nno.add]
+  sorry
+
 
 end nno
 
