@@ -503,12 +503,22 @@ theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len h =
 
 @[reassoc (attr := simp)]
 theorem nil_len_zero : list.nil (A:= A) ≫ list.len = nno.zero := by
-  sorry
+  dsimp [len,nno.zero]
+  simp only [map_nil]
+  dsimp [nil]
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ :
     list.cons ≫ list.len = (toUnit h A ⊗ₘ list.len) ≫ (λ_ (N_ C)).hom ≫ nno.succ := by
-  sorry
+  dsimp [list.len]
+  rw [list.cons_map]
+  dsimp [nno.succ]
+  simp only [Iso.hom_inv_id_assoc]
+  dsimp [toUnit]
+  rw [← Category.assoc]
+  refine ?_ =≫ cons
+  rw [tensorHom_def']
+  dsimp [nno]
 
 -- len ([x]) = 1
 theorem singleton_len_one :
