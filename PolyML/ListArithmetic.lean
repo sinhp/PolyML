@@ -616,6 +616,10 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [plist.cmp]
   simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
 
+theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+    (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
+  sorry
+
 def pfoldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
 
 /-- Appends two lists. -/
