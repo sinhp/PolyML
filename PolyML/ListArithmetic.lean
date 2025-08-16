@@ -531,15 +531,16 @@ theorem singleton_len_one :
   rw [← assoc]
   refine ?_ =≫ nno.succ
   rw [tensorHom_def']
-  have : (ρ_ A).inv ≫ (A ◁ list.nil (A := A)) ≫ ((A ◁ list.len h (A := A))) ≫ (toUnit h A ▷ N_ C) ≫ (λ_ (N_ C)).hom
-  = (ρ_ A).inv ≫ ((A ◁ list.nil (A := A)) ≫ ((A ◁ list.len h (A := A)))) ≫ (toUnit h A ▷ N_ C) ≫ (λ_ (N_ C)).hom := by {
+  have : (ρ_ A).inv ≫ (A ◁ list.nil (A := A)) ≫
+    ((A ◁ list.len h (A := A))) ≫ (toUnit h A ▷ N_ C) ≫ (λ_ (N_ C)).hom
+  = (ρ_ A).inv ≫ ((A ◁ list.nil (A := A)) ≫
+    ((A ◁ list.len h (A := A)))) ≫ (toUnit h A ▷ N_ C) ≫ (λ_ (N_ C)).hom := by {
     simp only [assoc]
   }
   simp only [Category.assoc]
   rw [this]
   rw [← whiskerLeft_comp,nil_len_zero h]
   sorry
-
 
 end length
 
