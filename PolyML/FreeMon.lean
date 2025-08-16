@@ -113,8 +113,9 @@ def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
       refine ?_ =≫ f.X ◁ h ≫ μ
       rename_i this_1 this_2
       simp_all only [Mon_.forget_obj, BraidedCategory.braiding_naturality_right_assoc,
-    BraidedCategory.braiding_naturality_left_assoc, BraidedCategory.braiding_naturality_right, Category.assoc,
-    Iso.cancel_iso_hom_left, this_1]
+      BraidedCategory.braiding_naturality_left_assoc,
+     BraidedCategory.braiding_naturality_right, Category.assoc,
+      Iso.cancel_iso_hom_left, this_1]
       ext : 1
       · simp_all only [Category.assoc, CartesianMonoidalCategory.whiskerRight_fst,
         CartesianMonoidalCategory.whiskerLeft_fst_assoc, CartesianMonoidalCategory.whiskerLeft_fst]
@@ -175,10 +176,6 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
     rw [Category.assoc, Category.assoc]
     dsimp [list.cons]
     rw [plist.cons_rec]
-    letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-    have : M.X ◁ list.nil ≫ M.X ◁ plist.rec η ((β_ M.X M.X).hom ≫ μ) =
-    M.X ◁ (list.nil ≫ plist.rec η ((β_ M.X M.X).hom ≫ μ))  := by {
-      simp only [MonoidalCategory.whiskerLeft_comp]}
     have h1 : (ρ_ M.X).inv ≫ M.X ◁ list.nil ≫ M.X ◁ plist.rec η
      ((β_ M.X M.X).hom ≫ μ) ≫ (β_ M.X M.X).hom ≫ μ =
      (ρ_ M.X).inv ≫ (M.X ◁ list.nil ≫ M.X ◁ plist.rec η
@@ -186,13 +183,17 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
       simp only [BraidedCategory.braiding_naturality_right_assoc,
         braiding_tensorUnit_right, Category.assoc, Iso.inv_hom_id_assoc]}
     rw [h1]
-    rw [this]
+    nth_rw 1 [← MonoidalCategory.whiskerLeft_comp]
     dsimp [list.nil]
     rw [plist.nil_rec]
-    simp only [BraidedCategory.braiding_naturality_right_assoc, braiding_tensorUnit_right,
-      Mon_Class.one_mul, Category.assoc, Iso.inv_hom_id, comp_id]
+    simp only [BraidedCategory.braiding_naturality_right_assoc,
+      braiding_tensorUnit_right,Mon_Class.one_mul,
+      Category.assoc, Iso.inv_hom_id, comp_id]
     }
-  assoc := by sorry
+  assoc := by {
+    dsimp [monad, freeMonoidAdjunction, homEquiv, list.foldl]
+    sorry
+  }
 
 end algebra
 
@@ -213,7 +214,6 @@ theorem aggregator_singleton {M : Mon_ C} :
   dsimp [lift, list.foldl, list.cons]
   rw [plist.cons_rec]
   dsimp [list.nil]
-  letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
   have h1 : M.X ◁ list.nil ≫ M.X ◁ plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ) =
     M.X ◁ (list.nil ≫ plist.rec η ((β_ M.X M.X).hom ≫ M.X ◁ 𝟙 M.X ≫ μ)) := by {
       simp only [MonoidalCategory.whiskerLeft_comp]}

@@ -421,8 +421,12 @@ def cons : A ⊗ list A ⟶ list A := plist.cons (P := 𝟙_ C)
 parameterized version. -/
 def rec {Y : C} (e : 𝟙_ C ⟶ Y) (f : A ⊗ Y ⟶ Y) : list A ⟶ Y := plist.rec e f
 
+-- [a, b, c].foldr f init  = f a (f b (f c init))
 def foldr {Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e f
 
+-- SH: I don't think this is foldl. It gives
+-- [a, b, c].foldl f init  = f (f (f init c) b) a`
+-- while it should be f (f (f init a) b) c
 def foldl [BraidedCategory C] {Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e ((β_ A Y).hom ≫ f)
 
 def map {B : C} (f : A ⟶ B) : list A ⟶ list B := plist.map (P := 𝟙_ C) f
@@ -639,6 +643,19 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [plist.cmp]
   simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
 
+theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+    (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
+  sorry
+
+@[simp]
+theorem prec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
+    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f) (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
+    r = prec f g := by
+  simp [list, prec]
+  simp [nil, cons] at *
+  -- use relevant facts about `cmp` to connect `plist A P` to `list A ⊗ P`
+  sorry
+
 def pfoldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
 
 /-- Appends two lists. -/
@@ -766,8 +783,16 @@ theorem add_assoc [BraidedCategory C] :
 end nno
 
 instance : Recursive (Type u) where
-  withRec := by {
-    sorry}
+  withRec A := {
+    freeActionFunctor := {
+      obj P := ⟨List A × P, fun ⟨a,as,p⟩ => ⟨(a::as),p⟩⟩
+      map f := {
+        f := fun a => (a.1, f a.2),
+        h := by aesop
+      }
+    }
+    freeForgetAdj := by sorry
+  }
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
@@ -810,7 +835,6 @@ instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic
   cons_split := sorry
   split_nil_cons := sorry
 
-
 /-
 In the presence finite coproducts, `list α` is the
 initial algebra for the polynomial functor
@@ -822,13 +846,11 @@ satisfying
 `foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
 -/
 
-
 /-
 Extra challenge:
 Show that in the category of small categories,
 an object with recursion is a monoidal category.
 -/
-
 
 /-
 We show that in a list-arithmetic category, the list object is
@@ -856,7 +878,7 @@ instance List.monoid (A : C) : Mon_ C where
   -- mul_one := list.append_nil
   -- mul_assoc := list.append_assoc
 
-/- Show that
+/- SH: Show that
 `list α` is the initial algebra for the polynomial functor `P ↦ 1 + α × P` in
 the category of types. The unique algebra map from (List α, [n,c]) to
 (S,[s₀,s]) is the foldr function after transposition.

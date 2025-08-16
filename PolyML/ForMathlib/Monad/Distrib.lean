@@ -33,7 +33,7 @@ The notion of distributive law was first introduced by Beck in 1969, and it is a
 
 Jon Beck, Distributive Laws, in: Seminar on Triples and Categorical Homology Theory, ETH 1966/67, Lecture Notes in Mathemativs, Springer (1969), Reprints in Theory and Applications of Categories 18 (2008) 1-303.
 -/
-
+set_option linter.simpsNoConstructor false
 
 universe v₁ v₂ u₁ u₂
 
@@ -151,6 +151,8 @@ def monad : Monad S.Algebra where
 
 variable {S T}
 
+open CategoryTheory.Monad.Algebra
+
 def fstAlg (α : (monad S T).Algebra) : S.Algebra := α.A
 
 def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
@@ -175,8 +177,10 @@ def distrib (α : (monad S T).Algebra) :
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
   toMonad := monad S T
   w := rfl
-  respect_unit := sorry
-  respect_mul := sorry
+  respect_unit := by
+    simp only [eqToHom_refl, comp_id]; ext α; rfl
+  respect_mul := by
+    simp only [eqToHom_refl, comp_id, id_comp]; ext α; rfl
 
 end LiftingMonad
 
@@ -194,39 +198,87 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   μ := by
     let w := S.μ ⊗ₘ T.μ
     exact (S.1 ◁ δ ▷ T.1) ≫ w
-  assoc := sorry
-  left_unit := sorry
-  right_unit := sorry
+  assoc X := by { sorry
+  }
 
-theorem comp_unit {S T : Monad C} [DistribLaw S T] : (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
+  left_unit X := by {
+    simp only [comp_obj, Functor.id_obj, unit_exchange, NatTrans.comp_app,
+      endofunctorMonoidalCategory_whiskerRight_app,
+      endofunctorMonoidalCategory_tensorObj_obj,
+      endofunctorMonoidalCategory_whiskerLeft_app,
+      endofunctorMonoidalCategory_tensorMap_app]
+    have hdistrib_unit_right :=
+      DistribLaw.unit_right_components (X:=(S.obj X)) (S:= S) (T:=T)
+    have hleftunit := T.left_unit (X := (S.obj X))
+    simp only [Functor.id_obj] at hleftunit
+    nth_rw 1 [Category.assoc]
+    nth_rw 2 [← Category.assoc]
+    rw [← map_comp, hdistrib_unit_right]
+    simp only [Functor.id_obj]
+    rw [← hleftunit, ← Category.assoc, ← T.unit_naturality, ← Category.assoc]
+    simp only [Category.assoc, left_unit, Functor.id_obj, comp_id,
+       ← map_comp, map_id, hleftunit]
+  }
+
+  right_unit X := by {
+    simp only [comp_obj, Functor.id_obj, NatTrans.comp_app,
+      endofunctorMonoidalCategory_whiskerRight_app,
+      endofunctorMonoidalCategory_tensorObj_obj,
+      endofunctorMonoidalCategory_whiskerLeft_app,
+      endofunctorMonoidalCategory_tensorMap_app]
+    simp only [Functor.comp_map, map_comp]
+    have hdistrib_unit_left :=
+      DistribLaw.unit_left_components (X:=(S.obj X)) (S:= S) (T:=T)
+    have h_monad_unit := T.right_unit ((S.obj (S.obj X)))
+    rw [← T.map_comp, ← Category.assoc, ← T.map_comp]
+    rw [Category.assoc, hdistrib_unit_left, T.map_comp]
+    rw [Category.assoc]
+    simp only [right_unit_assoc]
+    rw [← map_comp]
+    simp only [right_unit, Functor.id_obj, map_id]
+  }
+
+theorem comp_unit {S T : Monad C} [DistribLaw S T] :
+    (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
 
 theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
     (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
 
-
-#check Mon_
-#check Semiring
+-- #check Mon_
+-- #check Semiring
 
 variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality := by {
-      intros X Y f
+    naturality X Y f := by {
+      simp only [endofunctorMonoidalCategory_tensorObj_obj,
+        endofunctorMonoidalCategory_tensorObj_map]
       sorry
+
+
     }
   }
-  unit_left := sorry
+  unit_left := by {
+    ext X
+    simp only [endofunctorMonoidalCategory_tensorObj_obj, Functor.id_obj, NatTrans.comp_app,
+      endofunctorMonoidalCategory_whiskerRight_app, endofunctorMonoidalCategory_whiskerLeft_app]
+    --have := Monad.left_unit (bag.monad C) X
+    --have := Monad.left_unit (list.monad C) X
+    sorry
+
+  }
   unit_right := sorry
-  mul_left := sorry
+  mul_left := by {
+    ext X
+    sorry
+
+  }
   mul_right := sorry
 
-theorem foo : (distribLawListBag (Type u)).δ = sorry := sorry
-
-
-def Semiring_ :=  LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
+def Semiring_ := LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
 
 namespace Semiring_
 
@@ -235,11 +287,23 @@ variable (α : Semiring_ C)
 def X : C := α.A.A
 
 instance mon_Class : Mon_Class α.X where
-  one := sorry
-  mul := sorry
-  one_mul := sorry
-  mul_one := sorry
-  mul_assoc := sorry
+  one := by {
+    dsimp [X]
+    dsimp [Semiring_] at α
+    sorry
+
+
+  }
+  mul := by {
+    dsimp [X]
+    sorry
+  }
+  one_mul := by
+    sorry
+  mul_one := by
+    sorry
+  mul_assoc := by
+    sorry
 
 def mon : Mon_ C where
   X := α.X
