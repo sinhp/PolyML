@@ -292,6 +292,8 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
     }
     rw [this]
     clear this hd'
+
+
     dsimp [δ_,S_,T_]
     refine T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫= ?_
     -- have HT := T.μ.naturality
@@ -321,7 +323,66 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
     nth_rw 2 [← T.μ.naturality]
     simp only [Functor.comp_map]
     simp only [endofunctorMonoidalCategory_tensorObj_obj, Category.assoc, comp_obj]
-    sorry
+    have :  T.map (T.map (μₛ (T.obj (S.obj X)))) ≫
+    T.map (T.map (δ.app (S.obj X))) ≫
+    T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X) =
+     (T.map (T.map (μₛ (T.obj (S.obj X)))) ≫
+    T.map (T.map (δ.app (S.obj X)))) ≫
+    (T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)) := sorry
+    rw [this]
+    clear this
+    rw [← T.map_comp]
+    rw [← T.map_comp]
+    rw [← hr]
+    nth_rw 2 [T.map_comp]
+    nth_rw 2 [T.map_comp]
+    have :
+    (T.map (T.map (S.map (δ.app (S.obj X)))) ≫ T.map (T.map (δ.app (S.obj (S.obj X)) ≫
+      T.map (S.μ.app (S.obj X))))) ≫
+    T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X) =
+     T.map (T.map (S.map (δ.app (S.obj X)))) ≫ (T.map (T.map (δ.app (S.obj (S.obj X)) ≫
+      T.map (S.μ.app (S.obj X)))) ≫
+    T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)) := sorry
+    rw [this]
+    clear this
+    refine  T.map (T.map (S.map (δ.app (S.obj X)))) ≫= ?_
+    nth_rw 1 [T.map_comp]
+    nth_rw 2 [T.map_comp]
+    nth_rw 2 [T.map_comp]
+    have :  (T.map (T.map (δ.app (S.obj (S.obj X)))) ≫
+     T.map (μₜ (S.obj (S.obj (S.obj X))) ≫ T.map (S.map (μₛ X)))) ≫
+    μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)
+    =
+     ((T.map (T.map (δ.app (S.obj (S.obj X))))) ≫
+     (T.map (μₜ (S.obj (S.obj (S.obj X))) ≫ T.map (S.map (μₛ X)))) ≫
+    μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)):= sorry
+    rw [this]
+    clear this
+    have : (T.map (T.map (δ.app (S.obj (S.obj X)))) ≫ T.map (T.map (T.map (S.μ.app (S.obj X))))) ≫
+    T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)
+    =
+     ((T.map (T.map (δ.app (S.obj (S.obj X))))) ≫ (T.map (T.map (T.map (S.μ.app (S.obj X))))) ≫
+    T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)) := sorry
+    rw [this]
+    clear this
+    refine  (T.map (T.map (δ.app (S.obj (S.obj X))))) ≫= ?_
+    -- nth_rw 1 [← T.μ.naturality]
+    -- simp only [endofunctorMonoidalCategory_tensorObj_obj, comp_obj, Functor.comp_map, map_comp]
+    -- clear this
+    -- nth_rw 1 [← T.μ.naturality]
+    -- simp only [endofunctorMonoidalCategory_tensorObj_obj, comp_obj, Functor.comp_map]
+    -- nth_rw 1 [← T.μ.naturality]
+    -- simp only [endofunctorMonoidalCategory_tensorObj_obj, comp_obj, Functor.comp_map]
+    -- have :  T.μ.app (T.obj (S.obj (S.obj X))) ≫ T.map (T.map (μₛ X)) ≫ T.μ.app (S.obj X)=
+    --  (T.μ.app (T.obj (S.obj (S.obj X))) ≫ T.map (T.map (μₛ X))) ≫ T.μ.app (S.obj X) := sorry
+    -- rw [this]
+    -- clear this
+    -- nth_rw 1 [← T.μ.naturality]
+    -- simp only [comp_obj, Functor.comp_map]
+    -- have := T.μ.naturality (f:= (μₛ X))
+    -- simp only [comp_obj, Functor.comp_map] at this
+    -- rw [this]
+    -- clear this
 
 
 
@@ -329,6 +390,20 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+#exit
 
 
 @[simps]
@@ -344,7 +419,6 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
       endofunctorMonoidalCategory_whiskerLeft_app,
       endofunctorMonoidalCategory_whiskerRight_app,
       endofunctorMonoidalCategory_tensorMap_app, Functor.comp_map]
-    extract_goal
     have hr := mul_right_components (X := ((S.obj X))) (S := S) (T:=T)
     rw [Category.assoc, Category.assoc]
     nth_rw 6 [← Category.assoc]
@@ -404,6 +478,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [Category.assoc]
     refine T.map (T.map (δ.app (S.obj (S.obj X)))) ≫= ?_
     clear * -this
+
     have := T.μ.naturality (f := (T.map (S.μ.app (S.obj X))))
     simp only [comp_obj, Functor.comp_map] at this
     nth_rw 3 [← Category.assoc]
