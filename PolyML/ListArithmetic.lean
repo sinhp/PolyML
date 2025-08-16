@@ -151,7 +151,7 @@ def freeForgetAdj (A : C) : freeActionFunctor A ⊣ Act.forget  :=
   Adjunction.ofIsRightAdjoint (Act.forget : Act A ⥤ C)
 
 end IsRecursive
-#check C
+
 namespace Recursive
 
 variable {C} [Recursive C]
@@ -531,7 +531,9 @@ class ListArithmetic extends Recursive C where
   hom_inv_id {A P Y} : plist.cmp A P Y ≫ cmpInv A P Y = 𝟙 _
   inv_hom_id {A P Y} : cmpInv A P Y ≫ plist.cmp A P Y = 𝟙 _
 
-namespace ListArithmetic
+section ListArithmetic
+
+open ListArithmetic
 
 variable {C} [ListArithmetic C]
 
@@ -610,7 +612,7 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [plist.cmp]
   simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
 
-def foldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
+def pfoldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
 
 /-- Appends two lists. -/
 def append {A : C} : list A ⊗ list A ⟶ list A := list.prec (𝟙 _) (list.cons)
@@ -638,6 +640,11 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 -- ⁠[x] ++ xs = x :: xs
 theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
+  sorry
+
+-- Commutativity of append via braiding: braiding + append = append + reverse both lists
+theorem append_braiding_comm [BraidedCategory C] {A : C} :
+    (β_ (list A) (list A)).hom ≫ append = append ≫ rev := by
   sorry
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
@@ -698,6 +705,20 @@ theorem zero_iter {f : P ⟶ P} :
 @[reassoc (attr := simp)]
 theorem succ_iter {f : P ⟶ P} :
     nno.succ ▷ P ≫ nno.iter f = nno.iter f ≫ f := by
+  sorry
+
+/-- Addition of natural numbers. -/
+def add : N_ C ⊗ N_ C ⟶ N_ C :=
+  nno.prec (𝟙 _) (nno.succ)
+
+theorem zero_add {A : C} :
+    nno.zero ▷ N_ C ≫ nno.add = (λ_ (N_ C)).hom := by
+  dsimp [nno.add]
+  sorry
+
+-- commutativity of addition
+theorem add_comm [BraidedCategory C] :
+    nno.add = (β_ (N_ C) (N_ C)).hom ≫ nno.add := by
   sorry
 
 end nno
