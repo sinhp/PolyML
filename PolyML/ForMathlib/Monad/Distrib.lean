@@ -255,8 +255,54 @@ theorem CategoryTheory.Monad.comp.extracted_1 {C : Type u₁}
       simp only [comp_obj, map_comp]
       sorry
      }
+
+
     sorry
           }
+
+
+lemma comp_assoc {C : Type u₁} [inst : Category.{v₁, u₁} C]
+    (S T : Monad C) [inst_1 : S.DistribLaw T] :
+  let __Functor := S.toFunctor ⋙ T.toFunctor;
+  ∀ (X : C),
+    (S.toFunctor ⋙ T.toFunctor).map
+          ((let w := S.μ ⊗ₘ T.μ;
+              S.toFunctor ◁ δ ▷ T.toFunctor ≫ w).app
+            X) ≫
+        (let w := S.μ ⊗ₘ T.μ;
+            S.toFunctor ◁ δ ▷ T.toFunctor ≫ w).app
+          X =
+      (let w := S.μ ⊗ₘ T.μ;
+            S.toFunctor ◁ δ ▷ T.toFunctor ≫ w).app
+          ((S.toFunctor ⋙ T.toFunctor).obj X) ≫
+        (let w := S.μ ⊗ₘ T.μ;
+            S.toFunctor ◁ δ ▷ T.toFunctor ≫ w).app
+          X := by {
+
+  intros F Y
+  simp only [endofunctorMonoidalCategory_tensorObj_obj, comp_obj, NatTrans.comp_app,
+    endofunctorMonoidalCategory_whiskerLeft_app, endofunctorMonoidalCategory_whiskerRight_app,
+    endofunctorMonoidalCategory_tensorMap_app, Functor.comp_map, map_comp, Category.assoc]
+  sorry
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @[simps]
 def comp (S T : Monad C) [DistribLaw S T] : Monad C where
@@ -282,13 +328,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     rw [← T.μ.naturality]
     simp only [comp_obj, Functor.comp_map,
       endofunctorMonoidalCategory_tensorObj_obj]
-    have : T.map (S.map (T.map (S.μ.app X))) ≫ T.map (δ.app (S.obj X)) ≫
-     T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X) =
-     (T.map (S.map (T.map (S.μ.app X))) ≫ T.map (δ.app (S.obj X))) ≫
-      T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X) := by {
-        simp only [Category.assoc]
-      }
-    rw [this]
+    nth_rw 3 [← Category.assoc]
     rw [← Category.assoc]
     rw [← map_comp]
     rw [← map_comp]
@@ -333,6 +373,34 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     rw [← this]
     nth_rw 2 [Category.assoc]
     refine T.map (T.map (S.map (δ.app (S.obj X)))) ≫= ?_
+    clear * -this
+    have := T.μ.naturality
+      (f := ((NatTrans.app (δ (S:=S) (T:=T)) (S.obj (S.obj X)))))
+    simp only [endofunctorMonoidalCategory_tensorObj_obj,
+      comp_obj, Functor.comp_map] at this
+    nth_rw 3 [← Category.assoc]
+    rw [← this]
+    simp only [Category.assoc]
+    refine T.map (T.map (δ.app (S.obj (S.obj X)))) ≫= ?_
+    clear * -this
+    have := T.μ.naturality
+      (f := (T.map (S.μ.app (S.obj X))))
+    simp only [comp_obj, Functor.comp_map] at this
+    nth_rw 3 [← Category.assoc]
+    --rw [← this]
+    simp only [endofunctorMonoidalCategory_tensorObj_obj, Category.assoc]
+    clear * -this
+    have := T.μ.naturality
+      (f := (S.map (S.μ.app X)))
+    simp only [comp_obj, Functor.comp_map] at this
+    rw [← Category.assoc,← map_comp]
+    rw [← this]
+    clear * -this
+    have h6 := T.μ.naturality (T.map (S.μ.app (S.obj X)))
+    simp only [comp_obj, Functor.comp_map] at h6
+    nth_rw 2 [← Category.assoc]
+    rw [← h6]
+
     sorry
     -- have := T.μ.naturality
     -- simp only [comp_obj, Functor.comp_map] at this
