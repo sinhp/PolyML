@@ -384,7 +384,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [right_unit, Functor.id_obj, map_id]
   }
 
-#exit
+
 theorem comp_unit {S T : Monad C} [DistribLaw S T] :
     (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
@@ -400,7 +400,9 @@ variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality X Y f := sorry
+    naturality X Y f := by {
+      sorry
+    }
   }
   unit_left := sorry
   unit_right := sorry
@@ -423,7 +425,6 @@ instance mon_Class : Mon_Class α.X where
   mul := by {
     dsimp [X]
     sorry
-
   }
   one_mul := by
     sorry
