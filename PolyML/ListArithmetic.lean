@@ -740,9 +740,7 @@ theorem add_assoc [BraidedCategory C] :
   dsimp [nno.add]
   sorry
 
-
 end nno
-
 
 instance : Recursive (Type u) where
   withRec A := {
@@ -797,7 +795,6 @@ instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic
   cons_split := sorry
   split_nil_cons := sorry
 
-
 /-
 In the presence finite coproducts, `list α` is the
 initial algebra for the polynomial functor
@@ -809,13 +806,11 @@ satisfying
 `foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
 -/
 
-
 /-
 Extra challenge:
 Show that in the category of small categories,
 an object with recursion is a monoidal category.
 -/
-
 
 /-
 We show that in a list-arithmetic category, the list object is
