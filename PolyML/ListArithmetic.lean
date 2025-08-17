@@ -899,6 +899,7 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
     · have f : A ⊗ (𝟙_ C ⨿ A ⊗ list A) ⟶ A ⊗ list A := by {
         apply tensorHom
         sorry
+        sorry
 
       }
       exact f ≫ coprod.inr (X := 𝟙_ C) (Y := A ⊗ list A)
