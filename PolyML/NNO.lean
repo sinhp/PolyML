@@ -224,7 +224,4 @@ end length
 
 end list
 
-
-
-
 end CategoryTheory
