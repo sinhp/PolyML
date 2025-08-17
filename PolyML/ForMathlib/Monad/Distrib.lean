@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import Mathlib.CategoryTheory.Endofunctor.Algebra
-import Mathlib.CategoryTheory.Monad.Algebra
-import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Mathlib
+import Mathlib.CategoryTheory.Monoidal.End
+import Mathlib.Combinatorics.Quiver.ReflQuiver
 import PolyML.FreeCommMon
 import PolyML.BagInType
 set_option maxHeartbeats 0
@@ -204,14 +202,10 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
     let δ_ := NatTrans.app (δ (S:=S) (T:=T))
     let S_ := S.obj
     let T_ := T.obj
-    change  T.map (S.map (T.map (δ_ (S_ X)) ≫ μₜ (S_ (S_ X)) ≫ T.map (μₛ X))) ≫
-      T.map (δ_ (S_ X)) ≫ μₜ (S_ (S_ X)) ≫ T.map (μₛ X) =
-       (T.map (δ_ (S_ (T_ (S_ X)))) ≫
-      μₜ (S_ (S_ (T_ (S_ X)))) ≫ T.map (μₛ (T_ (S_ X)))) ≫
-    T.map (δ_ (S_ X)) ≫ μₜ (S_ (S_ X)) ≫ T.map (μₛ X)
     have Tnat := T.mu_naturality
     have hr (X : C) := mul_right_components (X:=X) (S:=S) (T:=T)
     have hl (X : C) := (mul_left_components (X:=X) (S:=S) (T:=T)).symm
+    have Tassoc := T.assoc
     nth_rw 1 [← T.μ.naturality, Functor.comp_map]
     simp only [map_comp]
     rw [Category.assoc]
@@ -295,18 +289,20 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
 
 
     dsimp [δ_,S_,T_]
-    refine T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫= ?_
-    -- have HT := T.μ.naturality
-    --   (f := (S.map (NatTrans.app (δ (S:=S) (T:=T)) (S.obj X))))
-    -- simp only [endofunctorMonoidalCategory_tensorObj_obj,
-    --   comp_obj, Functor.comp_map] at HT
+    --refine T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫= ?_
+
+
+
+
+
+
     have :
     μₜ (S.obj (S.obj (T.obj (S.obj X)))) ≫
     T.map (μₛ (T.obj (S.obj X))) ≫ T.map (δ.app (S.obj X)) ≫
     μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)=
     (μₜ (S.obj (S.obj (T.obj (S.obj X)))) ≫
     T.map (μₛ (T.obj (S.obj X)))) ≫ T.map (δ.app (S.obj X)) ≫
-     μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X):= sorry
+     μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X) := sorry
     rw [this]
     clear this
     -- nth_rw 1 [← T.μ.naturality]
@@ -318,7 +314,7 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
       (T.map (T.map (μₛ (T.obj (S.obj X)))) ≫ T.μ.app (S.obj (T.obj (S.obj X)))) ≫
     T.map (δ.app (S.obj X)) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)=
       (T.map (T.map (μₛ (T.obj (S.obj X)))) ≫ (T.μ.app (S.obj (T.obj (S.obj X)))) ≫
-    T.map (δ.app (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X):= by sorry
+    T.map (δ.app (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X) := by sorry
     rw [this]
     nth_rw 2 [← T.μ.naturality]
     simp only [Functor.comp_map]
@@ -345,7 +341,7 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
     T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)) := sorry
     rw [this]
     clear this
-    refine  T.map (T.map (S.map (δ.app (S.obj X)))) ≫= ?_
+    --refine  T.map (T.map (S.map (δ.app (S.obj X)))) ≫= ?_
     nth_rw 1 [T.map_comp]
     nth_rw 2 [T.map_comp]
     nth_rw 2 [T.map_comp]
@@ -365,9 +361,7 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
     T.μ.app (T.obj (S.obj (S.obj X))) ≫ μₜ (S.obj (S.obj X)) ≫ T.map (μₛ X)) := sorry
     rw [this]
     clear this
-    refine  (T.map (T.map (δ.app (S.obj (S.obj X))))) ≫= ?_
-    -- nth_rw 1 [← T.μ.naturality]
-    -- simp only [endofunctorMonoidalCategory_tensorObj_obj, comp_obj, Functor.comp_map, map_comp]
+    --refine  (T.map (T.map (δ.app (S.obj (S.obj X))))) ≫= ?_
     -- clear this
     -- nth_rw 1 [← T.μ.naturality]
     -- simp only [endofunctorMonoidalCategory_tensorObj_obj, comp_obj, Functor.comp_map]
@@ -403,7 +397,6 @@ theorem CategoryTheory.Monad.comp.extracted_1 (S T : Monad C)
 
 
 
-#exit
 
 
 @[simps]
@@ -414,11 +407,31 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     let w := S.μ ⊗ₘ T.μ
     exact (S.1 ◁ δ ▷ T.1) ≫ w
   assoc X := by {
-    simp only [comp_obj, NatTrans.comp_app,
-      endofunctorMonoidalCategory_tensorObj_obj,
-      endofunctorMonoidalCategory_whiskerLeft_app,
-      endofunctorMonoidalCategory_whiskerRight_app,
-      endofunctorMonoidalCategory_tensorMap_app, Functor.comp_map]
+    dsimp
+    rw [← Category.assoc]
+    rw [← T.map_comp]
+    have : T.map (S.map (T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X))
+    ≫ T.map (S.μ.app X)) ≫ δ.app (S.obj X)) ≫
+    T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X)= (T.map (S.map (T.map (δ.app (S.obj X))
+    ≫ T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X)) ≫ δ.app (S.obj X)) ≫
+    T.μ.app (S.obj (S.obj X))) ≫ T.map (S.μ.app X) := sorry
+    rw [this]
+    clear this
+    rw [← T.μ.naturality]
+    simp only [comp_obj, Functor.comp_map,
+      endofunctorMonoidalCategory_tensorObj_obj]
+    nth_rw 1 [S.map_comp]
+    have hl := mul_left_components (X := ((S.obj X))) (S := S) (T:=T)
+    stop
+
+
+
+
+
+
+
+
+
     have hr := mul_right_components (X := ((S.obj X))) (S := S) (T:=T)
     rw [Category.assoc, Category.assoc]
     nth_rw 6 [← Category.assoc]
@@ -547,7 +560,6 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [right_unit, Functor.id_obj, map_id]
   }
 
-#exit
 theorem comp_unit {S T : Monad C} [DistribLaw S T] :
     (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
