@@ -845,6 +845,8 @@ instance : Recursive (Type u) where
     freeForgetAdj := by sorry
   }
 
+#check  plistIsoTensor
+
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
   cmpInv A P Y := sorry
@@ -868,23 +870,70 @@ instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
     IsIso (Semirecursive.split : L ⟶ P ⨿ A ⊗ L) := by
   sorry
 
-instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+def atimesf {A L : C}[HasBinaryCoproducts C] [ListArithmetic C] :=
+  tensorHom (𝟙 (list A)) (list.cons) (Y₂:=(list A))
+
+noncomputable def i2 {A L : C}[HasBinaryCoproducts C] [ListArithmetic C] :
+   A ⊗ list A ⟶ (𝟙_ C ⨿ A ⊗ list A ) := by {
+    exact coprod.inr}
+
+def f {A L : C}[HasBinaryCoproducts C] [ListArithmetic C] :
+  A ⊗ list A ⟶ A ⊗ ( 𝟙_ C ⨿ A ⊗ list A ) := by {
+  have := list.rec list.nil list.cons (C:=C) (A:=A)
+  sorry
+   }
+
+noncomputable def ε_cons {A L : C}[HasBinaryCoproducts C] [ListArithmetic C]
+   : 𝟙_ C ⨿ A ⊗ list A ⟶ list A := by {
+    refine coprod.desc ?_ ?_
+    · exact list.nil
+    · exact list.cons}
+
+noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
-  split := sorry
-  nil_split := sorry
-  cons_split := sorry
-  split_nil_cons := sorry
+  split := by
+    apply list.rec
+    · exact coprod.inl (X := 𝟙_ C) (Y := A ⊗ list A)
+    · have f : A ⊗ (𝟙_ C ⨿ A ⊗ list A) ⟶ A ⊗ list A := by {
+        apply tensorHom
+        sorry
 
-instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+      }
+      exact f ≫ coprod.inr (X := 𝟙_ C) (Y := A ⊗ list A)
+  nil_split := by {
+    dsimp [rec,nil]
+    rw [plist.nil_rec]
+  }
+  cons_split := by {
+    dsimp [rec,cons]
+    rw [plist.cons_rec]
+    sorry
+  }
+  split_nil_cons := by {
+    sorry
+  }
+
+noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
-  split := sorry
-  nil_split := sorry
-  cons_split := sorry
-  split_nil_cons := sorry
+  split := by {
+    apply plist.rec
+    · exact coprod.inl
+    · sorry
+  }
+  nil_split := by {
+    rw [nil_rec]
+  }
+  cons_split := by {
+    rw [cons_rec]
+    sorry
+  }
+  split_nil_cons := by {
+    sorry
+  }
 
 /-
 In the presence finite coproducts, `list α` is the
