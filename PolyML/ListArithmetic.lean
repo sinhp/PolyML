@@ -531,33 +531,7 @@ open Category
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit h A ≫ nno.one := by
-  dsimp [list.singleton]
-  rw [assoc, assoc]
-  rw [cons_len_succ h]
-  rw [← assoc, ← assoc, ← assoc]
-  dsimp [nno.one]
-  rw [← assoc]
-  refine ?_ =≫ nno.succ
-  rw [tensorHom_def']
-  have : (ρ_ A).inv ≫ (A ◁ list.nil (A := A)) ≫
-    ((A ◁ list.len h (A := A))) ≫ (toUnit h A ▷ N_ C) ≫ (λ_ (N_ C)).hom
-  = (ρ_ A).inv ≫ ((A ◁ list.nil (A := A)) ≫
-    ((A ◁ list.len h (A := A)))) ≫ (toUnit h A ▷ N_ C) ≫ (λ_ (N_ C)).hom := by {
-    simp only [assoc]
-  }
-  simp only [Category.assoc]
-  rw [this]
-  rw [← whiskerLeft_comp, nil_len_zero h]
-  dsimp [nno.zero]
-  rw [← assoc]
-  rw [← assoc]
-  refine (Iso.eq_comp_inv (λ_ (N_ C))).mp ?_
-  rw [leftUnitor_inv_naturality]
-  simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.inv_hom_id_assoc]
   sorry
-
-  --rw [← rightUnitor_inv_naturality]
-
 
 end length
 
@@ -660,7 +634,6 @@ theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
   dsimp [prec]
   sorry
-
 
 @[simp]
 theorem prec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
@@ -840,7 +813,6 @@ theorem succ_add {A : C} :
   refine ?_ =≫ 𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons
   simp only [comp_id]
 
-#check zero_add
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
   sorry
