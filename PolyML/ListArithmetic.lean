@@ -44,6 +44,8 @@ products where the comparison morphisms `plist.cmp` are isomorphisms.
 - In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
 -/
 
+set_option linter.unusedVariables false
+
 universe u v
 
 namespace CategoryTheory
@@ -770,6 +772,9 @@ theorem zero_iter {f : P ⟶ P} :
 @[reassoc (attr := simp)]
 theorem succ_iter {f : P ⟶ P} :
     nno.succ ▷ P ≫ nno.iter f = nno.iter f ≫ f := by
+  dsimp [succ, iter, prec]
+  simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc]
+  rw [list.cons_prec]
   sorry
 
 /-- Addition of natural numbers. -/
@@ -783,16 +788,82 @@ theorem zero_add {A : C} :
   dsimp [zero,nno,prec]
   simp only [list.nil_prec, comp_id]
 
+#check leftUnitor_naturality
+
+#check CategoryTheory.MonoidalCategory.leftUnitor_inv_naturality
+
 theorem succ_add {A : C} :
     nno.succ ▷ N_ C ≫ nno.add = nno.add ≫ nno.succ := by
-  sorry
+  nth_rw 1 [add]
+  dsimp [succ, nno]
+  rw [comp_whiskerRight]
+  rw [assoc]
+  nth_rw 1 [prec]
+  rw [list.cons_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  have : add ≫ (λ_ (list (𝟙_ C))).inv ≫ list.cons =
+     (add ≫ (λ_ (list (𝟙_ C))).inv)≫ list.cons := by {simp only [assoc]}
+  rw [this]
+  have : (λ_ (list (𝟙_ C))).inv ▷ list (𝟙_ C) ≫
+    (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
+    𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons ≫ list.cons=
+    ((λ_ (list (𝟙_ C))).inv ▷ list (𝟙_ C) ≫
+    (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
+    𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons) ≫ list.cons := by {
+      rw [Category.assoc]
+      rw [Category.assoc]
+    }
+  rw [this]
+  refine ?_ =≫ list.cons
+  dsimp [add,prec]
+  dsimp [succ]
+  simp only [Iso.hom_inv_id_assoc]
+  rw [leftUnitor_inv_whiskerRight]
+  rw [assoc]
+  have : (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).inv ≫
+      (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
+      𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons =
+      ((α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).inv ≫
+      (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom) ≫
+      (𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons) := by {
+        simp only [id_whiskerLeft, Iso.inv_hom_id_assoc, Iso.inv_hom_id, id_comp]
+      }
+  rw [this]
+  clear this
+  simp only [Iso.inv_hom_id]
+  dsimp [nno]
+  rw [leftUnitor_inv_naturality (f := list.prec (𝟙 (list (𝟙_ C))) list.cons)]
+  rw [← assoc]
+  refine ?_ =≫ 𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons
+  simp only [comp_id]
 
+#check zero_add
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
+  dsimp [one]
+  rw [tensorHom_def_assoc]
+  refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
+  dsimp [succ]
+  dsimp [nno]
+  dsimp [zero]
+  have : list.nil ≫ (λ_ (list (𝟙_ C))).inv ≫ list.cons=
+   (list.nil ≫ (λ_ (list (𝟙_ C))).inv) ≫ list.cons := sorry
+  dsimp [add]
+  dsimp [nno,nno.succ]
+  have := list.nil_prec (f:=(𝟙 (list (𝟙_ C)))) (g :=  list.cons)
   sorry
 
 theorem zero_add_one :
     (zero ⊗ₘ one) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
+  rw [tensorHom_def_assoc]
+  dsimp [one,add]
+  rw [whiskerLeft_comp]
+  rw [assoc]
+  dsimp [succ]
+  rw [whiskerLeft_comp]
+  rw [assoc]
+  dsimp [prec]
+  dsimp [zero,list.nil]
   sorry
 
 -- commutativity of addition
