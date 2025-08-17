@@ -259,12 +259,10 @@ theorem cons_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
-@[reassoc (attr := simp)]
 theorem whiskerLeft_cons_whiskerLeft_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     A ◁ plist.cons ≫ A ◁ plist.rec f g = A ◁ (A ◁ plist.rec f g ≫ g) := by
   rw [← whiskerLeft_comp A, cons_rec]
 
-@[reassoc (attr := simp)]
 theorem whiskerRight_cons_whiskerRight_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     plist.cons ▷ A ≫ plist.rec f g ▷ A = (A ◁ plist.rec f g ≫ g) ▷ A := by
   rw [← comp_whiskerRight _ _ A, cons_rec]
@@ -285,7 +283,6 @@ theorem adjunction_hom_equiv_unique
 
 /-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `f` and
 composes with `plist.cons` to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
-@[simp]
 theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
     (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
     r = rec f g := by
@@ -339,7 +336,7 @@ theorem map_nat_trans {B : C} {f : A ⟶ B} :
 theorem nil_map {B: C} {f : A ⟶ B} : (nil : P ⟶ plist A P) ≫ map f = nil := by
   simp only [map, nil_rec]
 
-@[reassoc (attr := simp)]
+@[simp]
 theorem cons_map {B : C} {f : A ⟶ B} :
     (cons : A ⊗ plist A P ⟶ plist A P) ≫ map f =
     (A ◁ map f) ≫ (f ▷ plist B P) ≫ cons := by
@@ -485,57 +482,6 @@ def one : 𝟙_ C ⟶ N_ C :=
 
 end nno
 
-namespace list
-
-variable {C} [Recursive C]
-
-/-- The length of a list. -/
-def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N_ C :=
-  list.map <| isTerminalTensorUnit.from A
-
-namespace length
-
-variable (h : IsTerminal (𝟙_ C) := by aesop)
-
-def toUnit (A : C) : A ⟶ 𝟙_ C := h.from _
-
-variable {A : C}
-
-theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len h =
-    A ◁ list.map (toUnit h A) ≫ (toUnit h A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
-  dsimp [list.len, list.cons, list.map]
-  rw [plist.cons_map]
-  rfl
-
-@[reassoc (attr := simp)]
-theorem nil_len_zero : list.nil (A:= A) ≫ list.len = nno.zero := by
-  dsimp [len,nno.zero]
-  simp only [map_nil]
-  dsimp [nil]
-
--- len (a :: xs) = succ (len xs)
-theorem cons_len_succ :
-    list.cons ≫ list.len = (toUnit h A ⊗ₘ list.len) ≫ (λ_ (N_ C)).hom ≫ nno.succ := by
-  dsimp [list.len]
-  rw [list.cons_map]
-  dsimp [nno.succ]
-  simp only [Iso.hom_inv_id_assoc]
-  dsimp [toUnit]
-  rw [← Category.assoc]
-  refine ?_ =≫ cons
-  rw [tensorHom_def']
-  dsimp [nno]
-
-open Category
-
--- len ([x]) = 1
-theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit h A ≫ nno.one := by
-  sorry
-
-end length
-
-end list
 
 -- open Recursive
 
@@ -753,7 +699,6 @@ theorem zero_iter {f : P ⟶ P} :
   dsimp [nno.iter, nno.zero, prec]
   simp [list.nil_prec]
 
-@[reassoc (attr := simp)]
 theorem succ_iter {f : P ⟶ P} :
     nno.succ ▷ P ≫ nno.iter f = nno.iter f ≫ f := by
   sorry
