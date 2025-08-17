@@ -526,6 +526,8 @@ theorem cons_len_succ :
   rw [tensorHom_def']
   dsimp [nno]
 
+open Category
+
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit h A ≫ nno.one := by
@@ -545,8 +547,17 @@ theorem singleton_len_one :
   }
   simp only [Category.assoc]
   rw [this]
-  rw [← whiskerLeft_comp,nil_len_zero h]
+  rw [← whiskerLeft_comp, nil_len_zero h]
+  dsimp [nno.zero]
+  rw [← assoc]
+  rw [← assoc]
+  refine (Iso.eq_comp_inv (λ_ (N_ C))).mp ?_
+  rw [leftUnitor_inv_naturality]
+  simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.inv_hom_id_assoc]
   sorry
+
+  --rw [← rightUnitor_inv_naturality]
+
 
 end length
 
@@ -772,9 +783,6 @@ theorem zero_iter {f : P ⟶ P} :
 @[reassoc (attr := simp)]
 theorem succ_iter {f : P ⟶ P} :
     nno.succ ▷ P ≫ nno.iter f = nno.iter f ≫ f := by
-  dsimp [succ, iter, prec]
-  simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc]
-  rw [list.cons_prec]
   sorry
 
 /-- Addition of natural numbers. -/
@@ -787,10 +795,6 @@ theorem zero_add {A : C} :
   dsimp [nno.add]
   dsimp [zero,nno,prec]
   simp only [list.nil_prec, comp_id]
-
-#check leftUnitor_naturality
-
-#check CategoryTheory.MonoidalCategory.leftUnitor_inv_naturality
 
 theorem succ_add {A : C} :
     nno.succ ▷ N_ C ≫ nno.add = nno.add ≫ nno.succ := by
@@ -810,8 +814,7 @@ theorem succ_add {A : C} :
     ((λ_ (list (𝟙_ C))).inv ▷ list (𝟙_ C) ≫
     (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
     𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons) ≫ list.cons := by {
-      rw [Category.assoc]
-      rw [Category.assoc]
+      rw [Category.assoc,Category.assoc]
     }
   rw [this]
   refine ?_ =≫ list.cons
@@ -840,30 +843,10 @@ theorem succ_add {A : C} :
 #check zero_add
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
-  dsimp [one]
-  rw [tensorHom_def_assoc]
-  refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
-  dsimp [succ]
-  dsimp [nno]
-  dsimp [zero]
-  have : list.nil ≫ (λ_ (list (𝟙_ C))).inv ≫ list.cons=
-   (list.nil ≫ (λ_ (list (𝟙_ C))).inv) ≫ list.cons := sorry
-  dsimp [add]
-  dsimp [nno,nno.succ]
-  have := list.nil_prec (f:=(𝟙 (list (𝟙_ C)))) (g :=  list.cons)
   sorry
 
 theorem zero_add_one :
     (zero ⊗ₘ one) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
-  rw [tensorHom_def_assoc]
-  dsimp [one,add]
-  rw [whiskerLeft_comp]
-  rw [assoc]
-  dsimp [succ]
-  rw [whiskerLeft_comp]
-  rw [assoc]
-  dsimp [prec]
-  dsimp [zero,list.nil]
   sorry
 
 -- commutativity of addition
@@ -874,7 +857,6 @@ theorem add_comm [BraidedCategory C] :
 -- associativity of addition
 theorem add_assoc [BraidedCategory C] :
     nno.add ▷ N_ C ≫ nno.add = (α_ _ _ _).hom ≫ (N_ C ◁ nno.add) ≫ nno.add := by
-  dsimp [nno.add]
   sorry
 
 end nno
