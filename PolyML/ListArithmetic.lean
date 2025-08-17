@@ -44,6 +44,8 @@ products where the comparison morphisms `plist.cmp` are isomorphisms.
 - In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
 -/
 
+set_option linter.unusedVariables false
+
 universe u v
 
 namespace CategoryTheory
@@ -507,16 +509,28 @@ theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len h =
 
 @[reassoc (attr := simp)]
 theorem nil_len_zero : list.nil (A:= A) ≫ list.len = nno.zero := by
-  sorry
+  dsimp [len,nno.zero]
+  simp only [map_nil]
+  dsimp [nil]
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ :
     list.cons ≫ list.len = (toUnit h A ⊗ₘ list.len) ≫ (λ_ (N_ C)).hom ≫ nno.succ := by
-  sorry
+  dsimp [list.len]
+  rw [list.cons_map]
+  dsimp [nno.succ]
+  simp only [Iso.hom_inv_id_assoc]
+  dsimp [toUnit]
+  rw [← Category.assoc]
+  refine ?_ =≫ cons
+  rw [tensorHom_def']
+  dsimp [nno]
+
+open Category
 
 -- len ([x]) = 1
 theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit h A ≫ nno.one :=
+    list.singleton ≫ list.len = toUnit h A ≫ nno.one := by
   sorry
 
 end length
@@ -618,11 +632,13 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 
 theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
+  dsimp [prec]
   sorry
 
 @[simp]
 theorem prec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
-    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f) (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
+    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f)
+    (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
     r = prec f g := by
   simp [list, prec]
   simp [nil, cons] at *
@@ -657,7 +673,30 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 -- ⁠[x] ++ xs = x :: xs
 theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
-  sorry
+  dsimp [append,list.singleton]
+  simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc]
+  rw [cons_prec]
+  have : A ◁ (λ_ (list A)).inv ≫
+    A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
+    (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons ≫ cons=
+    A ◁ (λ_ (list A)).inv ≫
+    (A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
+     (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons) ≫ cons :=
+       by {simp only [Iso.inv_hom_id_assoc, assoc]}
+  rw [this]
+  clear this
+  refine (IsIso.eq_inv_comp (A ◁ (λ_ (list A)).inv)).mp ?_
+  refine ?_ =≫ cons
+  simp only [Iso.inv_hom_id_assoc, inv_whiskerLeft, IsIso.Iso.inv_inv]
+  refine (inv_comp_eq_id (A ◁ (λ_ (plist A (𝟙_ C))).hom)).mp ?_
+  simp only [inv_whiskerLeft, IsIso.Iso.inv_hom]
+  have {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+     nil ▷ P ≫ prec f g = (λ_ P).hom ≫ f := nil_prec
+  rw [← whiskerLeft_comp]
+  rw [nil_prec]
+  dsimp [list]
+  simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq,
+    plist.nil_rec, whiskerLeft_inv_hom]
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
@@ -727,12 +766,52 @@ def add : N_ C ⊗ N_ C ⟶ N_ C :=
 theorem zero_add {A : C} :
     nno.zero ▷ N_ C ≫ nno.add = (λ_ (N_ C)).hom := by
   dsimp [nno.add]
-  sorry
+  dsimp [zero,nno,prec]
+  simp only [list.nil_prec, comp_id]
 
 theorem succ_add {A : C} :
     nno.succ ▷ N_ C ≫ nno.add = nno.add ≫ nno.succ := by
-  dsimp [nno.add]
-  sorry
+  nth_rw 1 [add]
+  dsimp [succ, nno]
+  rw [comp_whiskerRight]
+  rw [assoc]
+  nth_rw 1 [prec]
+  rw [list.cons_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  have : add ≫ (λ_ (list (𝟙_ C))).inv ≫ list.cons =
+     (add ≫ (λ_ (list (𝟙_ C))).inv)≫ list.cons := by {simp only [assoc]}
+  rw [this]
+  have : (λ_ (list (𝟙_ C))).inv ▷ list (𝟙_ C) ≫
+    (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
+    𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons ≫ list.cons=
+    ((λ_ (list (𝟙_ C))).inv ▷ list (𝟙_ C) ≫
+    (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
+    𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons) ≫ list.cons := by {
+      rw [Category.assoc,Category.assoc]
+    }
+  rw [this]
+  refine ?_ =≫ list.cons
+  dsimp [add,prec]
+  dsimp [succ]
+  simp only [Iso.hom_inv_id_assoc]
+  rw [leftUnitor_inv_whiskerRight]
+  rw [assoc]
+  have : (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).inv ≫
+      (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom ≫
+      𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons =
+      ((α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).inv ≫
+      (α_ (𝟙_ C) (list (𝟙_ C)) (list (𝟙_ C))).hom) ≫
+      (𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons) := by {
+        simp only [id_whiskerLeft, Iso.inv_hom_id_assoc, Iso.inv_hom_id, id_comp]
+      }
+  rw [this]
+  clear this
+  simp only [Iso.inv_hom_id]
+  dsimp [nno]
+  rw [leftUnitor_inv_naturality (f := list.prec (𝟙 (list (𝟙_ C))) list.cons)]
+  rw [← assoc]
+  refine ?_ =≫ 𝟙_ C ◁ list.prec (𝟙 (list (𝟙_ C))) list.cons
+  simp only [comp_id]
 
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
@@ -750,7 +829,6 @@ theorem add_comm [BraidedCategory C] :
 -- associativity of addition
 theorem add_assoc [BraidedCategory C] :
     nno.add ▷ N_ C ≫ nno.add = (α_ _ _ _).hom ≫ (N_ C ◁ nno.add) ≫ nno.add := by
-  dsimp [nno.add]
   sorry
 
 end nno
