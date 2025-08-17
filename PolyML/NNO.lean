@@ -12,7 +12,7 @@ import Mathlib.CategoryTheory.Adjunction.Unique
 import Mathlib.CategoryTheory.Closed.Monoidal
 import PolyML.ListArithmetic
 
-import mathlib
+import Mathlib
 
 universe u v
 
