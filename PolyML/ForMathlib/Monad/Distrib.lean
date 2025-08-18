@@ -171,8 +171,7 @@ def sndAlg (α : (monad S T).Algebra) : T.Algebra where
 
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :
-    δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a =
-      S.map (sndAlg α).a ≫ (fstAlg α).a := by
+    δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a = S.map (sndAlg α).a ≫ (fstAlg α).a := by
   sorry
 
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
@@ -424,10 +423,8 @@ instance mon_Class : Mon_Class α.X where
     sorry
   one_mul := by
     sorry
-  mul_one := by
-    sorry
-  mul_assoc := by
-    sorry
+  mul_one := sorry
+  mul_assoc := sorry
 
 def mon : Mon_ C where
   X := α.X
