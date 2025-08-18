@@ -12,7 +12,7 @@ import Mathlib.CategoryTheory.Adjunction.Unique
 import Mathlib.CategoryTheory.Closed.Monoidal
 import PolyML.ListArithmetic
 
-import mathlib
+import Mathlib
 
 universe u v
 
@@ -135,7 +135,10 @@ theorem succ_add :
 
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  simp [add, one]
+  rw [tensorHom_def']
+  simp only [id_whiskerLeft, assoc, Iso.cancel_iso_hom_left]
+  dsimp [add]
+  unfold one
   sorry
 
 theorem zero_add_one :
@@ -168,12 +171,19 @@ instance arithmeticOfListArithmetic [ListArithmetic C] : Arithmetic C where
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
   isNNO := {
     prec e a := list.prec e ((λ_ _).hom ≫ a)
-    zero_prec := by sorry -- list.nil_prec
+    zero_prec := by {
+      intros A B f g
+      rw [list.nil_prec]
+    }-- list.nil_prec
     succ_prec {A B f g}:= by
       rw [comp_whiskerRight, assoc]
       rw [list.cons_prec]
       sorry
-    prec_uniq := by sorry --simp [list.prec_uniq]
+    prec_uniq := by {
+      rintro A B f g r ⟨hnil, hcons⟩
+      --rw [← list.prec_uniq]
+      sorry
+      }
   }
 
 namespace list
