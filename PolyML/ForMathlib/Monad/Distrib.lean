@@ -172,7 +172,10 @@ def sndAlg (α : (monad S T).Algebra) : T.Algebra where
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :
     δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a = S.map (sndAlg α).a ≫ (fstAlg α).a := by
-  sorry
+  dsimp [fstAlg]
+  unfold monad at *
+  simp only [Functor.id_obj, comp_obj, Lean.Elab.WF.paramLet, endoFunctor_obj, Hom.h, map_str,
+    endofunctorMonoidalCategory_tensorObj_obj, Category.assoc] at *
 
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
   toMonad := monad S T
