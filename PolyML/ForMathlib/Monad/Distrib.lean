@@ -171,7 +171,8 @@ def sndAlg (α : (monad S T).Algebra) : T.Algebra where
 
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :
-    δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a = S.map (sndAlg α).a ≫ (fstAlg α).a := by
+    δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a =
+      S.map (sndAlg α).a ≫ (fstAlg α).a := by
   sorry
 
 instance {T : Monad C} [DistribLaw S T] : Lift S T where
@@ -204,7 +205,6 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [comp_obj, Functor.comp_map] at this
     nth_rw 1 [← Category.assoc]
     rw [← T.map_comp]
-    --rw [← Category.assoc]
     nth_rw 1 [← this]
     nth_rw 1 [← this]
     nth_rw 2 [← this]
@@ -212,7 +212,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     nth_rw 1 [S.map_comp]
     nth_rw 1 [S.map_comp]
     have hdl (X : C) := mul_left_components (S := S) (T := T) (X := X)
-    have :  T.map
+    have : T.map
       ((S.map (T.map (δ.app (S.obj X))) ≫
       S.map (T.map (T.map (S.μ.app X))) ≫
       S.map (T.μ.app (S.obj X))) ≫ δ.app (S.obj X)) ≫
@@ -221,27 +221,124 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
       ((S.map (T.map (δ.app (S.obj X))) ≫
       S.map (T.map (T.map (S.μ.app X)))) ≫
       ( S.map (T.μ.app (S.obj X)) ≫ δ.app (S.obj X))) ≫
-    T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X):= sorry
+    T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X):= by {
+      simp only [endofunctorMonoidalCategory_tensorObj_obj, Category.assoc]
+    }
     rw [this]
     clear this
     rw [← hdl ((S.obj X))]
     clear hdl
-    have : ((S.map (T.map (δ.app (S.obj X))) ≫ S.map (T.map (T.map (S.μ.app X)))) ≫
-        δ.app (T.obj (S.obj X)) ≫ T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)))
+    have : ((S.map (T.map (δ.app (S.obj X))) ≫
+      S.map (T.map (T.map (S.μ.app X)))) ≫
+        δ.app (T.obj (S.obj X)) ≫
+      T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)))
         = S.map (T.map (δ.app (S.obj X))) ≫ (S.map (T.map (T.map (S.μ.app X))) ≫
-        δ.app (T.obj (S.obj X))) ≫ (T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X))) :=sorry
+      δ.app (T.obj (S.obj X))) ≫
+        (T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X))) := by {
+          simp only [endofunctorMonoidalCategory_tensorObj_obj,
+          mul_left_components, comp_obj, Category.assoc]
+        }
     rw [this]
-    --have := distrib_naturality (S:=S) (T:=T) (Y:= X) (X:=X)
-
-
-
-  --     #T (#S (#T (a (S x)) · (μ T (S (S x)) · #T (μ S x)))) ·
-  --  (#T (a (S x)) · (μ T (S (S x)) · #T (μ S x))) =
-  -- #T (a (S (T (S x)))) · (μ T (S (S (T (S x)))) · #T (μ S (T (S x)))) ·
-  --  (#T (a (S x)) · (μ T (S (S x)) · #T (μ S x))).
-
-
-
+    clear this
+    have hd := distrib_naturality (S:=S) (T:=T) (f := (T.map (S.μ.app X)))
+    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj] at hd
+    rw [hd]
+    clear hd
+    --this includes T comp
+    have : (δ.app (T.obj (S.obj (S.obj X))) ≫ T.map (S.map (T.map (S.μ.app X)))) ≫
+          T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)) =
+      δ.app (T.obj (S.obj (S.obj X))) ≫ (T.map (S.map (T.map (S.μ.app X)) ≫
+          (δ.app (S.obj X)))) ≫ T.μ.app (S.obj (S.obj X)) := by {
+            simp only [endofunctorMonoidalCategory_tensorObj_obj,
+            Category.assoc, map_comp]
+          }
+    rw [this]
+    clear this
+    have hd2 := distrib_naturality (S:=S) (T:=T) (f := ((S.μ.app X)))
+    simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj] at hd2
+    rw [hd2]
+    clear hd2
+    have hdr (X : C) := mul_right_components (S := S) (T := T) (X := X)
+    -- T comp also, second part
+    have :
+    (T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫
+      T.μ.app (S.obj (S.obj (T.obj (S.obj X)))) ≫
+      T.map (S.μ.app (T.obj (S.obj X)))) ≫
+    T.map (δ.app (S.obj X)) ≫ T.map (T.map (S.μ.app X)) ≫
+    T.μ.app (S.obj X) =
+    (T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫
+      T.μ.app (S.obj (S.obj (T.obj (S.obj X)))) ≫
+       ((T.map ((S.μ.app (T.obj (S.obj X))) ≫
+       (δ.app (S.obj X)))))) ≫ T.map (T.map (S.μ.app X)) ≫
+       T.μ.app (S.obj X) := by {simp only
+        [endofunctorMonoidalCategory_tensorObj_obj,
+         Category.assoc, map_comp]}
+    rw [this]
+    clear this
+    rw [← hdr]
+    clear hdr
+    have := T.μ.naturality
+    simp only [comp_obj, Functor.comp_map] at this
+    rw [← this]
+    simp only [endofunctorMonoidalCategory_tensorObj_obj]
+    clear this
+    iterate 9 rw [T.map_comp]
+    rw [← Category.assoc]
+    rw [← Category.assoc]
+    rw [← T.map_comp]
+    have hd1 := distrib_naturality (S:=S) (T:=T)
+      (f := (NatTrans.app (δ (S:=S) (T:=T)) ((S.obj X))))
+    simp only [endofunctorMonoidalCategory_tensorObj_obj] at hd1
+    rw [hd1]
+    clear hd1
+    -- T.comp_map applied here too
+    have : ((T.map (δ.app (S.obj (T.obj (S.obj X))) ≫
+    T.map (S.map (δ.app (S.obj X)))) ≫
+        (T.map (T.map (δ.app (S.obj (S.obj X)))) ≫
+        T.map (T.map (T.map (S.map (S.μ.app X))))) ≫
+          T.map (T.μ.app (S.obj (S.obj X)))) ≫
+      T.map (T.map (S.μ.app X))) ≫
+    T.μ.app (S.obj X)=
+    (((T.map (δ.app (S.obj (T.obj (S.obj X))) ≫
+    T.map (S.map (δ.app (S.obj X))))) ≫
+        ((T.map (T.map (δ.app (S.obj (S.obj X)))) ≫
+        T.map (T.map (T.map (S.map (S.μ.app X)))))) ≫
+          ((T.map (T.μ.app (S.obj (S.obj X)) ≫ T.map (S.μ.app X)))))) ≫
+    T.μ.app (S.obj X) := by {simp only
+     [endofunctorMonoidalCategory_tensorObj_obj, map_comp,
+      Category.assoc]}
+    rw [this]
+    clear this
+    have := T.μ.naturality
+    simp only [comp_obj, Functor.comp_map] at this
+    nth_rw 1 [← this]
+    clear this
+    iterate 3 rw [← T.map_comp]
+    have :
+    (T.map (δ.app (S.obj (S.obj X))) ≫ T.map (T.map (S.map (S.μ.app X)))) ≫
+          T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X) =
+          T.map (δ.app (S.obj (S.obj X))) ≫ (T.map (T.map ((S.map (S.μ.app X)) ≫
+          (S.μ.app X)))) ≫ T.μ.app (S.obj X) := by {
+            simp only [endofunctorMonoidalCategory_tensorObj_obj,
+            Category.assoc, map_comp]
+          }
+    rw [this]
+    clear this
+    rw [Monad.assoc]
+    iterate 7 rw [T.map_comp]
+    iterate 9 rw [Category.assoc]
+    rw [Monad.assoc]
+    have :  T.map (T.map (T.map (S.μ.app X))) ≫
+    T.μ.app (T.obj (S.obj X)) ≫ T.μ.app (S.obj X)=
+     (T.map (T.map (T.map (S.μ.app X))) ≫
+      T.μ.app (T.obj (S.obj X))) ≫ T.μ.app (S.obj X) := by
+        {simp only [comp_obj, Category.assoc]}
+    rw [this]
+    have := T.μ.naturality
+    simp only [comp_obj, Functor.comp_map] at this
+    rw [this]
+    simp only [endofunctorMonoidalCategory_tensorObj_obj,Category.assoc]
+    simp only [comp_obj]
   }
 
   left_unit X := by {
@@ -264,12 +361,8 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   }
 
   right_unit X := by {
-    simp only [comp_obj, Functor.id_obj, NatTrans.comp_app,
-      endofunctorMonoidalCategory_whiskerRight_app,
-      endofunctorMonoidalCategory_tensorObj_obj,
-      endofunctorMonoidalCategory_whiskerLeft_app,
-      endofunctorMonoidalCategory_tensorMap_app]
-    simp only [Functor.comp_map, map_comp]
+    dsimp
+    simp only [map_comp]
     have hdistrib_unit_left :=
       DistribLaw.unit_left_components (X:=(S.obj X)) (S:= S) (T:=T)
     have h_monad_unit := T.right_unit ((S.obj (S.obj X)))
@@ -297,27 +390,19 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
     naturality X Y f := by {
-      simp only [endofunctorMonoidalCategory_tensorObj_obj,
-        endofunctorMonoidalCategory_tensorObj_map]
+      dsimp
       sorry
-
-
     }
   }
   unit_left := by {
     ext X
-    simp only [endofunctorMonoidalCategory_tensorObj_obj, Functor.id_obj, NatTrans.comp_app,
-      endofunctorMonoidalCategory_whiskerRight_app, endofunctorMonoidalCategory_whiskerLeft_app]
-    --have := Monad.left_unit (bag.monad C) X
-    --have := Monad.left_unit (list.monad C) X
+    dsimp
     sorry
-
   }
   unit_right := sorry
   mul_left := by {
     ext X
     sorry
-
   }
   mul_right := sorry
 
@@ -330,17 +415,13 @@ variable (α : Semiring_ C)
 def X : C := α.A.A
 
 instance mon_Class : Mon_Class α.X where
-  one := by {
+  one := by
     dsimp [X]
     dsimp [Semiring_] at α
     sorry
-
-
-  }
-  mul := by {
+  mul := by
     dsimp [X]
     sorry
-  }
   one_mul := by
     sorry
   mul_one := by
