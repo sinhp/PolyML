@@ -44,6 +44,8 @@ products where the comparison morphisms `plist.cmp` are isomorphisms.
 - In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
 -/
 
+set_option linter.unusedVariables false
+
 universe u v
 
 namespace CategoryTheory
@@ -257,12 +259,10 @@ theorem cons_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
-@[reassoc (attr := simp)]
 theorem whiskerLeft_cons_whiskerLeft_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     A ◁ plist.cons ≫ A ◁ plist.rec f g = A ◁ (A ◁ plist.rec f g ≫ g) := by
   rw [← whiskerLeft_comp A, cons_rec]
 
-@[reassoc (attr := simp)]
 theorem whiskerRight_cons_whiskerRight_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     plist.cons ▷ A ≫ plist.rec f g ▷ A = (A ◁ plist.rec f g ≫ g) ▷ A := by
   rw [← comp_whiskerRight _ _ A, cons_rec]
@@ -283,7 +283,6 @@ theorem adjunction_hom_equiv_unique
 
 /-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `f` and
 composes with `plist.cons` to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
-@[simp]
 theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
     (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
     r = rec f g := by
@@ -337,7 +336,7 @@ theorem map_nat_trans {B : C} {f : A ⟶ B} :
 theorem nil_map {B: C} {f : A ⟶ B} : (nil : P ⟶ plist A P) ≫ map f = nil := by
   simp only [map, nil_rec]
 
-@[reassoc (attr := simp)]
+@[simp]
 theorem cons_map {B : C} {f : A ⟶ B} :
     (cons : A ⊗ plist A P ⟶ plist A P) ≫ map f =
     (A ◁ map f) ≫ (f ▷ plist B P) ≫ cons := by
@@ -483,45 +482,6 @@ def one : 𝟙_ C ⟶ N_ C :=
 
 end nno
 
-namespace list
-
-variable {C} [Recursive C]
-
-/-- The length of a list. -/
-def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N_ C :=
-  list.map <| isTerminalTensorUnit.from A
-
-namespace length
-
-variable (h : IsTerminal (𝟙_ C) := by aesop)
-
-def toUnit (A : C) : A ⟶ 𝟙_ C := h.from _
-
-variable {A : C}
-
-theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len h =
-    A ◁ list.map (toUnit h A) ≫ (toUnit h A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
-  dsimp [list.len, list.cons, list.map]
-  rw [plist.cons_map]
-  rfl
-
-@[reassoc (attr := simp)]
-theorem nil_len_zero : list.nil (A:= A) ≫ list.len = nno.zero := by
-  sorry
-
--- len (a :: xs) = succ (len xs)
-theorem cons_len_succ :
-    list.cons ≫ list.len = (toUnit h A ⊗ₘ list.len) ≫ (λ_ (N_ C)).hom ≫ nno.succ := by
-  sorry
-
--- len ([x]) = 1
-theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit h A ≫ nno.one :=
-  sorry
-
-end length
-
-end list
 
 -- open Recursive
 
@@ -618,11 +578,13 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
 
 theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
+  dsimp [prec]
   sorry
 
 @[simp]
 theorem prec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
-    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f) (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
+    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f)
+    (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
     r = prec f g := by
   simp [list, prec]
   simp [nil, cons] at *
@@ -657,7 +619,30 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 -- ⁠[x] ++ xs = x :: xs
 theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
-  sorry
+  dsimp [append,list.singleton]
+  simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc]
+  rw [cons_prec]
+  have : A ◁ (λ_ (list A)).inv ≫
+    A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
+    (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons ≫ cons=
+    A ◁ (λ_ (list A)).inv ≫
+    (A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
+     (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons) ≫ cons :=
+       by {simp only [Iso.inv_hom_id_assoc, assoc]}
+  rw [this]
+  clear this
+  refine (IsIso.eq_inv_comp (A ◁ (λ_ (list A)).inv)).mp ?_
+  refine ?_ =≫ cons
+  simp only [Iso.inv_hom_id_assoc, inv_whiskerLeft, IsIso.Iso.inv_inv]
+  refine (inv_comp_eq_id (A ◁ (λ_ (plist A (𝟙_ C))).hom)).mp ?_
+  simp only [inv_whiskerLeft, IsIso.Iso.inv_hom]
+  have {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
+     nil ▷ P ≫ prec f g = (λ_ P).hom ≫ f := nil_prec
+  rw [← whiskerLeft_comp]
+  rw [nil_prec]
+  dsimp [list]
+  simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq,
+    plist.nil_rec, whiskerLeft_inv_hom]
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
@@ -692,68 +677,6 @@ theorem rev_rev [BraidedCategory C] {A : C} : list.rev ≫ list.rev = 𝟙 (list
 def flatten {A : C} : list (list A) ⟶ list A := list.rec list.nil list.append
 
 end list
-
-namespace nno
-
-variable {A P : C}
-
-theorem nil_rec {Y : C} {e : P ⟶ Y} {g : Y ⟶ Y} :
-    (nno.zero ▷ P) ≫ nno.prec e g = (λ_ _).hom ≫ e := by
-  dsimp [nno.prec, nno.zero]
-  rw [list.nil_prec]
-
-/-- Iterates an endofunction a natural number of times. -/
-def iter (f : P ⟶ P) : N_ C ⊗ P ⟶ P := nno.prec (𝟙 _) (f)
-
-def iterCurried [Closed P] [BraidedCategory C] (f : P ⟶ P) : N_ C ⟶ (P ⟶[C] P) :=
-  (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
-
-@[reassoc (attr := simp)]
-theorem zero_iter {f : P ⟶ P} :
-    nno.zero ▷ P ≫ nno.iter f = (λ_ P).hom := by
-  dsimp [nno.iter, nno.zero, prec]
-  simp [list.nil_prec]
-
-@[reassoc (attr := simp)]
-theorem succ_iter {f : P ⟶ P} :
-    nno.succ ▷ P ≫ nno.iter f = nno.iter f ≫ f := by
-  sorry
-
-/-- Addition of natural numbers. -/
-def add : N_ C ⊗ N_ C ⟶ N_ C :=
-  nno.prec (𝟙 _) (nno.succ)
-
-@[reassoc (attr := simp)]
-theorem zero_add {A : C} :
-    nno.zero ▷ N_ C ≫ nno.add = (λ_ (N_ C)).hom := by
-  dsimp [nno.add]
-  sorry
-
-theorem succ_add {A : C} :
-    nno.succ ▷ N_ C ≫ nno.add = nno.add ≫ nno.succ := by
-  dsimp [nno.add]
-  sorry
-
-theorem one_add_zero :
-    (one ⊗ₘ zero) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
-  sorry
-
-theorem zero_add_one :
-    (zero ⊗ₘ one) ≫ nno.add = (λ_ (𝟙_ C)).hom ≫ nno.one := by
-  sorry
-
--- commutativity of addition
-theorem add_comm [BraidedCategory C] :
-    nno.add = (β_ (N_ C) (N_ C)).hom ≫ nno.add := by
-  sorry
-
--- associativity of addition
-theorem add_assoc [BraidedCategory C] :
-    nno.add ▷ N_ C ≫ nno.add = (α_ _ _ _).hom ≫ (N_ C ◁ nno.add) ≫ nno.add := by
-  dsimp [nno.add]
-  sorry
-
-end nno
 
 instance : Recursive (Type u) where
   withRec A := {
