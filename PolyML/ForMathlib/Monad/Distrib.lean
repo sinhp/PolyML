@@ -419,10 +419,9 @@ instance mon_Class : Mon_Class α.X where
     dsimp [Semiring_] at α
     sorry
   mul := by
-    dsimp [X]
+    dsimp [X];
     sorry
-  one_mul := by
-    sorry
+  one_mul := sorry
   mul_one := sorry
   mul_assoc := sorry
 
