@@ -198,7 +198,50 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   μ := by
     let w := S.μ ⊗ₘ T.μ
     exact (S.1 ◁ δ ▷ T.1) ≫ w
-  assoc X := by { sorry
+  assoc X := by {
+    dsimp
+    have := T.μ.naturality
+    simp only [comp_obj, Functor.comp_map] at this
+    nth_rw 1 [← Category.assoc]
+    rw [← T.map_comp]
+    --rw [← Category.assoc]
+    nth_rw 1 [← this]
+    nth_rw 1 [← this]
+    nth_rw 2 [← this]
+    clear this
+    nth_rw 1 [S.map_comp]
+    nth_rw 1 [S.map_comp]
+    have hdl (X : C) := mul_left_components (S := S) (T := T) (X := X)
+    have :  T.map
+      ((S.map (T.map (δ.app (S.obj X))) ≫
+      S.map (T.map (T.map (S.μ.app X))) ≫
+      S.map (T.μ.app (S.obj X))) ≫ δ.app (S.obj X)) ≫
+    T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X)
+    = T.map
+      ((S.map (T.map (δ.app (S.obj X))) ≫
+      S.map (T.map (T.map (S.μ.app X)))) ≫
+      ( S.map (T.μ.app (S.obj X)) ≫ δ.app (S.obj X))) ≫
+    T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X):= sorry
+    rw [this]
+    clear this
+    rw [← hdl ((S.obj X))]
+    clear hdl
+    have : ((S.map (T.map (δ.app (S.obj X))) ≫ S.map (T.map (T.map (S.μ.app X)))) ≫
+        δ.app (T.obj (S.obj X)) ≫ T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)))
+        = S.map (T.map (δ.app (S.obj X))) ≫ (S.map (T.map (T.map (S.μ.app X))) ≫
+        δ.app (T.obj (S.obj X))) ≫ (T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X))) :=sorry
+    rw [this]
+    --have := distrib_naturality (S:=S) (T:=T) (Y:= X) (X:=X)
+
+
+
+  --     #T (#S (#T (a (S x)) · (μ T (S (S x)) · #T (μ S x)))) ·
+  --  (#T (a (S x)) · (μ T (S (S x)) · #T (μ S x))) =
+  -- #T (a (S (T (S x)))) · (μ T (S (S (T (S x)))) · #T (μ S (T (S x)))) ·
+  --  (#T (a (S x)) · (μ T (S (S x)) · #T (μ S x))).
+
+
+
   }
 
   left_unit X := by {
@@ -208,7 +251,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
       endofunctorMonoidalCategory_whiskerLeft_app,
       endofunctorMonoidalCategory_tensorMap_app]
     have hdistrib_unit_right :=
-      DistribLaw.unit_right_components (X:=(S.obj X)) (S:= S) (T:=T)
+      unit_right_components (X:=(S.obj X)) (S:= S) (T:=T)
     have hleftunit := T.left_unit (X := (S.obj X))
     simp only [Functor.id_obj] at hleftunit
     nth_rw 1 [Category.assoc]
