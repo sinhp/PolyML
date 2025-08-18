@@ -71,7 +71,22 @@ structure finBag where
 
 def finBag.join : finBag (finBag U) ⟶ finBag U := sorry
 
+open MeasureTheory
 
 
+#check Measure
+#check Measurable
+
+#check Int
+
+#check ZNum
+
+#check Int.instNegInt
+
+#moogle "the type of negative integers."
+
+#check negint
+
+#check LaurentSeries
 
 end bag
