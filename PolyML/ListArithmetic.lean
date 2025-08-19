@@ -780,7 +780,7 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
     dsimp [list]
     refine plist.rec ?_ ?_
     · exact coprod.inl
-    · have i₁ := coprod.inr (X:=𝟙_ C) (Y:=A ⊗ plist A (𝟙_ C))
+    · have i₁ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
       have Axcons_ε : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) := by {
         refine ?_ ⊗ₘ ?_
         · exact 𝟙 A
@@ -795,6 +795,8 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
   }
   cons_split := by {
     dsimp [cons]
+    simp only [id_tensorHom]
+    rw [plist.cons_rec]
     sorry
   }
   split_nil_cons := by {
@@ -809,11 +811,28 @@ noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [
   split := by {
     apply plist.rec
     · exact coprod.inl
-    · sorry
+    · have i₁ := coprod.inr (X := P) (Y := A ⊗ plist A P)
+      have Axcons_ε : A ⊗ (P ⨿ A ⊗ plist A P) ⟶ A ⊗ plist A P := by {
+        refine ?_ ⊗ₘ ?_
+        · exact 𝟙 A
+        · refine coprod.desc ?_ ?_
+          exact plist.nil
+          exact plist.cons
+      }
+      apply Axcons_ε ≫ i₁
   }
-  nil_split := sorry
-  cons_split := sorry
-  split_nil_cons := sorry
+  nil_split := by {
+    simp only [id_tensorHom, nil_rec]
+  }
+  cons_split := by {
+    dsimp
+    simp only [id_tensorHom]
+    sorry
+  }
+  split_nil_cons := by {
+    simp only [id_tensorHom]
+    sorry
+  }
 
 /-
 In the presence finite coproducts, `list α` is the
