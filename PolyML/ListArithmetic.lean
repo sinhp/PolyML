@@ -459,29 +459,6 @@ end list
 
 variable (C)
 
-/-- The natural numbers object (NNO) defined as
-  the list object of the terminal object. -/
-def nno [Recursive C] : C :=
-  list (𝟙_ C)
-
-@[inherit_doc] notation "N_" => nno
-
-namespace nno
-
-variable {C} [Recursive C]
-
-def zero : 𝟙_ C ⟶ N_ C :=
-  list.nil
-
-def succ : N_ C ⟶ N_ C :=
-  (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
-
-def one : 𝟙_ C ⟶ N_ C :=
-  nno.zero ≫ nno.succ
-
-end nno
-
-
 -- open Recursive
 
 -- class ListArithmetic' where
@@ -541,9 +518,6 @@ def list.prec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y
 theorem list.prec_rec {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
     (ρ_ (list A)).inv ≫ list.prec e a = list.rec e a := by
   sorry
-
-def nno.prec {P Y : C} (e : P ⟶ Y) (a : Y ⟶ Y) : N_ C ⊗ P ⟶ Y :=
-  list.prec e ((λ_ Y).hom ≫ a)
 
 namespace list
 
