@@ -44,7 +44,6 @@ products where the comparison morphisms `plist.cmp` are isomorphisms.
 - In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
 -/
 
-set_option linter.unusedVariables false
 
 universe u v
 
@@ -200,8 +199,8 @@ def cons : A ⊗ plist A P ⟶ plist A P :=
   freeActionFunctor A |>.obj P |>.str
 
 /-- The recursor morphism obtained as an adjoint transpose. -/
-def rec {Y : C} (f : P ⟶ Y) (g : A ⊗ Y ⟶ Y) : plist A P ⟶ Y :=
-  Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨Y, g⟩ |>.invFun f
+def rec {Y : C} (init : P ⟶ Y) (action : A ⊗ Y ⟶ Y) : plist A P ⟶ Y :=
+  Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨Y, action⟩ |>.invFun init
 
 /-- `plist` is functorial in the parameter `P`. -/
 def map' (A : C) {P P' : C} (f : P ⟶ P') : plist A P ⟶ plist A P' :=
@@ -234,37 +233,37 @@ instance map'_iso_of_iso {A P P' : C} (f : P ⟶ P') [h : IsIso f] :
   · rw [← map'_comp, hfinvl, map'_id']
   · rw [← map'_comp, hfinvr, map'_id']
 
-/- r₀ ≫ rec g f = f -/
+/- r₀ ≫ rec action init = init -/
 @[reassoc (attr := simp)]
-theorem nil_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    plist.nil ≫ plist.rec f g = f := by
+theorem nil_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.nil ≫ plist.rec init action = init := by
   dsimp [rec, nil, Adjunction.homEquiv]
   simp only [Functor.map_comp, Adjunction.unit_naturality_assoc,
     Adjunction.right_triangle_components, comp_id]
 
 @[reassoc (attr := simp)]
-theorem whiskerLeft_nil_whiskerLeft_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    A ◁ plist.nil ≫ A ◁ plist.rec f g = A ◁ f := by
+theorem whiskerLeft_nil_whiskerLeft_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    A ◁ plist.nil ≫ A ◁ plist.rec init action = A ◁ init := by
   rw [← whiskerLeft_comp A, nil_rec]
 
 @[reassoc (attr := simp)]
-theorem whiskerRight_nil_whiskerRight_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    plist.nil ▷ A ≫ plist.rec f g ▷ A = f ▷ A := by
+theorem whiskerRight_nil_whiskerRight_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.nil ▷ A ≫ plist.rec init action ▷ A = init ▷ A := by
   rw [← comp_whiskerRight _ _ A, nil_rec]
 
 open CategoryTheory (Adjunction)
 
-theorem cons_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    plist.cons ≫ plist.rec f g = A ◁ plist.rec f g ≫ g := by
+theorem cons_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.cons ≫ plist.rec init action = A ◁ plist.rec init action ≫ action := by
   dsimp [rec, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
-theorem whiskerLeft_cons_whiskerLeft_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    A ◁ plist.cons ≫ A ◁ plist.rec f g = A ◁ (A ◁ plist.rec f g ≫ g) := by
+theorem whiskerLeft_cons_whiskerLeft_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    A ◁ plist.cons ≫ A ◁ plist.rec init action = A ◁ (A ◁ plist.rec init action ≫ action) := by
   rw [← whiskerLeft_comp A, cons_rec]
 
-theorem whiskerRight_cons_whiskerRight_rec {Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    plist.cons ▷ A ≫ plist.rec f g ▷ A = (A ◁ plist.rec f g ≫ g) ▷ A := by
+theorem whiskerRight_cons_whiskerRight_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.cons ▷ A ≫ plist.rec init action ▷ A = (A ◁ plist.rec init action ≫ action) ▷ A := by
   rw [← comp_whiskerRight _ _ A, cons_rec]
 
 -- *SH: not needed anymore*
@@ -281,16 +280,16 @@ theorem adjunction_hom_equiv_unique
   Function.Bijective (adj.homEquiv X Y) :=
   (adj.homEquiv X Y).bijective
 
-/-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `f` and
-composes with `plist.cons` to `A ◁ r ≫ g` is equal to `plist.rec f g`. -/
-theorem rec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
-    (r : plist A P ⟶ Y) (h_nil : nil ≫ r = f) (h_cons : cons ≫ r = A ◁ r ≫ g) :
-    r = rec f g := by
+/-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `init` and
+composes with `plist.cons` to `A ◁ r ≫ action` is equal to `plist.rec init action`. -/
+theorem rec_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
+    (r : plist A P ⟶ Y) (h_nil : nil ≫ r = init) (h_cons : cons ≫ r = A ◁ r ≫ action) :
+    r = rec init action := by
   let adj := freeForgetAdj A
-  let rAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, g⟩ := ⟨r, h_cons.symm⟩
-  let recAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, g⟩ := ⟨rec f g, plist.cons_rec.symm⟩
-  have r_tr_eq_rec_tr : adj.homEquiv P ⟨Y, g⟩ rAlgHom = adj.homEquiv P ⟨Y, g⟩ recAlgHom := by
-    rwa [← nil_rec (f:= f) (g:= g)] at h_nil
+  let rAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, action⟩ := ⟨r, h_cons.symm⟩
+  let recAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, action⟩ := ⟨rec init action, plist.cons_rec.symm⟩
+  have r_tr_eq_rec_tr : adj.homEquiv P ⟨Y, action⟩ rAlgHom = adj.homEquiv P ⟨Y, action⟩ recAlgHom := by
+    rwa [← nil_rec (init:= init) (action:= action)] at h_nil
   injection adj.homEquiv .. |>.bijective.1 r_tr_eq_rec_tr
 
 /-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
@@ -418,7 +417,7 @@ def cons : A ⊗ list A ⟶ list A := plist.cons (P := 𝟙_ C)
 
 /-- The weak non-parametized recursion scheme for the list object. See `list.prec` for the
 parameterized version. -/
-def rec {Y : C} (e : 𝟙_ C ⟶ Y) (f : A ⊗ Y ⟶ Y) : list A ⟶ Y := plist.rec e f
+def rec {Y : C} (init : 𝟙_ C ⟶ Y) (action : A ⊗ Y ⟶ Y) : list A ⟶ Y := plist.rec init action
 
 -- [a, b, c].foldr f init  = f a (f b (f c init))
 def foldr {Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e f
@@ -562,13 +561,13 @@ local notation "η" => list.singleton
 ```
 -/
 @[reassoc (attr := simp)]
-theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    (list.nil ▷ P) ≫ list.prec f g = (λ_ P).hom ≫ f := by
+theorem nil_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    (list.nil ▷ P) ≫ list.prec init action = (λ_ P).hom ≫ init := by
   dsimp [prec]
-  nth_rw 2 [← plist.nil_rec (f := f) (g := g)]
+  nth_rw 2 [← plist.nil_rec (init := init) (action := action)]
   rw [← assoc]
   rw [← assoc]
-  refine ?_ =≫ plist.rec f g
+  refine ?_ =≫ plist.rec init action
   refine (Iso.comp_inv_eq (plistIsoTensor A P)).mpr ?_
   simp only [assoc]
   dsimp [list.nil, plistIsoTensor]
@@ -576,16 +575,16 @@ theorem nil_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
   dsimp [plist.cmp]
   simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
 
-theorem cons_prec {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-    (list.cons ▷ P) ≫ list.prec f g = (α_ _ _ _).hom ≫ (A ◁ list.prec f g) ≫ g := by
+theorem cons_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    (list.cons ▷ P) ≫ list.prec init action = (α_ _ _ _).hom ≫ (A ◁ list.prec init action) ≫ action := by
   dsimp [prec]
   sorry
 
 @[simp]
-theorem prec_uniq {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y}
-    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ f)
-    (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ g) :
-    r = prec f g := by
+theorem prec_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
+    (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ init)
+    (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ action) :
+    r = prec init action := by
   simp [list, prec]
   simp [nil, cons] at *
   -- use relevant facts about `cmp` to connect `plist A P` to `list A ⊗ P`
@@ -636,13 +635,15 @@ theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
   simp only [Iso.inv_hom_id_assoc, inv_whiskerLeft, IsIso.Iso.inv_inv]
   refine (inv_comp_eq_id (A ◁ (λ_ (plist A (𝟙_ C))).hom)).mp ?_
   simp only [inv_whiskerLeft, IsIso.Iso.inv_hom]
-  have {A P Y : C} {f : P ⟶ Y} {g : A ⊗ Y ⟶ Y} :
-     nil ▷ P ≫ prec f g = (λ_ P).hom ≫ f := nil_prec
+  have {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+     nil ▷ P ≫ prec init action = (λ_ P).hom ≫ init := nil_prec
   rw [← whiskerLeft_comp]
   rw [nil_prec]
   dsimp [list]
   simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq,
     plist.nil_rec, whiskerLeft_inv_hom]
+
+def snoc {A : C} : list A ⊗ A ⟶ list A := (list A ◁ singleton) ≫ append
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
@@ -706,7 +707,7 @@ class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
   split : L ⟶ P ⨿ A ⊗ L -- split
   nil_split : nil ≫ split = coprod.inl
   cons_split : cons ≫ split = coprod.inr
-  split_nil_cons : split ≫ (coprod.desc nil cons) = 𝟙 L -- split is a section of the coproduct
+  split_nil_cons : split ≫ (coprod.desc nil cons) = 𝟙 L -- split is a section of the coprod.desc
 
 /-- split is an isomorphism in a semirecursive category. -/
 instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
@@ -742,16 +743,71 @@ satisfying
 `foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
 -/
 
-/-
-Extra challenge:
-Show that in the category of small categories,
-an object with recursion is a monoidal category.
--/
+section listAsEndofunctorAlgebra
 
-/-
-We show that in a list-arithmetic category, the list object is
-the free monoid object.
--/
+variable [HasBinaryCoproducts C]
+
+/-- The endofunctor `X ↦ P ⨿ (A ⊗ X)` on the category `C`. -/
+noncomputable def coprodTensorEndofunctor (A P : C) : C ⥤ C where
+  obj X := P ⨿ (A ⊗ X)
+  map {X Y} f := coprod.map (𝟙 _) (A ◁ f)
+
+/-- The algebra associated to a pair `init : P ⟶ X` and `action A ⊗ X ⟶ X` of morphisms for the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def coprodTensorEndofunctorAlgebraMk {A P} (X : C) (init : P ⟶ X) (action : A ⊗ X ⟶ X) :
+    Algebra (coprodTensorEndofunctor A P) := ⟨X, coprod.desc init action⟩
+
+/-- The init morphism `P ⟶ α.a` for an algebra of the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def initOfCoprodTensorEndofunctorAlgebra {A P : C} (α : Algebra (coprodTensorEndofunctor A P)) :
+    P ⟶ α.a := coprod.inl ≫ α.str
+
+/-- The action morphism `A ⊗ α.a ⟶ α.a` for an algebra of the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def actionOfcoprodTensorEndofunctorAlgebra {A P : C} (α : Algebra (coprodTensorEndofunctor A P)) :
+    A ⊗ α.a ⟶ α.a := coprod.inr ≫ α.str
+
+/-- The algebra associated to the parameterized list object `plist A P` for the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def plistAlgebra [ListArithmetic C] (A P : C) :
+    Algebra (coprodTensorEndofunctor A P) :=
+  coprodTensorEndofunctorAlgebraMk (plist A P) plist.nil plist.cons
+
+theorem plistAlgebra_a [ListArithmetic C] {A P : C} : (plistAlgebra A P).a = plist A P := by
+  rfl
+
+theorem plistAlgebra_str [ListArithmetic C] {A P : C} :
+    (plistAlgebra A P).str = coprod.desc plist.nil plist.cons := by
+  rfl
+
+/-- The algebra associated to the list object `list A` for the endofunctor `X ↦ 1 ⨿ (A ⊗ X)`. -/
+noncomputable def listAlgebra [ListArithmetic C] (A : C) := plistAlgebra A (𝟙_ C)
+
+theorem listAlgebra_a [ListArithmetic C] {A : C} : (listAlgebra A).a = list A := by
+  rfl
+
+theorem listAlgebra_str [ListArithmetic C] {A : C} :
+    (listAlgebra A).str = coprod.desc list.nil list.cons := by
+  rfl
+
+/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
+noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
+    IsInitial (plistAlgebra A P) := by
+  refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
+  · exact {
+    f := plist.rec (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
+    h := by sorry
+  }
+  · sorry
+
+/-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
+noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
+    IsInitial (listAlgebra A) := by
+  refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
+  · exact {
+    f := plist.rec (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
+    h := by sorry
+  }
+  · sorry
+
+end listAsEndofunctorAlgebra
+
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
@@ -768,21 +824,10 @@ The monoid structure on the list object in a list-arithmetic category.
 -/
 instance List.monoid (A : C) : Mon_ C where
   X := list A
-  -- one := list.nil
-  -- mul := list.append
-  -- one_mul := list.nil_append
-  -- mul_one := list.append_nil
-  -- mul_assoc := list.append_assoc
 
-/- SH: Show that
-`list α` is the initial algebra for the polynomial functor `P ↦ 1 + α × P` in
-the category of types. The unique algebra map from (List α, [n,c]) to
-(S,[s₀,s]) is the foldr function after transposition.
-[]
-`foldr : (α → β → β) → β → List α → β`
-satisfying
-`foldr s s₀ n = s₀` and
-`foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
+
+/-
+Extra challenge:
+Show that in the category of small categories,
+an object with recursion is a monoidal category.
 -/
-
-open Recursive ListArithmetic
