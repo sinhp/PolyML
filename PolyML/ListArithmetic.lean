@@ -780,6 +780,18 @@ noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
   }
   · sorry
 
+/-- The Lambek isomorphism  `P ⨿ (A ⊗ plist A P) ≅ plist A P` -/
+noncomputable def plistAlgebraIso  [ListArithmetic C] (A P : C) : P ⨿ (A ⊗ plist A P) ≅ plist A P where
+  hom := (plistAlgebra A P).str
+  inv := Algebra.Initial.strInv <| isInitialOfplistAlgebra A P
+  hom_inv_id := Algebra.Initial.right_inv _
+  inv_hom_id := Algebra.Initial.left_inv _
+
+/-- The Lambek isomorphism  `1 ⨿ (A ⊗ list A) ≅ list A` -/
+noncomputable def listAlgebraIso [ListArithmetic C] (A : C) :
+    𝟙_ C ⨿ (A ⊗ list A) ≅ list A :=
+  plistAlgebraIso A (𝟙_ C)
+
 end listAsEndofunctorAlgebra
 
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
