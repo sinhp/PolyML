@@ -712,13 +712,28 @@ class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
 /-- split is an isomorphism in a semirecursive category. -/
 instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
     IsIso (Semirecursive.split : L ⟶ P ⨿ A ⊗ L) := by
-  sorry
+  constructor
+  use coprod.desc (Semirecursive.nil A) (Semirecursive.cons P)
+  constructor
+  · exact Semirecursive.split_nil_cons
+  · refine coprod.hom_ext ?_ ?_
+    · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
+      BinaryCofan.mk_inl, comp_id]
+      exact Semirecursive.nil_split
+    · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
+      BinaryCofan.mk_inr, comp_id]
+      exact Semirecursive.cons_split
 
-instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
-  split := sorry
+  split := by {
+    dsimp [list]
+    refine plist.rec ?_ ?_
+    · exact coprod.inl
+    · sorry
+  }
   nil_split := sorry
   cons_split := sorry
   split_nil_cons := sorry
