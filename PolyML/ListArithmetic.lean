@@ -600,9 +600,12 @@ def append {A : C} : list A ⊗ list A ⟶ list A := list.prec (𝟙 _) (list.co
 theorem whiskerRight_nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   simp [append]
 
+#check CategoryTheory.rightUnitor_inv_apply
+#check rightUnitor_inv_naturality
+#check rightUnitor_naturality
+
 --xs ++ [] = xs
 theorem whiskerLeft_nil_append {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
-  simp [append]
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
@@ -685,10 +688,55 @@ instance : Recursive (Type u) where
       obj P := ⟨List A × P, fun ⟨a,as,p⟩ => ⟨(a::as),p⟩⟩
       map f := {
         f := fun a => (a.1, f a.2),
-        h := by aesop
+        h := rfl
       }
     }
-    freeForgetAdj := by sorry
+    freeForgetAdj := by {
+      constructor
+      · intros X
+        simp only [curriedTensor_obj_obj, Functor.id_obj, Functor.comp_obj]
+        sorry
+      · intros Y
+        simp only [Functor.id_obj, curriedTensor_obj_obj, Functor.comp_obj]
+        sorry
+      · simp only [curriedTensor_obj_obj]
+        constructor
+        simp only [Functor.id_obj, Functor.comp_obj, Functor.id_map, Functor.comp_map]
+        intros X Y f
+        · dsimp [Act.forget]
+          ext x y z
+          simp only [types_comp_apply]
+          constructor
+          · sorry
+          · sorry
+          · simp only [types_comp_apply]
+            sorry
+        · intros X Y
+          simp only [Functor.comp_obj]
+          dsimp [Act.forget]
+          refine (?_, Y)
+          exact List.nil
+      · simp only [curriedTensor_obj_obj]
+        constructor
+        simp only [Functor.id_obj, Functor.comp_obj, Functor.id_map, Functor.comp_map]
+        intros X Y f
+        · dsimp [Act.forget]
+          ext x
+          simp only [comp_f, types_comp_apply]
+          sorry
+        · simp only [Functor.comp_obj, Functor.id_obj]
+          intros X
+          dsimp [Act.forget]
+          apply List.foldl ?_ ?_ ?_
+          · exact A
+          · intros j k
+            dsimp [Act] at X
+            have := X.str
+            sorry
+          · unfold Act at X
+            sorry
+          · exact []
+    }
   }
 
 /-- The category of types is list-arithmetic. -/
@@ -730,6 +778,8 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
   cons := list.cons
   split := by {
     dsimp [list]
+    have := plistIsoTensor A ((𝟙_ C))
+    dsimp [list] at this
     refine plist.rec ?_ ?_
     · exact coprod.inl
     · sorry
@@ -738,11 +788,15 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
   cons_split := sorry
   split_nil_cons := sorry
 
-instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
-  split := sorry
+  split := by {
+    apply plist.rec
+    · exact coprod.inl
+    · sorry
+  }
   nil_split := sorry
   cons_split := sorry
   split_nil_cons := sorry
@@ -810,6 +864,8 @@ noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
     h := by sorry
   }
   · sorry
+
+
 
 /-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
 noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
