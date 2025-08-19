@@ -133,9 +133,15 @@ theorem succ_add :
     succ ▷ (N : C) ≫ add = add ≫ succ := by
   simp [add, succ_prec]
 
+#check leftUnitor_naturality
+#check rightUnitor_naturality
+
+#moogle ""
+
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  simp [add, one]
+  simp [add]
+  rw [tensorHom_def_assoc]
   sorry
 
 theorem zero_add_one :
