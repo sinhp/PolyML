@@ -778,15 +778,29 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
   cons := list.cons
   split := by {
     dsimp [list]
-    have := plistIsoTensor A ((𝟙_ C))
-    dsimp [list] at this
     refine plist.rec ?_ ?_
     · exact coprod.inl
-    · sorry
+    · have i₁ := coprod.inr (X:=𝟙_ C) (Y:=A ⊗ plist A (𝟙_ C))
+      have Axcons_ε : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) := by {
+        refine ?_ ⊗ₘ ?_
+        · exact 𝟙 A
+        · refine coprod.desc ?_ ?_
+          exact plist.nil
+          exact plist.cons
+      }
+      apply Axcons_ε ≫ i₁
   }
-  nil_split := sorry
-  cons_split := sorry
-  split_nil_cons := sorry
+  nil_split := by {
+    apply plist.nil_rec
+  }
+  cons_split := by {
+    dsimp [cons]
+    sorry
+  }
+  split_nil_cons := by {
+    dsimp
+    sorry
+  }
 
 noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A P (plist A P) where
@@ -864,8 +878,6 @@ noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
     h := by sorry
   }
   · sorry
-
-
 
 /-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
 noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
