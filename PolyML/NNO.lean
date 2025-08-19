@@ -198,11 +198,11 @@ variable {C} [ListArithmetic C]
 def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N :=
   list.map <| isTerminalTensorUnit.from A
 
+def toUnit (h : IsTerminal (𝟙_ C)) (A : C) : A ⟶ 𝟙_ C := h.from _
+
 namespace length
 
 variable (h : IsTerminal (𝟙_ C))
-
-def toUnit (A : C) : A ⟶ 𝟙_ C := h.from _
 
 variable {A : C}
 
@@ -235,6 +235,23 @@ theorem singleton_len_one :
   sorry
 
 end length
+
+namespace const
+
+variable [ListArithmetic C] (h : IsTerminal (𝟙_ C))
+
+def constEndo (n : 𝟙_ C ⟶ N) : (N : C) ⟶ N  := toUnit h N ≫ n
+
+/-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
+theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) :
+    r = (constEndo h zero) ▷ A ≫ r := by
+  sorry
+
+#check SimplexCategory.const
+
+end const
+
+
 
 end list
 
