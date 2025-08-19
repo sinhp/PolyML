@@ -707,7 +707,7 @@ class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
   split : L ⟶ P ⨿ A ⊗ L -- split
   nil_split : nil ≫ split = coprod.inl
   cons_split : cons ≫ split = coprod.inr
-  split_nil_cons : split ≫ (coprod.desc nil cons) = 𝟙 L -- split is a section of the coproduct
+  split_nil_cons : split ≫ (coprod.desc nil cons) = 𝟙 L -- split is a section of the coprod.desc
 
 /-- split is an isomorphism in a semirecursive category. -/
 instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
@@ -808,10 +808,6 @@ noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
 
 end listAsEndofunctorAlgebra
 
-/-
-We show that in a list-arithmetic category, the list object is
-the free monoid object.
--/
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
@@ -828,17 +824,6 @@ The monoid structure on the list object in a list-arithmetic category.
 -/
 instance List.monoid (A : C) : Mon_ C where
   X := list A
-
-/- SH: Show that
-`list α` is the initial algebra for the polynomial functor `P ↦ 1 + α × P` in
-the category of types. The unique algebra map from (List α, [n,c]) to
-(S,[s₀,s]) is the foldr function after transposition.
-[]
-`foldr : (α → β → β) → β → List α → β`
-satisfying
-`foldr s s₀ n = s₀` and
-`foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
--/
 
 
 /-
