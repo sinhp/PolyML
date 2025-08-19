@@ -44,6 +44,14 @@ theorem congr_arg {A B : C} {f f' : A ⟶ B} {g g' : B ⟶ B}
   subst h h'
   rfl
 
+/-- Any two natural number objects in a monoidal category are isomorphic. -/
+def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
+    [IsNNO zero succ] [IsNNO zero' succ'] : N ≅ N' where
+  hom := (ρ_ N).inv ≫ prec zero succ zero' succ'
+  inv := (ρ_ N').inv ≫ prec zero' succ' zero succ
+  hom_inv_id := sorry
+  inv_hom_id := sorry
+
 end IsNNO
 
 variable (C)
@@ -60,6 +68,8 @@ class Arithmetic where
   [isNNO : IsNNO zero succ]
 
 -- @[inherit_doc] notation "N_" => Arithmetic.N
+
+def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [Arithmetic C] : C := Arithmetic.N
 
 namespace Arithmetic
 
@@ -95,6 +105,10 @@ theorem prec_precompose {A'} {u : A' ⟶ A} {f : A ⟶ B} {g : B ⟶ B} :
 /-- Iterates an endofunction a natural number of times. -/
 def iter (f : A ⟶ A) : N ⊗ A ⟶ A := prec (𝟙 _) (f)
 
+/-- Recursion with the parameter `A` set to the unit object `𝟙_ C` -/
+def urec (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
+  (ρ_ _).inv ≫ prec f g
+
 @[reassoc (attr := simp)]
 theorem zero_iter {f : A ⟶ A} :
     zero ▷ A ≫ iter f = (λ_ A).hom := by
@@ -116,13 +130,13 @@ theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} :
   · rw [succ_iter]
     aesop
 
-/-- Addition of natural numbers. -/
-def add : (N : C) ⊗ N ⟶ N :=
-  prec (𝟙 _) (succ)
-
 /-- The number one. -/
 def one : 𝟙_ C ⟶ N :=
   zero ≫ succ
+
+/-- Addition of natural numbers. -/
+def add : (N : C) ⊗ N ⟶ N :=
+  prec (𝟙 _) (succ)
 
 @[reassoc (attr := simp)]
 theorem zero_add :
