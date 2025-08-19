@@ -828,11 +828,6 @@ The monoid structure on the list object in a list-arithmetic category.
 -/
 instance List.monoid (A : C) : Mon_ C where
   X := list A
-  -- one := list.nil
-  -- mul := list.append
-  -- one_mul := list.nil_append
-  -- mul_one := list.append_nil
-  -- mul_assoc := list.append_assoc
 
 /- SH: Show that
 `list α` is the initial algebra for the polynomial functor `P ↦ 1 + α × P` in
