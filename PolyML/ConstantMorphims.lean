@@ -4,24 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import Mathlib.CategoryTheory.Adjunction.Mates
-import Mathlib.CategoryTheory.Endofunctor.Algebra
-import Mathlib.CategoryTheory.Monoidal.Mon_
-import Mathlib.CategoryTheory.Monoidal.Types.Basic
-import Mathlib.CategoryTheory.Adjunction.Unique
-import Mathlib.CategoryTheory.Closed.Monoidal
-import Mathlib.CategoryTheory.Category.Factorisation
-import PolyML.ListArithmetic
+import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
+import Mathlib.CategoryTheory.Monoidal.Category
 
 universe u v
 
 namespace CategoryTheory
 
-open Category Opposite Limits MonoidalCategory CartesianMonoidalCategory
-
-attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
-open Endofunctor Algebra
+open Category Opposite Limits MonoidalCategory
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C] {h : IsTerminal (𝟙_ C)} {X Y : C}
 
