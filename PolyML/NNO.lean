@@ -247,7 +247,6 @@ theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : 
     r = (constEndo h zero) ▷ A ≫ r := by
   sorry
 
-#check SimplexCategory.const
 
 end const
 
