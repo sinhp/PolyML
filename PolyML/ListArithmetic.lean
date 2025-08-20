@@ -908,11 +908,13 @@ noncomputable def list.tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C
 
 theorem list.nil_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
     {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
-  sorry
+  dsimp [tail,Semirecursive.split]
+  rw [← assoc]
+  dsimp [list.nil]
+  simp only [id_tensorHom, plist.nil_rec, coprod.inl_map, id_comp]
 
 theorem list.cons_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
-    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
-  sorry
+    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := sorry
 
 end Tail
 
