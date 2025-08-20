@@ -55,7 +55,7 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 open Endofunctor Algebra
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+variable {C : Type u} [Category.{v} C]
 
 /-
 For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a
@@ -63,9 +63,11 @@ morphism `A ⊗ S → S`. The pairs `(S, A ⊗ S → S)` are objects of the cate
 of algebras for the left-tensoring endofunctor `A ⊗ -` on `C`. One may regard the objects of this
 category as state-changing alphabet `A` acting on sets of states `S`.
 -/
-abbrev Act (A : C) := Algebra <| tensorLeft A
+abbrev Act [MonoidalCategory C] (A : C) := Algebra <| tensorLeft A
 
 namespace Act
+
+variable [MonoidalCategory C]
 
 @[simp]
 theorem hom {A : C} {σ σ' : Act A} {f : σ ⟶ σ'} : A ◁ f.1 ≫ σ'.str = σ.str ≫ f.1 := f.h
@@ -114,13 +116,13 @@ def mapForgetTwoSquare {A B : C} (f : A ⟶ B) :
 
 end Act
 
-class WithRecursion (A : C) where
+class WithRecursion [MonoidalCategory C] (A : C) where
   freeActionFunctor : C ⥤ Act A
   freeForgetAdj : freeActionFunctor ⊣ Act.forget
 
 /-- An object `A` in a category `C` is called **recursive** if the forgetful functor from the
 category of actions on `A` to `C` has a left adjoint. -/
-class HasRecursion (A : C) where
+class HasRecursion [MonoidalCategory C] (A : C) where
   /-- The Act.forgetful functor from the category of actions to the category `C` has a
   left adjoint. -/
   adj : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C)
@@ -128,16 +130,16 @@ class HasRecursion (A : C) where
 variable (C)
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
-class Recursive where
+class Recursive [MonoidalCategory C] where
   withRec (A : C) : WithRecursion A
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
-class IsRecursive where
+class IsRecursive [MonoidalCategory C] where
   has_rec (A : C) : HasRecursion A
 
 namespace IsRecursive
 
-variable [IsRecursive C]
+variable [MonoidalCategory C] [IsRecursive C]
 
 instance (A : C) : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C) :=
   (IsRecursive.has_rec A).adj
@@ -155,7 +157,7 @@ end IsRecursive
 
 namespace Recursive
 
-variable {C} [Recursive C]
+variable {C} [MonoidalCategory C] [Recursive C]
 
 def freeActionFunctor (A : C) : C ⥤ Act A := (withRec A).freeActionFunctor
 
@@ -183,13 +185,14 @@ end Recursive
 variable {C}
 
 /-- The paramtetrized list of `A` with the parameter `P`. -/
-def plist [Recursive C] (A P : C) := Recursive.freeActionFunctor A ⋙ Act.forget |>.obj P
+def plist [MonoidalCategory C] [Recursive C] (A P : C) :=
+  Recursive.freeActionFunctor A ⋙ Act.forget |>.obj P
 
 namespace plist
 
 open Recursive
 
-variable [Recursive C] {A P : C}
+variable [MonoidalCategory C] [Recursive C] {A P : C}
 
 /-r₀ : X ⟶ rec (A,X)-/
 def nil : P ⟶ plist A P := freeForgetAdj A |>.unit |>.app P
@@ -403,11 +406,11 @@ end plist
 
 /-- The list object defined as the recursive object
   with the terminal object as paramter `P`. -/
-def list [Recursive C] (A : C) : C := plist A (𝟙_ C)
+def list [MonoidalCategory C] [Recursive C] (A : C) : C := plist A (𝟙_ C)
 
 namespace list
 
-variable [Recursive C] {A : C}
+variable [MonoidalCategory C] [Recursive C] {A : C}
 
 /- ε : 1 ⟶ list A -/
 def nil : 𝟙_ C ⟶ list A := plist.nil (P := 𝟙_ C)
@@ -466,7 +469,7 @@ variable (C)
 
 /-- A recursive category is list-arithmetic if the comparison morphisms `cmp A P Y` are
 all isomorphisms. -/
-class ListArithmetic extends Recursive C where
+class ListArithmetic [MonoidalCategory C] extends Recursive C where
   cmpInv (A P Y : C) : plist A P ⊗ Y ⟶ plist A (P ⊗ Y)
   hom_inv_id {A P Y} : plist.cmp A P Y ≫ cmpInv A P Y = 𝟙 _
   inv_hom_id {A P Y} : cmpInv A P Y ≫ plist.cmp A P Y = 𝟙 _
@@ -475,7 +478,7 @@ section ListArithmetic
 
 open ListArithmetic
 
-variable {C} [ListArithmetic C]
+variable {C} [MonoidalCategory C] [ListArithmetic C]
 
 instance plist.cmp.is_iso {A P Y : C} : IsIso (plist.cmp A P Y) := by
   use cmpInv A P Y
@@ -708,7 +711,7 @@ end ListArithmetic
 
 variable {C}
 
-class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
+class Semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] (A P L : C) where
   nil : P ⟶ L -- nil
   cons : A ⊗ L  ⟶ L -- cons
   split : L ⟶ P ⨿ A ⊗ L -- split
@@ -717,109 +720,21 @@ class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
   split_nil_cons : split ≫ (coprod.desc nil cons) = 𝟙 L -- split is a section of the coprod.desc
 
 /-- split is an isomorphism in a semirecursive category. -/
-instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
+instance [MonoidalCategory C] [HasBinaryCoproducts C] {A P L : C} [Semirecursive A P L]  :
     IsIso (Semirecursive.split : L ⟶ P ⨿ A ⊗ L) := by
-  constructor
-  use coprod.desc (Semirecursive.nil A) (Semirecursive.cons P)
-  constructor
-  · exact Semirecursive.split_nil_cons
-  · refine coprod.hom_ext ?_ ?_
-    · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
-      BinaryCofan.mk_inl, comp_id]
-      exact Semirecursive.nil_split
-    · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
-      BinaryCofan.mk_inr, comp_id]
-      exact Semirecursive.cons_split
+  sorry
 
-noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+instance list.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] {A : C}:
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
-  split := by {
-    dsimp [list]
-    refine plist.rec ?_ ?_
-    · exact coprod.inl
-    · have i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-      have Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
-        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
-      exact Axecons ≫ i₂
-    }
-  nil_split := plist.nil_rec
-  cons_split := by {
-    dsimp
-    let Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
-        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
-    let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-    let f := plist.rec coprod.inl (Axecons ≫ i₂)
-    let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
-     coprod.desc plist.nil plist.cons
-    let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-    let i₁focons := coprod.desc i₁ (cons ≫ f)
-    let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
-    have : f ≫ econs = 𝟙 (list A) := by {
-      dsimp [list]
-      rw [← plist.rec_nil_cons_id]
-      rw [← plist.rec_uniq]
-      · dsimp [f, econs]
-        simp only [plist.nil_rec_assoc]
-        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-          BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
-      · rw [← assoc]
-        dsimp [f, econs, Axecons, i₂]
-        rw [plist.cons_rec]
-        simp only [assoc, whiskerLeft_comp]
-        simp only [id_tensorHom]
-        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-          BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
-    }
-    have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
-      dsimp [f, Axf, Axecons, i₂,list.cons]
-      simp only [id_tensorHom]
-      rw [plist.cons_rec]
-    }
-    change cons ≫ f = coprod.inr (C:=C)
-    rw [topSqComm]
-    dsimp [Axf,Axecons]
-    dsimp [econs] at this
-    dsimp [i₂]
-    rw [← assoc]
-    nth_rw 2 [← id_comp (f := coprod.inr)]
-    have hthis :
-    ((𝟙 A ⊗ₘ f ≫ coprod.desc plist.nil plist.cons)) =
-     ((𝟙 A ⊗ₘ f) ≫ (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons)) := by {
-      simp only [id_tensorHom, whiskerLeft_comp]
-     }
-    rw [← hthis, this]
-    simp only [id_tensorHom, id_comp]
-    exact whiskerLeft_id_assoc A (plist A (𝟙_ C)) coprod.inr
-  }
-  split_nil_cons := by {
-    let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-    let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-    let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
-     coprod.desc plist.nil plist.cons
-    let Axecons := 𝟙 A ⊗ₘ econs
-    let f := plist.rec coprod.inl (Axecons ≫ i₂)
-    change f ≫ econs = 𝟙 (list A)
-    let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
-    dsimp [list]
-    rw [← plist.rec_nil_cons_id]
-    rw [← plist.rec_uniq]
-    · dsimp [f, econs]
-      simp only [plist.nil_rec_assoc]
-      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-        BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
-    · rw [← assoc]
-      dsimp [f]
-      rw [plist.cons_rec]
-      dsimp [econs, Axecons, econs, i₂]
-      simp only [assoc, whiskerLeft_comp]
-      simp only [id_tensorHom]
-      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-        BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
-    }
+  split := sorry
+  nil_split := sorry
+  cons_split := sorry
+  split_nil_cons := sorry
 
-noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A P L : C} :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
@@ -897,6 +812,22 @@ noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [
       simp only [colimit.ι_desc, BinaryCofan.mk_pt,
         BinaryCofan.ι_app_right, BinaryCofan.mk_inr]}
 
+section Tail
+
+noncomputable def list.tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
+  list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (snd A (list A)))
+
+theorem list.nil_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
+  sorry
+
+theorem list.cons_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
+  sorry
+
+end Tail
+
 /-
 In the presence finite coproducts, `list α` is the
 initial algebra for the polynomial functor
@@ -910,7 +841,7 @@ satisfying
 
 section listAsEndofunctorAlgebra
 
-variable [HasBinaryCoproducts C]
+variable [MonoidalCategory C] [HasBinaryCoproducts C]
 
 /-- The endofunctor `X ↦ P ⨿ (A ⊗ X)` on the category `C`. -/
 noncomputable def coprodTensorEndofunctor (A P : C) : C ⥤ C where
