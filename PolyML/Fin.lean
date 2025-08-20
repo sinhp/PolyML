@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Monad.Adjunction
 import Mathlib.CategoryTheory.Monad.Algebra
 import PolyML.ListArithmetic
+import PolyML.NNO
 
 
 import Mathlib
@@ -18,11 +19,11 @@ Our development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic`
 -/
 namespace CategoryTheory
 
-open Category CategoryTheory Recursive ListArithmetic Functor MonoidalCategory Mon_Class Monad Limits
+open Category CategoryTheory Recursive NNO Functor MonoidalCategory Mon_Class Monad Limits
 
 universe v u
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C] [HasFiniteLimits C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C] [HasPullbacks C]
 
 attribute [local instance] CartesianMonoidalCategory.toSymmetricCategory
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
@@ -33,17 +34,23 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 #check FinEnum
 
-namespace nno
 
-noncomputable def fin (n : 𝟙_ C ⟶ N_ C) := pullback n (add ≫ succ)
+noncomputable def fin (n : 𝟙_ C ⟶ N) := pullback n (add ≫ succ)
 
 def isInitialFinZero : IsInitial (fin zero : C) := by sorry
 
 def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C := sorry
 
-def finSuccIso [ HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N_ C) : fin (n ≫ nno.succ) ≅ 𝟙_ C ⨿ fin n := by
+def finSuccIso [ HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
   sorry
 
 def isTerminalFinOne : IsTerminal (fin one : C) := by sorry
 
-end nno
+
+#check ConcreteCategory
+
+/-- For an object `X : C`, the structure `FinEnum X` consists of a natural number `n` and an
+isomorphism `X ≅ nno.fin n`. This means that `X` is finite and can be enumerated in some order. -/
+class FinEnum (X : C) where
+  card : 𝟙_ C ⟶ N
+  iso : X ≅ fin card
