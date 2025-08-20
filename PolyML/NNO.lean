@@ -4,15 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import Mathlib.CategoryTheory.Adjunction.Mates
-import Mathlib.CategoryTheory.Endofunctor.Algebra
-import Mathlib.CategoryTheory.Monoidal.Mon_
-import Mathlib.CategoryTheory.Monoidal.Types.Basic
-import Mathlib.CategoryTheory.Adjunction.Unique
-import Mathlib.CategoryTheory.Closed.Monoidal
+import Mathlib.CategoryTheory.Monoidal.Comon_
+import PolyML.ForMathlib.ConstantMorphism
 import PolyML.ListArithmetic
-
-import mathlib
 
 universe u v
 
@@ -26,7 +20,7 @@ open Endofunctor Algebra
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
--- SH: prec either for "parameterized" recursion or "primitive" recursion both are correct usage.
+-- SH: prec for "parameterized" recursion.
 class IsNNO {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
   prec {A B : C} (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B
   zero_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (zero ▷ A) ≫ prec f g = (λ_ A).hom ≫ f
@@ -198,8 +192,6 @@ variable {C} [ListArithmetic C]
 def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N :=
   list.map <| isTerminalTensorUnit.from A
 
-def toUnit (h : IsTerminal (𝟙_ C)) (A : C) : A ⟶ 𝟙_ C := h.from _
-
 namespace length
 
 variable (h : IsTerminal (𝟙_ C))
@@ -231,27 +223,53 @@ set_option diagnostics true
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit h A ≫ one := by
-  dsimp [len, singleton, toUnit, one]
+  dsimp [len, singleton, one]
   sorry
 
 end length
 
-namespace const
+end list
 
-variable [ListArithmetic C] (h : IsTerminal (𝟙_ C))
+section Comon
 
-def constEndo (n : 𝟙_ C ⟶ N) : (N : C) ⟶ N  := toUnit h N ≫ n
+variable {C} [Arithmetic C]
+
+def duplicate : (N : C) ⟶ N ⊗ N :=
+  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
+
+variable (h : IsTerminal (𝟙_ C))
+
+instance : Comon_Class (N : C) where
+  counit := toUnit h N
+  comul := duplicate
+  counit_comul := by
+    simp only [duplicate, MonoidalCategory.toUnit]
+    sorry
+  comul_counit := sorry
+  comul_assoc := sorry
+
+end Comon
+
+section const
+
+open ConstantMorphism
+
+variable {C} [ListArithmetic C] (h : IsTerminal (𝟙_ C))
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
 theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) :
-    r = (constEndo h zero) ▷ A ≫ r := by
+    r = (const h N n) ▷ A ≫ r := by
   sorry
 
 
 end const
 
+namespace PR
+
+/-- The general primitive recursion schema. -/
+def pr := 2
 
 
-end list
+end PR
 
 end CategoryTheory
