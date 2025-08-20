@@ -994,7 +994,7 @@ noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
     f := plist.rec (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
-    h := by sorry
+    h := sorry
   }
   · sorry
 
