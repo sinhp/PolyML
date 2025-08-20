@@ -653,16 +653,30 @@ def flatten {A : C} : list (list A) ⟶ list A := list.rec list.nil list.append
 
 end list
 
+@[simps]
+def List.freeActionFunctor (A : Type u) : Type u ⥤ Act A where
+  obj P := ⟨List A × P, fun ⟨a,as,p⟩ => ⟨(a::as),p⟩⟩
+  map f := ⟨fun a => (a.1, f a.2), _⟩
+
+def ListAdjActForgetCoreHomEquiv (A P : Type u₁) (Y : Act A) :
+    ((List.freeActionFunctor A).obj P ⟶ Y) ≃ (P ⟶ Act.forget.obj Y) where
+  toFun f := fun p => f.1 ([], p)
+  invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), _⟩
+  left_inv f := by
+    ext x
+    sorry
+  right_inv f := by
+    funext x
+    rfl
+
 instance : Recursive (Type u) where
   withRec A := {
-    freeActionFunctor := {
-      obj P := ⟨List A × P, fun ⟨a,as,p⟩ => ⟨(a::as),p⟩⟩
-      map f := {
-        f := fun a => (a.1, f a.2),
-        h := by aesop
-      }
+    freeActionFunctor := List.freeActionFunctor A
+    freeForgetAdj := Adjunction.mkOfHomEquiv {
+      homEquiv := ListAdjActForgetCoreHomEquiv A
+      homEquiv_naturality_left_symm := sorry
+      homEquiv_naturality_right := sorry
     }
-    freeForgetAdj := by sorry
   }
 
 /-- The category of types is list-arithmetic. -/
