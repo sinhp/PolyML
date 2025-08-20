@@ -251,7 +251,22 @@ instance : Comon_Class (N : C) where
   counit_comul := by
     simp only [duplicate, MonoidalCategory.toUnit]
     sorry
-  comul_counit := sorry
+  comul_counit := by {
+    simp only [duplicate, MonoidalCategory.toUnit]
+    dsimp [prec]
+    rw [← IsNNO.prec_uniq]
+    · change  ((ρ_ N).inv ≫ N ◁ zero) ≫ N ◁ h.from N = (ρ_ N).inv
+      nth_rw 2 [← comp_id (f:= (ρ_ N).inv)]
+      rw [assoc]
+      refine (ρ_ N).inv ≫= ?_
+
+    · constructor
+      · rw [tensorHom_def]
+        simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
+      · rw [tensorHom_def]
+        simp only [whiskerRight_id, assoc]
+        sorry
+  }
   comul_assoc := sorry
 
 end Comon
