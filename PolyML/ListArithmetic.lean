@@ -600,10 +600,6 @@ def append {A : C} : list A ⊗ list A ⟶ list A := list.prec (𝟙 _) (list.co
 theorem whiskerRight_nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   simp [append]
 
-#check CategoryTheory.rightUnitor_inv_apply
-#check rightUnitor_inv_naturality
-#check rightUnitor_naturality
-
 --xs ++ [] = xs
 theorem whiskerLeft_nil_append {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
   sorry
@@ -780,59 +776,163 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
     dsimp [list]
     refine plist.rec ?_ ?_
     · exact coprod.inl
-    · have i₁ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-      have Axcons_ε : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) := by {
-        refine ?_ ⊗ₘ ?_
-        · exact 𝟙 A
-        · refine coprod.desc ?_ ?_
-          exact plist.nil
-          exact plist.cons
-      }
-      apply Axcons_ε ≫ i₁
-  }
-  nil_split := by {
-    apply plist.nil_rec
-  }
+    · have i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+      have Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
+        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
+      exact Axecons ≫ i₂
+    }
+  nil_split := plist.nil_rec
   cons_split := by {
-    dsimp [cons]
-    simp only [id_tensorHom]
-    rw [plist.cons_rec]
-    sorry
+    dsimp
+    let Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
+        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
+    let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
+     coprod.desc plist.nil plist.cons
+    let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let i₁focons := coprod.desc i₁ (cons ≫ f)
+    let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
+    have : f ≫ econs = 𝟙 (list A) := by {
+      dsimp [list]
+      rw [← plist.rec_nil_cons_id]
+      rw [← plist.rec_uniq]
+      · dsimp [f, econs]
+        simp only [plist.nil_rec_assoc]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+      · rw [← assoc]
+        dsimp [f, econs, Axecons, i₂]
+        rw [plist.cons_rec]
+        simp only [assoc, whiskerLeft_comp]
+        simp only [id_tensorHom]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+    }
+    have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
+      dsimp [f, Axf, Axecons, i₂,list.cons]
+      simp only [id_tensorHom]
+      rw [plist.cons_rec]
+    }
+    change cons ≫ f = coprod.inr (C:=C)
+    rw [topSqComm]
+    dsimp [Axf,Axecons]
+    dsimp [econs] at this
+    dsimp [i₂]
+    rw [← assoc]
+    nth_rw 2 [← id_comp (f := coprod.inr)]
+    have hthis :
+    ((𝟙 A ⊗ₘ f ≫ coprod.desc plist.nil plist.cons)) =
+     ((𝟙 A ⊗ₘ f) ≫ (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons)) := by {
+      simp only [id_tensorHom, whiskerLeft_comp]
+     }
+    rw [← hthis, this]
+    simp only [id_tensorHom, id_comp]
+    exact whiskerLeft_id_assoc A (plist A (𝟙_ C)) coprod.inr
   }
   split_nil_cons := by {
-    dsimp
-    sorry
-  }
+    let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
+     coprod.desc plist.nil plist.cons
+    let Axecons := 𝟙 A ⊗ₘ econs
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    change f ≫ econs = 𝟙 (list A)
+    let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
+    dsimp [list]
+    rw [← plist.rec_nil_cons_id]
+    rw [← plist.rec_uniq]
+    · dsimp [f, econs]
+      simp only [plist.nil_rec_assoc]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+    · rw [← assoc]
+      dsimp [f]
+      rw [plist.cons_rec]
+      dsimp [econs, Axecons, econs, i₂]
+      simp only [assoc, whiskerLeft_comp]
+      simp only [id_tensorHom]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+    }
 
 noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
   split := by {
-    apply plist.rec
-    · exact coprod.inl
-    · have i₁ := coprod.inr (X := P) (Y := A ⊗ plist A P)
-      have Axcons_ε : A ⊗ (P ⨿ A ⊗ plist A P) ⟶ A ⊗ plist A P := by {
-        refine ?_ ⊗ₘ ?_
-        · exact 𝟙 A
-        · refine coprod.desc ?_ ?_
-          exact plist.nil
-          exact plist.cons
-      }
-      apply Axcons_ε ≫ i₁
-  }
+    apply plist.rec coprod.inl
+    · exact (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons) ≫
+         (coprod.inr (X := P) (Y := A ⊗ plist A P))}
   nil_split := by {
     simp only [id_tensorHom, nil_rec]
   }
   cons_split := by {
-    dsimp
-    simp only [id_tensorHom]
-    sorry
+    let Axecons : A ⊗ (P ⨿ A ⊗ plist A P) ⟶ A ⊗ plist A P :=
+        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
+    let i₂ := coprod.inr (X := P) (Y := A ⊗ plist A P)
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let econs : (P ⨿ A ⊗ plist A P) ⟶ plist A P :=
+     coprod.desc plist.nil plist.cons
+    let i₁ := coprod.inl (X := P) (Y := A ⊗ plist A P)
+    let i₁focons := coprod.desc i₁ (cons ≫ f)
+    let Axf : A ⊗ plist A P ⟶ A ⊗ (P ⨿ A ⊗ plist A P) := 𝟙 A ⊗ₘ f
+    have : f ≫ econs = 𝟙 (plist A P) := by {
+      rw [← plist.rec_nil_cons_id, ← plist.rec_uniq]
+      · dsimp [f, econs]
+        simp only [plist.nil_rec_assoc]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+      · rw [← assoc]
+        dsimp [f, econs, Axecons, i₂]
+        rw [plist.cons_rec]
+        simp only [assoc, whiskerLeft_comp]
+        simp only [id_tensorHom]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+    }
+    have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
+      dsimp [f, Axf, Axecons, i₂, list.cons]
+      simp only [id_tensorHom]
+      rw [plist.cons_rec]
+    }
+    change cons ≫ f = coprod.inr (C:=C)
+    rw [topSqComm]
+    dsimp [Axf,Axecons]
+    dsimp [econs] at this
+    dsimp [i₂]
+    rw [← assoc]
+    nth_rw 2 [← id_comp (f := coprod.inr)]
+    have hthis :
+    ((𝟙 A ⊗ₘ f ≫ coprod.desc plist.nil plist.cons)) =
+     ((𝟙 A ⊗ₘ f) ≫ (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons)) := by {
+      simp only [id_tensorHom, whiskerLeft_comp]
+     }
+    rw [← hthis,this]
+    simp only [id_tensorHom, id_comp]
+    exact whiskerLeft_id_assoc A (plist A P) coprod.inr
   }
   split_nil_cons := by {
-    simp only [id_tensorHom]
-    sorry
-  }
+    let i₂ := coprod.inr (X := P) (Y := A ⊗ plist A P)
+    let i₁ := coprod.inl (X := P) (Y := A ⊗ plist A P)
+    let econs : (P ⨿ A ⊗ plist A P) ⟶ plist A (P) :=
+     coprod.desc plist.nil plist.cons
+    let Axecons := 𝟙 A ⊗ₘ econs
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    change f ≫ econs = 𝟙 (plist A P)
+    let Axf : A ⊗ plist A P ⟶ A ⊗ (P ⨿ A ⊗ plist A P) := 𝟙 A ⊗ₘ f
+    rw [← plist.rec_nil_cons_id, ← plist.rec_uniq]
+    · dsimp [f, econs]
+      simp only [plist.nil_rec_assoc]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+    · rw [← assoc]
+      dsimp [f, econs, Axecons, econs, i₂]
+      rw [plist.cons_rec]
+      simp only [assoc, whiskerLeft_comp]
+      simp only [id_tensorHom]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_right, BinaryCofan.mk_inr]}
 
 /-
 In the presence finite coproducts, `list α` is the
