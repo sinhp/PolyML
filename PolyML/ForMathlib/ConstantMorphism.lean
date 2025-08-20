@@ -13,11 +13,17 @@ namespace CategoryTheory
 
 open Category Opposite Limits MonoidalCategory
 
-namespace ConstantMorphism
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C] (h : IsTerminal (𝟙_ C))
+namespace MonoidalCategory
 
 def toUnit (h : IsTerminal (𝟙_ C)) (A : C) : A ⟶ 𝟙_ C := h.from _
+
+end MonoidalCategory
+
+namespace ConstantMorphism
+
+variable (h : IsTerminal (𝟙_ C))
 
 def const (X : C) {Y : C} (y : 𝟙_ C ⟶ Y) : X ⟶ Y := toUnit h X ≫ y
 
