@@ -55,7 +55,7 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 open Endofunctor Algebra
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+variable {C : Type u} [Category.{v} C]
 
 /-
 For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a
@@ -63,9 +63,11 @@ morphism `A ⊗ S → S`. The pairs `(S, A ⊗ S → S)` are objects of the cate
 of algebras for the left-tensoring endofunctor `A ⊗ -` on `C`. One may regard the objects of this
 category as state-changing alphabet `A` acting on sets of states `S`.
 -/
-abbrev Act (A : C) := Algebra <| tensorLeft A
+abbrev Act [MonoidalCategory C] (A : C) := Algebra <| tensorLeft A
 
 namespace Act
+
+variable [MonoidalCategory C]
 
 @[simp]
 theorem hom {A : C} {σ σ' : Act A} {f : σ ⟶ σ'} : A ◁ f.1 ≫ σ'.str = σ.str ≫ f.1 := f.h
@@ -114,13 +116,13 @@ def mapForgetTwoSquare {A B : C} (f : A ⟶ B) :
 
 end Act
 
-class WithRecursion (A : C) where
+class WithRecursion [MonoidalCategory C] (A : C) where
   freeActionFunctor : C ⥤ Act A
   freeForgetAdj : freeActionFunctor ⊣ Act.forget
 
 /-- An object `A` in a category `C` is called **recursive** if the forgetful functor from the
 category of actions on `A` to `C` has a left adjoint. -/
-class HasRecursion (A : C) where
+class HasRecursion [MonoidalCategory C] (A : C) where
   /-- The Act.forgetful functor from the category of actions to the category `C` has a
   left adjoint. -/
   adj : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C)
@@ -128,16 +130,16 @@ class HasRecursion (A : C) where
 variable (C)
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
-class Recursive where
+class Recursive [MonoidalCategory C] where
   withRec (A : C) : WithRecursion A
 
 /-- A category `C` is called **recursive** if every object `A` in `C` is recursive. -/
-class IsRecursive where
+class IsRecursive [MonoidalCategory C] where
   has_rec (A : C) : HasRecursion A
 
 namespace IsRecursive
 
-variable [IsRecursive C]
+variable [MonoidalCategory C] [IsRecursive C]
 
 instance (A : C) : Functor.IsRightAdjoint (Act.forget : Act A ⥤ C) :=
   (IsRecursive.has_rec A).adj
@@ -155,7 +157,7 @@ end IsRecursive
 
 namespace Recursive
 
-variable {C} [Recursive C]
+variable {C} [MonoidalCategory C] [Recursive C]
 
 def freeActionFunctor (A : C) : C ⥤ Act A := (withRec A).freeActionFunctor
 
@@ -183,13 +185,14 @@ end Recursive
 variable {C}
 
 /-- The paramtetrized list of `A` with the parameter `P`. -/
-def plist [Recursive C] (A P : C) := Recursive.freeActionFunctor A ⋙ Act.forget |>.obj P
+def plist [MonoidalCategory C] [Recursive C] (A P : C) :=
+  Recursive.freeActionFunctor A ⋙ Act.forget |>.obj P
 
 namespace plist
 
 open Recursive
 
-variable [Recursive C] {A P : C}
+variable [MonoidalCategory C] [Recursive C] {A P : C}
 
 /-r₀ : X ⟶ rec (A,X)-/
 def nil : P ⟶ plist A P := freeForgetAdj A |>.unit |>.app P
@@ -403,11 +406,11 @@ end plist
 
 /-- The list object defined as the recursive object
   with the terminal object as paramter `P`. -/
-def list [Recursive C] (A : C) : C := plist A (𝟙_ C)
+def list [MonoidalCategory C] [Recursive C] (A : C) : C := plist A (𝟙_ C)
 
 namespace list
 
-variable [Recursive C] {A : C}
+variable [MonoidalCategory C] [Recursive C] {A : C}
 
 /- ε : 1 ⟶ list A -/
 def nil : 𝟙_ C ⟶ list A := plist.nil (P := 𝟙_ C)
@@ -466,7 +469,7 @@ variable (C)
 
 /-- A recursive category is list-arithmetic if the comparison morphisms `cmp A P Y` are
 all isomorphisms. -/
-class ListArithmetic extends Recursive C where
+class ListArithmetic [MonoidalCategory C] extends Recursive C where
   cmpInv (A P Y : C) : plist A P ⊗ Y ⟶ plist A (P ⊗ Y)
   hom_inv_id {A P Y} : plist.cmp A P Y ≫ cmpInv A P Y = 𝟙 _
   inv_hom_id {A P Y} : cmpInv A P Y ≫ plist.cmp A P Y = 𝟙 _
@@ -475,7 +478,7 @@ section ListArithmetic
 
 open ListArithmetic
 
-variable {C} [ListArithmetic C]
+variable {C} [MonoidalCategory C] [ListArithmetic C]
 
 instance plist.cmp.is_iso {A P Y : C} : IsIso (plist.cmp A P Y) := by
   use cmpInv A P Y
@@ -652,62 +655,48 @@ def flatten {A : C} : list (list A) ⟶ list A := list.rec list.nil list.append
 
 end list
 
+@[simps]
+def List.freeActionFunctor (A : Type u) : Type u ⥤ Act A where
+  obj P := ⟨List A × P, fun ⟨a,as,p⟩ => ⟨(a::as),p⟩⟩
+  map f := ⟨fun a => (a.1, f a.2), _⟩
+
+def ListAdjActForgetHomEquiv (A P : Type u₁) (Y : Act A) :
+    ((List.freeActionFunctor A).obj P ⟶ Y) ≃ (P ⟶ Act.forget.obj Y) where
+  toFun f := fun p => f.1 ([], p)
+  invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), rfl⟩
+  left_inv f := by
+    ext x
+    rcases x with ⟨as, p⟩
+    revert p
+    induction as with
+    | nil =>
+        intro p
+        simp [List.foldr]
+    | cons a as ih =>
+        intro p
+        have h := congrArg (fun (g : (A × (List A × P)) → _) => g (a, (as, p))) f.h
+        simp only [List.foldr_cons]
+        simp_all only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map, types_comp_apply,
+          whiskerLeft_apply, List.freeActionFunctor_obj_str]
+  right_inv f := by
+    funext x
+    rfl
+
 instance : Recursive (Type u) where
   withRec A := {
-    freeActionFunctor := {
-      obj P := ⟨List A × P, fun ⟨a,as,p⟩ => ⟨(a::as),p⟩⟩
-      map f := {
-        f := fun a => (a.1, f a.2),
-        h := rfl
+    freeActionFunctor := List.freeActionFunctor A
+    freeForgetAdj := Adjunction.mkOfHomEquiv {
+      homEquiv := ListAdjActForgetHomEquiv A
+      homEquiv_naturality_left_symm := by {
+        intros X' X Y f g
+        dsimp [ListAdjActForgetHomEquiv]
+        dsimp [List.freeActionFunctor]
+        ext a
+        simp only [comp_f, types_comp_apply]
+      }
+      homEquiv_naturality_right :=  fun {X} {Y Y'} f g ↦ rfl
       }
     }
-    freeForgetAdj := by {
-      constructor
-      · intros X
-        simp only [curriedTensor_obj_obj, Functor.id_obj, Functor.comp_obj]
-        sorry
-      · intros Y
-        simp only [Functor.id_obj, curriedTensor_obj_obj, Functor.comp_obj]
-        sorry
-      · simp only [curriedTensor_obj_obj]
-        constructor
-        simp only [Functor.id_obj, Functor.comp_obj, Functor.id_map, Functor.comp_map]
-        intros X Y f
-        · dsimp [Act.forget]
-          ext x y z
-          simp only [types_comp_apply]
-          constructor
-          · sorry
-          · sorry
-          · simp only [types_comp_apply]
-            sorry
-        · intros X Y
-          simp only [Functor.comp_obj]
-          dsimp [Act.forget]
-          refine (?_, Y)
-          exact List.nil
-      · simp only [curriedTensor_obj_obj]
-        constructor
-        simp only [Functor.id_obj, Functor.comp_obj, Functor.id_map, Functor.comp_map]
-        intros X Y f
-        · dsimp [Act.forget]
-          ext x
-          simp only [comp_f, types_comp_apply]
-          sorry
-        · simp only [Functor.comp_obj, Functor.id_obj]
-          intros X
-          dsimp [Act.forget]
-          apply List.foldl ?_ ?_ ?_
-          · exact A
-          · intros j k
-            dsimp [Act] at X
-            have := X.str
-            sorry
-          · unfold Act at X
-            sorry
-          · exact []
-    }
-  }
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
@@ -719,7 +708,7 @@ end ListArithmetic
 
 variable {C}
 
-class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
+class Semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] (A P L : C) where
   nil : P ⟶ L -- nil
   cons : A ⊗ L  ⟶ L -- cons
   split : L ⟶ P ⨿ A ⊗ L -- split
@@ -728,7 +717,7 @@ class Semirecursive [HasBinaryCoproducts C] (A P L : C) where
   split_nil_cons : split ≫ (coprod.desc nil cons) = 𝟙 L -- split is a section of the coprod.desc
 
 /-- split is an isomorphism in a semirecursive category. -/
-instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
+instance [MonoidalCategory C] [HasBinaryCoproducts C] {A P L : C} [Semirecursive A P L]  :
     IsIso (Semirecursive.split : L ⟶ P ⨿ A ⊗ L) := by
   constructor
   use coprod.desc (Semirecursive.nil A) (Semirecursive.cons P)
@@ -742,7 +731,7 @@ instance {A P L : C} [HasBinaryCoproducts C] [Semirecursive A P L] :
       BinaryCofan.mk_inr, comp_id]
       exact Semirecursive.cons_split
 
-noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] {A : C}:
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
@@ -830,7 +819,7 @@ noncomputable instance list.semirecursive {A L : C} [HasBinaryCoproducts C] [Lis
         BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
     }
 
-noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [ListArithmetic C] :
+noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]    {A P L : C} :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
@@ -908,6 +897,24 @@ noncomputable instance plist.semirecursive {A P L : C} [HasBinaryCoproducts C] [
       simp only [colimit.ι_desc, BinaryCofan.mk_pt,
         BinaryCofan.ι_app_right, BinaryCofan.mk_inr]}
 
+section Tail
+
+noncomputable def list.tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
+  list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (snd A (list A)))
+
+theorem list.nil_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
+  dsimp [tail,Semirecursive.split]
+  rw [← assoc]
+  dsimp [list.nil]
+  simp only [id_tensorHom, plist.nil_rec, coprod.inl_map, id_comp]
+
+theorem list.cons_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := sorry
+
+end Tail
+
 /-
 In the presence finite coproducts, `list α` is the
 initial algebra for the polynomial functor
@@ -921,7 +928,7 @@ satisfying
 
 section listAsEndofunctorAlgebra
 
-variable [HasBinaryCoproducts C]
+variable [MonoidalCategory C] [HasBinaryCoproducts C]
 
 /-- The endofunctor `X ↦ P ⨿ (A ⊗ X)` on the category `C`. -/
 noncomputable def coprodTensorEndofunctor (A P : C) : C ⥤ C where
