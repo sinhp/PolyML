@@ -663,10 +663,7 @@ def List.freeActionFunctor (A : Type u) : Type u ⥤ Act A where
 def ListAdjActForgetHomEquiv (A P : Type u₁) (Y : Act A) :
     ((List.freeActionFunctor A).obj P ⟶ Y) ≃ (P ⟶ Act.forget.obj Y) where
   toFun f := fun p => f.1 ([], p)
-  invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), by {
-    simp only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map]
-    rfl
-  }⟩
+  invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), rfl⟩
   left_inv f := by
     ext x
     rcases x with ⟨as, p⟩
