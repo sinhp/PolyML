@@ -660,10 +660,24 @@ def List.freeActionFunctor (A : Type u) : Type u ⥤ Act A where
 def ListAdjActForgetCoreHomEquiv (A P : Type u₁) (Y : Act A) :
     ((List.freeActionFunctor A).obj P ⟶ Y) ≃ (P ⟶ Act.forget.obj Y) where
   toFun f := fun p => f.1 ([], p)
-  invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), _⟩
+  invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), by {
+    simp only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map]
+    rfl
+  }⟩
   left_inv f := by
     ext x
-    sorry
+    rcases x with ⟨as, p⟩
+    revert p
+    induction as with
+    | nil =>
+        intro p
+        simp [List.foldr]
+    | cons a as ih =>
+        intro p
+        have h := congrArg (fun (g : (A × (List A × P)) → _) => g (a, (as, p))) f.h
+        simp only [List.foldr_cons]
+        simp_all only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map, types_comp_apply,
+          whiskerLeft_apply, List.freeActionFunctor_obj_str]
   right_inv f := by
     funext x
     rfl
@@ -673,10 +687,16 @@ instance : Recursive (Type u) where
     freeActionFunctor := List.freeActionFunctor A
     freeForgetAdj := Adjunction.mkOfHomEquiv {
       homEquiv := ListAdjActForgetCoreHomEquiv A
-      homEquiv_naturality_left_symm := sorry
-      homEquiv_naturality_right := sorry
+      homEquiv_naturality_left_symm := by {
+        intros X' X Y f g
+        dsimp [ListAdjActForgetCoreHomEquiv]
+        dsimp [List.freeActionFunctor]
+        ext a
+        simp only [comp_f, types_comp_apply]
+      }
+      homEquiv_naturality_right :=  fun {X} {Y Y'} f g ↦ rfl
+      }
     }
-  }
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
