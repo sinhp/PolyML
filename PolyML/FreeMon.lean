@@ -66,7 +66,18 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := rfl
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := fun f => sorry
+  left_inv := fun f => by {
+    dsimp
+    refine Mon_.Hom.ext' ?_
+    simp only [freeMon_obj_X]
+    dsimp [lift,foldl]
+    rw [← plist.rec_uniq]
+    · dsimp [list]
+      sorry
+    · simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc,
+      BraidedCategory.braiding_naturality_right_assoc]
+      sorry
+  }
   right_inv := fun f => sorry
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
