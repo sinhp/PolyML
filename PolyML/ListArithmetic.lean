@@ -579,7 +579,6 @@ theorem whiskerRight_nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ 
 
 --xs ++ [] = xs
 theorem whiskerLeft_nil_append {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
-  simp [append]
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
@@ -667,7 +666,18 @@ def ListAdjActForgetHomEquiv (A P : Type u₁) (Y : Act A) :
   invFun f := ⟨fun x => x.1.foldr (fun a b => Y.str (a, b)) (f x.2), rfl⟩
   left_inv f := by
     ext x
-    sorry
+    rcases x with ⟨as, p⟩
+    revert p
+    induction as with
+    | nil =>
+        intro p
+        simp [List.foldr]
+    | cons a as ih =>
+        intro p
+        have h := congrArg (fun (g : (A × (List A × P)) → _) => g (a, (as, p))) f.h
+        simp only [List.foldr_cons]
+        simp_all only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map, types_comp_apply,
+          whiskerLeft_apply, List.freeActionFunctor_obj_str]
   right_inv f := by
     funext x
     rfl
@@ -677,10 +687,16 @@ instance : Recursive (Type u) where
     freeActionFunctor := List.freeActionFunctor A
     freeForgetAdj := Adjunction.mkOfHomEquiv {
       homEquiv := ListAdjActForgetHomEquiv A
-      homEquiv_naturality_left_symm := sorry
-      homEquiv_naturality_right := sorry
+      homEquiv_naturality_left_symm := by {
+        intros X' X Y f g
+        dsimp [ListAdjActForgetHomEquiv]
+        dsimp [List.freeActionFunctor]
+        ext a
+        simp only [comp_f, types_comp_apply]
+      }
+      homEquiv_naturality_right :=  fun {X} {Y Y'} f g ↦ rfl
+      }
     }
-  }
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
@@ -703,26 +719,183 @@ class Semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] (A P L : C) whe
 /-- split is an isomorphism in a semirecursive category. -/
 instance [MonoidalCategory C] [HasBinaryCoproducts C] {A P L : C} [Semirecursive A P L]  :
     IsIso (Semirecursive.split : L ⟶ P ⨿ A ⊗ L) := by
-  sorry
+  constructor
+  use coprod.desc (Semirecursive.nil A) (Semirecursive.cons P)
+  constructor
+  · exact Semirecursive.split_nil_cons
+  · refine coprod.hom_ext ?_ ?_
+    · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
+      BinaryCofan.mk_inl, comp_id]
+      exact Semirecursive.nil_split
+    · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
+      BinaryCofan.mk_inr, comp_id]
+      exact Semirecursive.cons_split
 
-instance list.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] {A : C}:
+noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] {A : C}:
     Semirecursive A (𝟙_ C) (list A) where
   nil := list.nil
   cons := list.cons
-  split := sorry
-  nil_split := sorry
-  cons_split := sorry
-  split_nil_cons := sorry
+  split := by {
+    dsimp [list]
+    refine plist.rec ?_ ?_
+    · exact coprod.inl
+    · have i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+      have Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
+        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
+      exact Axecons ≫ i₂
+    }
+  nil_split := plist.nil_rec
+  cons_split := by {
+    dsimp
+    let Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
+        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
+    let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
+     coprod.desc plist.nil plist.cons
+    let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let i₁focons := coprod.desc i₁ (cons ≫ f)
+    let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
+    have : f ≫ econs = 𝟙 (list A) := by {
+      dsimp [list]
+      rw [← plist.rec_nil_cons_id]
+      rw [← plist.rec_uniq]
+      · dsimp [f, econs]
+        simp only [plist.nil_rec_assoc]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+      · rw [← assoc]
+        dsimp [f, econs, Axecons, i₂]
+        rw [plist.cons_rec]
+        simp only [assoc, whiskerLeft_comp]
+        simp only [id_tensorHom]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+    }
+    have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
+      dsimp [f, Axf, Axecons, i₂,list.cons]
+      simp only [id_tensorHom]
+      rw [plist.cons_rec]
+    }
+    change cons ≫ f = coprod.inr (C:=C)
+    rw [topSqComm]
+    dsimp [Axf,Axecons]
+    dsimp [econs] at this
+    dsimp [i₂]
+    rw [← assoc]
+    nth_rw 2 [← id_comp (f := coprod.inr)]
+    have hthis :
+    ((𝟙 A ⊗ₘ f ≫ coprod.desc plist.nil plist.cons)) =
+     ((𝟙 A ⊗ₘ f) ≫ (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons)) := by {
+      simp only [id_tensorHom, whiskerLeft_comp]
+     }
+    rw [← hthis, this]
+    simp only [id_tensorHom, id_comp]
+    exact whiskerLeft_id_assoc A (plist A (𝟙_ C)) coprod.inr
+  }
+  split_nil_cons := by {
+    let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
+    let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
+     coprod.desc plist.nil plist.cons
+    let Axecons := 𝟙 A ⊗ₘ econs
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    change f ≫ econs = 𝟙 (list A)
+    let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
+    dsimp [list]
+    rw [← plist.rec_nil_cons_id]
+    rw [← plist.rec_uniq]
+    · dsimp [f, econs]
+      simp only [plist.nil_rec_assoc]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+    · rw [← assoc]
+      dsimp [f]
+      rw [plist.cons_rec]
+      dsimp [econs, Axecons, econs, i₂]
+      simp only [assoc, whiskerLeft_comp]
+      simp only [id_tensorHom]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+    }
 
-instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
-    {A P L : C} :
+noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]    {A P L : C} :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
-  split := sorry
-  nil_split := sorry
-  cons_split := sorry
-  split_nil_cons := sorry
+  split := by {
+    apply plist.rec coprod.inl
+    · exact (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons) ≫
+         (coprod.inr (X := P) (Y := A ⊗ plist A P))}
+  nil_split := by {
+    simp only [id_tensorHom, nil_rec]
+  }
+  cons_split := by {
+    let Axecons : A ⊗ (P ⨿ A ⊗ plist A P) ⟶ A ⊗ plist A P :=
+        𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
+    let i₂ := coprod.inr (X := P) (Y := A ⊗ plist A P)
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let econs : (P ⨿ A ⊗ plist A P) ⟶ plist A P :=
+     coprod.desc plist.nil plist.cons
+    let i₁ := coprod.inl (X := P) (Y := A ⊗ plist A P)
+    let i₁focons := coprod.desc i₁ (cons ≫ f)
+    let Axf : A ⊗ plist A P ⟶ A ⊗ (P ⨿ A ⊗ plist A P) := 𝟙 A ⊗ₘ f
+    have : f ≫ econs = 𝟙 (plist A P) := by {
+      rw [← plist.rec_nil_cons_id, ← plist.rec_uniq]
+      · dsimp [f, econs]
+        simp only [plist.nil_rec_assoc]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+      · rw [← assoc]
+        dsimp [f, econs, Axecons, i₂]
+        rw [plist.cons_rec]
+        simp only [assoc, whiskerLeft_comp]
+        simp only [id_tensorHom]
+        simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+          BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+    }
+    have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
+      dsimp [f, Axf, Axecons, i₂, list.cons]
+      simp only [id_tensorHom]
+      rw [plist.cons_rec]
+    }
+    change cons ≫ f = coprod.inr (C:=C)
+    rw [topSqComm]
+    dsimp [Axf,Axecons]
+    dsimp [econs] at this
+    dsimp [i₂]
+    rw [← assoc]
+    nth_rw 2 [← id_comp (f := coprod.inr)]
+    have hthis :
+    ((𝟙 A ⊗ₘ f ≫ coprod.desc plist.nil plist.cons)) =
+     ((𝟙 A ⊗ₘ f) ≫ (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons)) := by {
+      simp only [id_tensorHom, whiskerLeft_comp]
+     }
+    rw [← hthis,this]
+    simp only [id_tensorHom, id_comp]
+    exact whiskerLeft_id_assoc A (plist A P) coprod.inr
+  }
+  split_nil_cons := by {
+    let i₂ := coprod.inr (X := P) (Y := A ⊗ plist A P)
+    let i₁ := coprod.inl (X := P) (Y := A ⊗ plist A P)
+    let econs : (P ⨿ A ⊗ plist A P) ⟶ plist A (P) :=
+     coprod.desc plist.nil plist.cons
+    let Axecons := 𝟙 A ⊗ₘ econs
+    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    change f ≫ econs = 𝟙 (plist A P)
+    let Axf : A ⊗ plist A P ⟶ A ⊗ (P ⨿ A ⊗ plist A P) := 𝟙 A ⊗ₘ f
+    rw [← plist.rec_nil_cons_id, ← plist.rec_uniq]
+    · dsimp [f, econs]
+      simp only [plist.nil_rec_assoc]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+    · rw [← assoc]
+      dsimp [f, econs, Axecons, econs, i₂]
+      rw [plist.cons_rec]
+      simp only [assoc, whiskerLeft_comp]
+      simp only [id_tensorHom]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+        BinaryCofan.ι_app_right, BinaryCofan.mk_inr]}
 
 section Tail
 
@@ -732,11 +905,13 @@ noncomputable def list.tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C
 
 theorem list.nil_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
     {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
-  sorry
+  dsimp [tail,Semirecursive.split]
+  rw [← assoc]
+  dsimp [list.nil]
+  simp only [id_tensorHom, plist.nil_rec, coprod.inl_map, id_comp]
 
 theorem list.cons_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
-    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
-  sorry
+    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := sorry
 
 end Tail
 
