@@ -226,11 +226,48 @@ theorem cons_len_succ :
   simp_all only [Iso.hom_inv_id_assoc]
 
 set_option diagnostics true
+
+--len (cons x xs) = succ (len xs)
+lemma len_cons [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] :
+  list.cons ≫ list.len = list.tail ≫ list.len (C:=C) ≫ succ := by {
+  dsimp [list.len', list.rec', list.cons]
+  rw [plist.rec_cons]
+  simp only [whiskerLeft_snd_assoc]
+  dsimp [list.tail, list]}
+
+set_option diagnostics true
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit h A ≫ one := by
   dsimp [len, singleton, one]
+  rw [assoc, assoc]
+  rw [cons_map]
+  rw [← assoc, ← assoc, ← assoc, ← assoc, ← assoc]
+  refine ?_ =≫ cons
+  dsimp [map]
+  rw [assoc, assoc]
+  have : (ρ_ A).inv ≫ A ◁ nil ≫ A ◁ plist.map (h.from A) ≫ h.from A ▷ list (𝟙_ C)=
+  (ρ_ A).inv ≫ (A ◁ nil ≫ A ◁ plist.map (h.from A)) ≫ h.from A ▷ list (𝟙_ C) := by {
+    simp only [assoc]
+  }
+  rw [this]
+  clear this
+  dsimp [nil]
+  rw [plist.whiskerLeft_nil_whiskerLeft_map]
+  refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
+  dsimp [MonoidalCategory.toUnit]
+  rw [← assoc]
+  rw [← id_comp (f:= (λ_ (list (𝟙_ C))).inv)]
+  rw [← assoc]
+  refine (Iso.eq_comp_inv (λ_ (list (𝟙_ C)))).mpr ?_
+  rw [← MonoidalCategory.rightUnitor_naturality]
+  simp only [assoc, whiskerRight_id, Iso.inv_hom_id, comp_id]
+  rw [← assoc]
+  refine (Iso.eq_comp_inv (λ_ (list (𝟙_ C)))).mp ?_
+  rw [assoc,assoc]
+  rw [MonoidalCategory.leftUnitor_inv_naturality]
   sorry
+
 
 end length
 
@@ -259,7 +296,7 @@ instance : Comon_Class (N : C) where
       nth_rw 2 [← comp_id (f:= (ρ_ N).inv)]
       rw [assoc]
       refine (ρ_ N).inv ≫= ?_
-
+      sorry
     · constructor
       · rw [tensorHom_def]
         simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
