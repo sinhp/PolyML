@@ -51,7 +51,7 @@ end IsNNO
 variable (C)
 
 /-- A natural number object in a monoidal category. -/
-class Arithmetic where
+class NNO where
   /-- The (left) natural number object. -/
   N : C
   /-- The zero morphism. -/
@@ -61,18 +61,18 @@ class Arithmetic where
   /-- The natural number object satisfies the properties of a left natural number object. -/
   [isNNO : IsNNO zero succ]
 
--- @[inherit_doc] notation "N_" => Arithmetic.N
+-- @[inherit_doc] notation "N_" => NNO.N
 
-def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [Arithmetic C] : C := Arithmetic.N
+def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
 
-namespace Arithmetic
+namespace NNO
 
 open IsNNO
 
-variable {C} [Arithmetic C] {A B : C}
+variable {C} [NNO C] {A B : C}
 
 instance : IsNNO (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
-  Arithmetic.isNNO
+  NNO.isNNO
 
 def prec (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B :=
   IsNNO.prec zero succ f g
@@ -164,13 +164,13 @@ theorem add_assoc [BraidedCategory C] :
 def iterCurried [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
-end Arithmetic
+end NNO
 
-open Arithmetic
+open NNO
 
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
-instance arithmeticOfListArithmetic [ListArithmetic C] : Arithmetic C where
+instance arithmeticOfListArithmetic [ListArithmetic C] : NNO C where
   N := list (𝟙_ C)
   zero := list.nil
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
@@ -230,9 +230,11 @@ end length
 
 end list
 
+namespace NNO
+
 section Comon
 
-variable {C} [Arithmetic C]
+variable {C} [NNO C]
 
 def duplicate : (N : C) ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
@@ -247,6 +249,11 @@ instance : Comon_Class (N : C) where
     sorry
   comul_counit := sorry
   comul_assoc := sorry
+
+def swap : (N : C) ⊗ N ⟶ N ⊗ N := prec ((λ_ _).inv ≫ (zero ▷ N)) (N ◁ succ)
+
+theorem swap_swap : swap ≫ swap = 𝟙 (N ⊗ N : C) := by
+  sorry
 
 end Comon
 
@@ -271,5 +278,7 @@ def pr := 2
 
 
 end PR
+
+end NNO
 
 end CategoryTheory
