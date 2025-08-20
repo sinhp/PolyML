@@ -913,8 +913,8 @@ theorem list.nil_tail {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := b
 theorem list.cons_tail {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
   sorry
 
-theorem list.singleton_tail
-    {A : C} : list.singleton ≫ list.tail (A:= A) = toUnit A ≫ list.nil ≫ coprod.inr := by
+theorem list.singleton_tail {A : C} :
+    list.singleton ≫ list.tail (A:= A) = toUnit A ≫ list.nil ≫ coprod.inr := by
   sorry
 
 /-- The object of nonempty lists. -/
