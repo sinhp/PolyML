@@ -160,6 +160,7 @@ theorem add_assoc [BraidedCategory C] :
   dsimp [add]
   sorry
 
+/-- The monoid structure on the natural number object. -/
 instance monClass [BraidedCategory C] : Mon_Class (N : C) where
   one := zero
   mul := add
@@ -248,13 +249,14 @@ variable {C} [MonoidalCategory C] [NNO C]
 def duplicate : (N : C) ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
 
-variable (h : IsTerminal (𝟙_ C))
+def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
+/-- The comonoid structure on the natural number object. -/
 instance : Comon_Class (N : C) where
-  counit := toUnit h N
+  counit := delete
   comul := duplicate
   counit_comul := by
-    simp only [duplicate, MonoidalCategory.toUnit]
+    simp only [duplicate, delete]
     sorry
   comul_counit := sorry
   comul_assoc := sorry
