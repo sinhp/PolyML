@@ -238,13 +238,13 @@ theorem cons_len_succ :
 
 set_option diagnostics true
 
---len (cons x xs) = succ (len xs)
-lemma len_cons [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] :
-  list.cons ≫ list.len = list.tail ≫ list.len (C:=C) ≫ succ := by {
-  dsimp [list.len', list.rec', list.cons]
-  rw [plist.rec_cons]
-  simp only [whiskerLeft_snd_assoc]
-  dsimp [list.tail, list]}
+-- --len (cons x xs) = succ (len xs)
+-- lemma len_cons [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] :
+--   list.cons ≫ list.len = list.tail ≫ list.len (C:=C) ≫ succ := by {
+--   dsimp [list.len', list.rec', list.cons]
+--   rw [plist.rec_cons]
+--   simp only [whiskerLeft_snd_assoc]
+--   dsimp [list.tail, list]}
 
 set_option diagnostics true
 -- len ([x]) = 1

@@ -34,18 +34,36 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 #check FinEnum
 
+#check CategoryTheory.Limits.isInitialOfIsPullbackOfCoproduct
 
 noncomputable def fin (n : 𝟙_ C ⟶ N) := pullback n (add ≫ succ)
 
-def isInitialFinZero : IsInitial (fin zero : C) := by sorry
+noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
+  -- fin zero is the pullback of zero : 𝟙_ C ⟶ N and add ≫ succ : N ⟶ N
+  -- Since zero is initial in NNO, the pullback is initial
+  letI : (Y : C) → Unique (fin zero ⟶ Y) := by {
+    intros Y
+    sorry
+  }
+  exact IsInitial.ofUnique (C:=C) (X:=fin zero)
 
-def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C := sorry
+noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
+  (initialIsoIsInitial isInitialFinZero).symm
 
-def finSuccIso [ HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
-  sorry
+def finSuccIso [ HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n where
+  hom := sorry
+  inv := sorry
+  hom_inv_id := sorry
+  inv_hom_id := sorry
 
-def isTerminalFinOne : IsTerminal (fin one : C) := by sorry
-
+noncomputable def isTerminalFinOne : IsTerminal (fin NNO.one : C) := by {
+  refine IsZero.isTerminal ?_
+  constructor
+  · intros Y
+    refine IsZero.unique_to ?_ Y
+    sorry
+  · sorry
+}
 
 #check ConcreteCategory
 
