@@ -127,41 +127,45 @@ theorem uniq {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
   assumption
 
 /-- The number one. -/
-def one : 𝟙_ C ⟶ N :=
-  zero ≫ succ
+def one : 𝟙_ C ⟶ N := zero ≫ succ
 
 /-- Addition of natural numbers. -/
-def add : (N : C) ⊗ N ⟶ N :=
-  prec (𝟙 _) (succ)
+def add : (N : C) ⊗ N ⟶ N := iter succ
 
 @[reassoc (attr := simp)]
-theorem zero_add :
-    zero ▷ (N : C) ≫ add = (λ_ N).hom := by
+theorem zero_add : zero ▷ (N : C) ≫ add = (λ_ N).hom := by
   simp [add]
 
-theorem succ_add :
-    succ ▷ (N : C) ≫ add = add ≫ succ := by
-  simp [add, succ_prec]
+theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
+  simp [add, succ_iter]
 
-theorem one_add_zero :
-    (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
+theorem one_add_zero : (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
   simp [add, one]
   sorry
 
-theorem zero_add_one :
-    (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
+theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
   sorry
 
 -- commutativity of addition
-theorem add_comm [BraidedCategory C] :
-    (β_ (N : C) N).hom ≫ add = add := by
+theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
   sorry
+
+theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom := by
+  rw [← add_comm]
+  aesop
 
 -- associativity of addition
 theorem add_assoc [BraidedCategory C] :
     add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
   dsimp [add]
   sorry
+
+instance monClass [BraidedCategory C] : Mon_Class (N : C) where
+  one := zero
+  mul := add
+  one_mul := zero_add
+  mul_one := add_zero
+  mul_assoc := add_assoc
 
 def iterCurried [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
