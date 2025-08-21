@@ -167,6 +167,9 @@ instance monClass [BraidedCategory C] : Mon_Class (N : C) where
   mul_one := add_zero
   mul_assoc := add_assoc
 
+instance [BraidedCategory C] : IsCommMon (N : C) where
+  mul_comm := add_comm
+
 def iterCurried [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
