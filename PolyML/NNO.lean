@@ -129,6 +129,45 @@ theorem uniq {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
 /-- The number one. -/
 def one : 𝟙_ C ⟶ N := zero ≫ succ
 
+section Comon
+
+variable [MonoidalCategory C] [NNO C]
+
+def duplicate : (N : C) ⟶ N ⊗ N :=
+  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
+
+def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
+
+/-- The comonoid structure on the natural number object. -/
+instance : Comon_Class (N : C) where
+  counit := delete
+  comul := duplicate
+  counit_comul := by
+    simp only [duplicate, delete]
+    sorry
+  comul_counit := sorry
+  comul_assoc := sorry
+
+/-- The twist map induced by the universal property of the natural number object. -/
+def twist (A : C) : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
+
+theorem twist_swap : twist N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
+  sorry
+
+theorem twist_braiding [BraidedCategory C] {A : C} :
+    twist A = (β_ N A).hom := by
+  sorry
+
+theorem twist_is_iso [A : C] [BraidedCategory C] :
+    IsIso (twist A) := by
+  apply IsIso.of_iso
+  apply twist_braiding
+
+theorem twist_twist : twist N ≫ twist N = 𝟙 (N ⊗ N : C) := by
+  sorry
+
+end Comon
+
 /-- Addition of natural numbers. -/
 def add : (N : C) ⊗ N ⟶ N := iter succ
 
@@ -241,32 +280,6 @@ end length
 end list
 
 namespace NNO
-
-section Comon
-
-variable {C} [MonoidalCategory C] [NNO C]
-
-def duplicate : (N : C) ⟶ N ⊗ N :=
-  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
-
-def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
-
-/-- The comonoid structure on the natural number object. -/
-instance : Comon_Class (N : C) where
-  counit := delete
-  comul := duplicate
-  counit_comul := by
-    simp only [duplicate, delete]
-    sorry
-  comul_counit := sorry
-  comul_assoc := sorry
-
-def swap : (N : C) ⊗ N ⟶ N ⊗ N := prec ((λ_ _).inv ≫ (zero ▷ N)) (N ◁ succ)
-
-theorem swap_swap : swap ≫ swap = 𝟙 (N ⊗ N : C) := by
-  sorry
-
-end Comon
 
 section const
 
