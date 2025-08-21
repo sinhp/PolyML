@@ -158,10 +158,8 @@ theorem twist_braiding [BraidedCategory C] {A : C} :
     twist A = (β_ N A).hom := by
   sorry
 
-theorem twist_is_iso [A : C] [BraidedCategory C] :
-    IsIso (twist A) := by
-  apply IsIso.of_iso
-  apply twist_braiding
+theorem twist_is_iso {A : C} [BraidedCategory C] : IsIso (twist A) := by
+  sorry
 
 theorem twist_twist : twist N ≫ twist N = 𝟙 (N ⊗ N : C) := by
   sorry
