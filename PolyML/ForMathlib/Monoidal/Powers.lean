@@ -32,7 +32,6 @@ def iteratedTensor : Nat → C → C
   | 0, A => A
   | n + 1, A =>  A ⊗ iteratedTensor n A
 
-
 def pow : ℕ → C → C := fun n  A => if n = 0 then 𝟙_ C else iteratedTensor (n - 1) A
 
 scoped notation  A "^[" n "]" => pow n A
