@@ -107,7 +107,7 @@ def urec (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
 @[reassoc (attr := simp)]
 theorem zero_iter {f : A ⟶ A} :
     zero ▷ A ≫ iter f = (λ_ A).hom := by
-  simp [iter]
+  simp only [iter, zero_prec, comp_id]
 
 theorem succ_iter {f : A ⟶ A} :
     succ ▷ A ≫ iter f = iter f ≫ f := by
@@ -139,19 +139,32 @@ theorem zero_add : zero ▷ (N : C) ≫ add = (λ_ N).hom := by
 theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
   simp [add, succ_iter]
 
-#check leftUnitor_naturality
-#check rightUnitor_naturality
-
-#moogle ""
-
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  simp [add]
-  rw [tensorHom_def_assoc]
-  sorry
+  dsimp [add]
+  rw [tensorHom_def, assoc]
+  dsimp [iter]
+  rw [prec_precompose]
+  refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
+  dsimp [one]
+  rw [comp_whiskerRight, assoc, succ_prec]
+  have : (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ ≫ succ=
+  (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ) ≫ succ := by {
+    simp only [whiskerRight_id, comp_id, assoc]}
+  rw [this]
+  clear this
+  rw [zero_prec]
+  simp only [comp_id, assoc, Iso.inv_hom_id_assoc]
 
-theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  sorry
+theorem zero_add_one : (zero ⊗ₘ one) ≫ add =
+    (λ_ (𝟙_ C)).hom ≫ one := by
+  simp [add]
+  rw [tensorHom_def, assoc]
+  dsimp [one]
+  rw [whiskerLeft_comp, assoc]
+  dsimp [iter]
+  rw [prec_precompose, prec_precompose, zero_prec]
+  simp only [comp_id]
 
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
@@ -164,7 +177,6 @@ theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom :=
 -- associativity of addition
 theorem add_assoc [BraidedCategory C] :
     add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
-  dsimp [add]
   sorry
 
 /-- The monoid structure on the natural number object. -/
@@ -194,8 +206,7 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   isNNO := {
     prec e a := list.prec e ((λ_ _).hom ≫ a)
     zero_prec := by {
-      intros A B f g
-      rw [list.nil_prec]}
+      intros A B f g; rw [list.nil_prec]}
     succ_prec {A B f g} := by
       rw [comp_whiskerRight, assoc]
       refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
@@ -251,17 +262,7 @@ theorem cons_len_succ :
   congr 1
   simp_all only [Iso.hom_inv_id_assoc]
 
-set_option diagnostics true
-
--- --len (cons x xs) = succ (len xs)
--- lemma len_cons [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C] :
---   list.cons ≫ list.len = list.tail ≫ list.len (C:=C) ≫ succ := by {
---   dsimp [list.len', list.rec', list.cons]
---   rw [plist.rec_cons]
---   simp only [whiskerLeft_snd_assoc]
---   dsimp [list.tail, list]}
-
-set_option diagnostics true
+--set_option diagnostics true
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit h A ≫ one := by
@@ -270,32 +271,24 @@ theorem singleton_len_one :
   rw [cons_map]
   rw [← assoc, ← assoc, ← assoc, ← assoc, ← assoc]
   refine ?_ =≫ cons
-  dsimp [map]
-  rw [assoc, assoc]
-  have : (ρ_ A).inv ≫ A ◁ nil ≫
-    A ◁ plist.map (h.from A) ≫ h.from A ▷ list (𝟙_ C)=
-  (ρ_ A).inv ≫ (A ◁ nil ≫
-    A ◁ plist.map (h.from A)) ≫ h.from A ▷ list (𝟙_ C) := by {
-    simp only [assoc]
-  }
+  dsimp [map,plist.map]
+  simp only [assoc]
+  have :  (ρ_ A).inv ≫ A ◁ nil ≫ A ◁ plist.rec plist.nil
+     (h.from A ▷ plist (𝟙_ C) (𝟙_ C) ≫ plist.cons) ≫ h.from A ▷ list (𝟙_ C)=
+   (ρ_ A).inv ≫ (A ◁ nil ≫ A ◁ plist.rec plist.nil (h.from A ▷ plist (𝟙_ C) (𝟙_ C) ≫ plist.cons))
+   ≫ (h.from A ▷ list (𝟙_ C)) := by {simp only [assoc]}
   rw [this]
   clear this
   dsimp [nil]
-  rw [plist.whiskerLeft_nil_whiskerLeft_map]
-  refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
+  simp only [plist.whiskerLeft_nil_whiskerLeft_rec]
   dsimp [MonoidalCategory.toUnit]
   rw [← assoc]
-  rw [← id_comp (f:= (λ_ (list (𝟙_ C))).inv)]
   rw [← assoc]
-  refine (Iso.eq_comp_inv (λ_ (list (𝟙_ C)))).mpr ?_
-  rw [← MonoidalCategory.rightUnitor_naturality]
-  simp only [assoc, whiskerRight_id, Iso.inv_hom_id, comp_id]
-  rw [← assoc]
-  refine (Iso.eq_comp_inv (λ_ (list (𝟙_ C)))).mp ?_
-  rw [assoc,assoc]
-  rw [MonoidalCategory.leftUnitor_inv_naturality]
+  rw [leftUnitor_inv_naturality]
+  simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.inv_hom_id_assoc]
+  refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
+  rw [← rightUnitor_naturality]
   sorry
-
 
 end length
 
@@ -316,13 +309,7 @@ def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 instance : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
-  counit_comul := by
-    simp only [duplicate, delete]
-    simp only [comp_whiskerRight]
-    dsimp [iter]
-    refine Iso.inv_ext' ?_
-    rw [← assoc]
-
+  counit_comul := sorry
   comul_counit := by {
     simp only [duplicate]
     sorry
