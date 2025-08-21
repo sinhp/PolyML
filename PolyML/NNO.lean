@@ -18,17 +18,19 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 open Endofunctor Algebra
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+variable {C : Type u} [Category.{v} C]
 
 -- SH: prec for "parameterized" recursion.
-class IsNNO {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
+class IsNNO [MonoidalCategory C] {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
   prec {A B : C} (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B
   zero_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (zero ▷ A) ≫ prec f g = (λ_ A).hom ≫ f
   succ_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (succ ▷ A) ≫ prec f g = prec f g ≫ g
-  prec_uniq {A B : C} {f : A ⟶ B} {g : B ⟶ B} : ∀ r : N ⊗ A ⟶ B,
-    (zero ▷ A) ≫ r = (λ_ A).hom ≫ f ∧ (succ ▷ A) ≫ r = r ≫ g → r = prec f g
+  prec_uniq {A B : C} {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
+  (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ: (succ ▷ A) ≫ r = r ≫ g) : r = prec f g
 
 namespace IsNNO
+
+variable [MonoidalCategory C]
 
 variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsNNO zero succ]
 
@@ -51,7 +53,7 @@ end IsNNO
 variable (C)
 
 /-- A natural number object in a monoidal category. -/
-class Arithmetic where
+class NNO [MonoidalCategory C] where
   /-- The (left) natural number object. -/
   N : C
   /-- The zero morphism. -/
@@ -61,18 +63,18 @@ class Arithmetic where
   /-- The natural number object satisfies the properties of a left natural number object. -/
   [isNNO : IsNNO zero succ]
 
--- @[inherit_doc] notation "N_" => Arithmetic.N
+-- @[inherit_doc] notation "N_" => NNO.N
 
-def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [Arithmetic C] : C := Arithmetic.N
+def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
 
-namespace Arithmetic
+namespace NNO
 
 open IsNNO
 
-variable {C} [Arithmetic C] {A B : C}
+variable {C} [MonoidalCategory C] [NNO C] {A B : C}
 
 instance : IsNNO (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
-  Arithmetic.isNNO
+  NNO.isNNO
 
 def prec (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B :=
   IsNNO.prec zero succ f g
@@ -89,7 +91,6 @@ theorem succ_prec {f : A ⟶ B} {g : B ⟶ B} :
 theorem prec_precompose {A'} {u : A' ⟶ A} {f : A ⟶ B} {g : B ⟶ B} :
     N ◁ u ≫ prec f g = prec (u ≫ f) g := by
   apply prec_uniq
-  constructor
   all_goals rw [← assoc, ← whisker_exchange, assoc]
   · rw [zero_prec]
     aesop
@@ -114,32 +115,29 @@ theorem succ_iter {f : A ⟶ A} :
 
 /-- `prec` can be reconstructed from `iter`. -/
 @[reassoc (attr := simp)]
-theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} :
-    (N ◁ f) ≫ iter g = prec f g := by
-  apply prec_uniq
-  constructor
-  all_goals rw [← assoc, ← whisker_exchange, assoc]
-  · rw [zero_iter]
-    aesop
-  · rw [succ_iter]
-    aesop
+theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g := by
+  simpa using prec_precompose (u:= f) (f:= 𝟙 B) (g:= g)
+
+theorem uniq {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
+    (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ : (succ ▷ A) ≫ r = r ≫ g) :
+    r = (N ◁ f) ≫ iter g := by
+  rw [iter_prec]
+  apply IsNNO.prec_uniq
+  all_goals
+  assumption
 
 /-- The number one. -/
-def one : 𝟙_ C ⟶ N :=
-  zero ≫ succ
+def one : 𝟙_ C ⟶ N := zero ≫ succ
 
 /-- Addition of natural numbers. -/
-def add : (N : C) ⊗ N ⟶ N :=
-  prec (𝟙 _) (succ)
+def add : (N : C) ⊗ N ⟶ N := iter succ
 
 @[reassoc (attr := simp)]
-theorem zero_add :
-    zero ▷ (N : C) ≫ add = (λ_ N).hom := by
+theorem zero_add : zero ▷ (N : C) ≫ add = (λ_ N).hom := by
   simp [add]
 
-theorem succ_add :
-    succ ▷ (N : C) ≫ add = add ≫ succ := by
-  simp [add, succ_prec]
+theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
+  simp [add, succ_iter]
 
 #check leftUnitor_naturality
 #check rightUnitor_naturality
@@ -152,14 +150,16 @@ theorem one_add_zero :
   rw [tensorHom_def_assoc]
   sorry
 
-theorem zero_add_one :
-    (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
+theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
   sorry
 
 -- commutativity of addition
-theorem add_comm [BraidedCategory C] :
-    (β_ (N : C) N).hom ≫ add = add := by
+theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
   sorry
+
+theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom := by
+  rw [← add_comm]
+  aesop
 
 -- associativity of addition
 theorem add_assoc [BraidedCategory C] :
@@ -167,16 +167,27 @@ theorem add_assoc [BraidedCategory C] :
   dsimp [add]
   sorry
 
+/-- The monoid structure on the natural number object. -/
+instance monClass [BraidedCategory C] : Mon_Class (N : C) where
+  one := zero
+  mul := add
+  one_mul := zero_add
+  mul_one := add_zero
+  mul_assoc := add_assoc
+
+instance [BraidedCategory C] : IsCommMon (N : C) where
+  mul_comm := add_comm
+
 def iterCurried [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
-end Arithmetic
+end NNO
 
-open Arithmetic
+open NNO
 
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
-instance arithmeticOfListArithmetic [ListArithmetic C] : Arithmetic C where
+instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NNO C where
   N := list (𝟙_ C)
   zero := list.nil
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
@@ -192,7 +203,7 @@ instance arithmeticOfListArithmetic [ListArithmetic C] : Arithmetic C where
 
 namespace list
 
-variable {C} [ListArithmetic C]
+variable {C} [MonoidalCategory C] [ListArithmetic C]
 
 /-- The length of a list. -/
 def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N :=
@@ -273,38 +284,34 @@ end length
 
 end list
 
+namespace NNO
+
 section Comon
 
-variable {C} [Arithmetic C]
+variable {C} [MonoidalCategory C] [NNO C]
 
 def duplicate : (N : C) ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
 
-variable (h : IsTerminal (𝟙_ C))
+def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
+/-- The comonoid structure on the natural number object. -/
 instance : Comon_Class (N : C) where
-  counit := toUnit h N
+  counit := delete
   comul := duplicate
   counit_comul := by
-    simp only [duplicate, MonoidalCategory.toUnit]
+    simp only [duplicate, delete]
     sorry
   comul_counit := by {
-    simp only [duplicate, MonoidalCategory.toUnit]
-    dsimp [prec]
-    rw [← IsNNO.prec_uniq]
-    · change  ((ρ_ N).inv ≫ N ◁ zero) ≫ N ◁ h.from N = (ρ_ N).inv
-      nth_rw 2 [← comp_id (f:= (ρ_ N).inv)]
-      rw [assoc]
-      refine (ρ_ N).inv ≫= ?_
-      sorry
-    · constructor
-      · rw [tensorHom_def]
-        simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
-      · rw [tensorHom_def]
-        simp only [whiskerRight_id, assoc]
-        sorry
+    simp only [duplicate]
+    sorry
   }
   comul_assoc := sorry
+
+def swap : (N : C) ⊗ N ⟶ N ⊗ N := prec ((λ_ _).inv ≫ (zero ▷ N)) (N ◁ succ)
+
+theorem swap_swap : swap ≫ swap = 𝟙 (N ⊗ N : C) := by
+  sorry
 
 end Comon
 
@@ -312,10 +319,10 @@ section const
 
 open ConstantMorphism
 
-variable {C} [ListArithmetic C] (h : IsTerminal (𝟙_ C))
+variable {C} [MonoidalCategory C] [ListArithmetic C] (h : IsTerminal (𝟙_ C))
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
-theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) :
+theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) {n} :
     r = (const h N n) ▷ A ≫ r := by
   sorry
 
@@ -324,10 +331,18 @@ end const
 
 namespace PR
 
+variable {C} [CartesianMonoidalCategory C] [ListArithmetic C]
+
+
+
+
+
 /-- The general primitive recursion schema. -/
 def pr := 2
 
 
 end PR
+
+end NNO
 
 end CategoryTheory

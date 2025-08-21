@@ -899,19 +899,32 @@ noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoprod
 
 section Tail
 
-noncomputable def list.tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
-    {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
+variable [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+
+noncomputable def list.tail {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
   list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (snd A (list A)))
 
-theorem list.nil_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
-    {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
+theorem list.nil_tail {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
   dsimp [tail,Semirecursive.split]
   rw [← assoc]
   dsimp [list.nil]
   simp only [id_tensorHom, plist.nil_rec, coprod.inl_map, id_comp]
 
-theorem list.cons_tail [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
-    {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := sorry
+theorem list.cons_tail {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
+  sorry
+
+theorem list.singleton_tail {A : C} :
+    list.singleton ≫ list.tail (A:= A) = toUnit A ≫ list.nil ≫ coprod.inr := by
+  sorry
+
+/-- The object of nonempty lists. -/
+noncomputable def nelist [HasPullbacks C] (A : C) := pullback (list.tail (A:= A)) coprod.inr
+
+noncomputable def nelistToList [HasPullbacks C] (A : C) : nelist A ⟶ list A :=
+  pullback.snd _ _
+
+theorem isMono_nelistToList [HasPullbacks C] (A : C) : Mono (nelistToList A) := by
+  sorry
 
 end Tail
 
