@@ -554,7 +554,7 @@ theorem nil_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
 
 theorem cons_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prec init action = (α_ _ _ _).hom ≫ (A ◁ list.prec init action) ≫ action := by
-  dsimp [prec]
+  dsimp [prec,cons]
   sorry
 
 @[simp]
