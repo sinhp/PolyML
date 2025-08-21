@@ -7,6 +7,7 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.Comon_
 import PolyML.ForMathlib.ConstantMorphism
 import PolyML.ListArithmetic
+import PolyML.ForMathlib.Monoidal.Powers
 
 universe u v
 
@@ -148,21 +149,30 @@ instance : Comon_Class (N : C) where
   comul_counit := sorry
   comul_assoc := sorry
 
+def twist₀ : N ^ 0 ⊗ A ⟶ A ⊗ N ^ 0 := (λ_ A).hom ≫ (ρ_ A).inv
+
 /-- The twist map induced by the universal property of the natural number object. -/
-def twist (A : C) : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
+def twist₁ (A : C) : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
 
-theorem twist_swap : twist N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
+theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
 
-theorem twist_braiding [BraidedCategory C] {A : C} :
-    twist A = (β_ N A).hom := by
+theorem twist₁_braiding [BraidedCategory C] {A : C} :
+    twist₁ A = (β_ N A).hom := by
   sorry
 
-theorem twist_is_iso {A : C} [BraidedCategory C] : IsIso (twist A) := by
+theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
   sorry
 
-theorem twist_twist : twist N ≫ twist N = 𝟙 (N ⊗ N : C) := by
+theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
+
+
+def twist : ℕ → ((k : ℕ) × (N^k ⊗ A ⟶ A ⊗ N^k))
+  | 0 => ⟨(0 : ℕ), _⟩
+  | n + 1 => let (k, f) := twist n; (k + 1, f ≫ twist₁ A)
+
+
 
 end Comon
 
