@@ -42,7 +42,7 @@ theorem congr_arg {A B : C} {f f' : A ⟶ B} {g g' : B ⟶ B}
 
 /-- Any two natural number objects in a monoidal category are isomorphic. -/
 def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
-    [IsNNO zero succ] [IsNNO zero' succ'] : N ≅ N' where
+  [IsNNO zero succ] [IsNNO zero' succ'] : N ≅ N' where
   hom := (ρ_ N).inv ≫ prec zero succ zero' succ'
   inv := (ρ_ N').inv ≫ prec zero' succ' zero succ
   hom_inv_id := sorry
@@ -309,11 +309,15 @@ def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 instance : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
-  counit_comul := sorry
-  comul_counit := by {
-    simp only [duplicate]
+  counit_comul := by {
+    dsimp [duplicate,delete]
+    simp only [comp_whiskerRight, assoc]
     sorry
   }
+  comul_counit := by {
+    simp only [duplicate]
+    dsimp [delete]
+    sorry}
   comul_assoc := sorry
 
 def swap : (N : C) ⊗ N ⟶ N ⊗ N := prec ((λ_ _).inv ≫ (zero ▷ N)) (N ◁ succ)
