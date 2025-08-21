@@ -40,7 +40,7 @@ scoped notation  A "^[" n "]" => pow n A
 
 -- def powZeroIso (A : C) : A ^ 0 ≅ 𝟙_ C := Iso.refl _
 
-def powZeroIso (A : C) : A ^[0] ≅ 𝟙_ C := Iso.refl _
+def powZeroIso (A : C) : A^[0] ≅ 𝟙_ C := Iso.refl _
 
 def powSuccEq (A : C) (n : ℕ) (h : 0 < n) : A ^[(n + 1)] = A ⊗ A ^[n] := by
   dsimp [pow]
@@ -51,14 +51,19 @@ def powSuccEq (A : C) (n : ℕ) (h : 0 < n) : A ^[(n + 1)] = A ⊗ A ^[n] := by
   rfl
   --rw [Nat.sub_succ, if_pos (Nat.succ_ne_zero _), iteratedTensor]
 
-def powSuccIso (A : C) (n : ℕ) (h : 0 < n := by aesop) : A ^[(n + 1)] ≅ A ⊗ A ^[n] :=
+def powSuccIso' (A : C) (n : ℕ) (h : 0 < n := by aesop) : A ^[(n + 1)] ≅ A ⊗ A ^[n] :=
   eqToIso <| powSuccEq A n h
 
-def powOneIso (A : C) : A ^[1] ≅ A := Iso.refl _
+def powSuccIso (A : C) (n : ℕ)  : A ^[(n + 1)] ≅ A ⊗ A^[n] := by
+  match n with
+  | Nat.zero => exact (ρ_ A).symm
+  | Nat.succ k => exact powSuccIso' A (k + 1)
 
-def powTwoIso (A : C) : A ^[2] ≅ A ⊗ A := Iso.refl _ --whiskerRightIso (powOneIso A) A
+def powOneIso (A : C) : A^[1] ≅ A := Iso.refl _
 
-def powThreeIso (A : C) : A ^[3] ≅ A ⊗ A ⊗ A := Iso.refl _ --whiskerRightIso (powTwoIso A) A
+def powTwoIso (A : C) : A^[2] ≅ A ⊗ A := Iso.refl _ --whiskerRightIso (powOneIso A) A
+
+def powThreeIso (A : C) : A^[3] ≅ A ⊗ A ⊗ A := Iso.refl _ --whiskerRightIso (powTwoIso A) A
 
 
 end MonoidalCategory

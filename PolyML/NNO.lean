@@ -149,10 +149,15 @@ instance : Comon_Class (N : C) where
   comul_counit := sorry
   comul_assoc := sorry
 
-def twist₀ : N ^ 0 ⊗ A ⟶ A ⊗ N ^ 0 := (λ_ A).hom ≫ (ρ_ A).inv
+variable (A)
+
+def twist₀ : N^[0] ⊗ A ⟶ A ⊗ N^[0] := (λ_ A).hom ≫ (ρ_ A).inv
 
 /-- The twist map induced by the universal property of the natural number object. -/
-def twist₁ (A : C) : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
+def twist₁ : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
+
+theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
+  sorry
 
 theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
@@ -167,12 +172,15 @@ theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
 theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
 
+def Twist : ℕ → Type v := fun k => (N^[k] ⊗ A ⟶ A ⊗ N^[k])
 
-def twist : ℕ → ((k : ℕ) × (N^k ⊗ A ⟶ A ⊗ N^k))
-  | 0 => ⟨(0 : ℕ), _⟩
-  | n + 1 => let (k, f) := twist n; (k + 1, f ≫ twist₁ A)
+def twist : (k : ℕ) → Twist A k
+  | 0 => twist₀ A
+  | n + 1 => (powSuccIso N n).hom ▷ A ≫ (α_ N _ A).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
+   (twist₁ A ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (A ◁ (powSuccIso N n).inv)
 
-
+theorem twist_one : twist A 1 = twist₁ A := by
+  sorry
 
 end Comon
 
