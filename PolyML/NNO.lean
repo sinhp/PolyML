@@ -193,12 +193,27 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
   isNNO := {
     prec e a := list.prec e ((λ_ _).hom ≫ a)
-    zero_prec := by sorry -- list.nil_prec
-    succ_prec {A B f g}:= by
+    zero_prec := by {
+      intros A B f g
+      rw [list.nil_prec]}
+    succ_prec {A B f g} := by
       rw [comp_whiskerRight, assoc]
+      refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
       rw [list.cons_prec]
-      sorry
-    prec_uniq := by sorry --simp [list.prec_uniq]
+      rw [← assoc, ← assoc, ← assoc]
+      refine ?_ =≫ g
+      simp only [id_whiskerLeft, assoc,
+        Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
+        IsIso.inv_comp, IsIso.Iso.inv_inv]
+    prec_uniq := by
+     intros A B f g r hnil hcons
+     apply list.prec_uniq r hnil
+     simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
+     refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
+     simp_all only [ id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+     rw [← assoc]
+     refine (Iso.inv_comp_eq (λ_ (list (𝟙_ C) ⊗ A))).mp ?_
+     simpa only [assoc]
   }
 
 namespace list
@@ -257,8 +272,10 @@ theorem singleton_len_one :
   refine ?_ =≫ cons
   dsimp [map]
   rw [assoc, assoc]
-  have : (ρ_ A).inv ≫ A ◁ nil ≫ A ◁ plist.map (h.from A) ≫ h.from A ▷ list (𝟙_ C)=
-  (ρ_ A).inv ≫ (A ◁ nil ≫ A ◁ plist.map (h.from A)) ≫ h.from A ▷ list (𝟙_ C) := by {
+  have : (ρ_ A).inv ≫ A ◁ nil ≫
+    A ◁ plist.map (h.from A) ≫ h.from A ▷ list (𝟙_ C)=
+  (ρ_ A).inv ≫ (A ◁ nil ≫
+    A ◁ plist.map (h.from A)) ≫ h.from A ▷ list (𝟙_ C) := by {
     simp only [assoc]
   }
   rw [this]
@@ -301,7 +318,11 @@ instance : Comon_Class (N : C) where
   comul := duplicate
   counit_comul := by
     simp only [duplicate, delete]
-    sorry
+    simp only [comp_whiskerRight]
+    dsimp [iter]
+    refine Iso.inv_ext' ?_
+    rw [← assoc]
+
   comul_counit := by {
     simp only [duplicate]
     sorry
