@@ -18,17 +18,19 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 open Endofunctor Algebra
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+variable {C : Type u} [Category.{v} C]
 
 -- SH: prec for "parameterized" recursion.
-class IsNNO {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
+class IsNNO [MonoidalCategory C] {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
   prec {A B : C} (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B
   zero_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (zero ▷ A) ≫ prec f g = (λ_ A).hom ≫ f
   succ_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (succ ▷ A) ≫ prec f g = prec f g ≫ g
-  prec_uniq {A B : C} {f : A ⟶ B} {g : B ⟶ B} : ∀ r : N ⊗ A ⟶ B,
-    (zero ▷ A) ≫ r = (λ_ A).hom ≫ f ∧ (succ ▷ A) ≫ r = r ≫ g → r = prec f g
+  prec_uniq {A B : C} {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
+  (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ: (succ ▷ A) ≫ r = r ≫ g) : r = prec f g
 
 namespace IsNNO
+
+variable [MonoidalCategory C]
 
 variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsNNO zero succ]
 
@@ -51,7 +53,7 @@ end IsNNO
 variable (C)
 
 /-- A natural number object in a monoidal category. -/
-class NNO where
+class NNO [MonoidalCategory C] where
   /-- The (left) natural number object. -/
   N : C
   /-- The zero morphism. -/
@@ -69,7 +71,7 @@ namespace NNO
 
 open IsNNO
 
-variable {C} [NNO C] {A B : C}
+variable {C} [MonoidalCategory C] [NNO C] {A B : C}
 
 instance : IsNNO (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
   NNO.isNNO
@@ -89,7 +91,6 @@ theorem succ_prec {f : A ⟶ B} {g : B ⟶ B} :
 theorem prec_precompose {A'} {u : A' ⟶ A} {f : A ⟶ B} {g : B ⟶ B} :
     N ◁ u ≫ prec f g = prec (u ≫ f) g := by
   apply prec_uniq
-  constructor
   all_goals rw [← assoc, ← whisker_exchange, assoc]
   · rw [zero_prec]
     aesop
@@ -114,15 +115,16 @@ theorem succ_iter {f : A ⟶ A} :
 
 /-- `prec` can be reconstructed from `iter`. -/
 @[reassoc (attr := simp)]
-theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} :
-    (N ◁ f) ≫ iter g = prec f g := by
-  apply prec_uniq
-  constructor
-  all_goals rw [← assoc, ← whisker_exchange, assoc]
-  · rw [zero_iter]
-    aesop
-  · rw [succ_iter]
-    aesop
+theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g := by
+  simpa using prec_precompose (u:= f) (f:= 𝟙 B) (g:= g)
+
+theorem uniq {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
+    (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ : (succ ▷ A) ≫ r = r ≫ g) :
+    r = (N ◁ f) ≫ iter g := by
+  rw [iter_prec]
+  apply IsNNO.prec_uniq
+  all_goals
+  assumption
 
 /-- The number one. -/
 def one : 𝟙_ C ⟶ N :=
@@ -170,7 +172,7 @@ open NNO
 
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
-instance arithmeticOfListArithmetic [ListArithmetic C] : NNO C where
+instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NNO C where
   N := list (𝟙_ C)
   zero := list.nil
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
@@ -186,7 +188,7 @@ instance arithmeticOfListArithmetic [ListArithmetic C] : NNO C where
 
 namespace list
 
-variable {C} [ListArithmetic C]
+variable {C} [MonoidalCategory C] [ListArithmetic C]
 
 /-- The length of a list. -/
 def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N :=
@@ -234,7 +236,7 @@ namespace NNO
 
 section Comon
 
-variable {C} [NNO C]
+variable {C} [MonoidalCategory C] [NNO C]
 
 def duplicate : (N : C) ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
@@ -261,10 +263,10 @@ section const
 
 open ConstantMorphism
 
-variable {C} [ListArithmetic C] (h : IsTerminal (𝟙_ C))
+variable {C} [MonoidalCategory C] [ListArithmetic C] (h : IsTerminal (𝟙_ C))
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
-theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) :
+theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) {n} :
     r = (const h N n) ▷ A ≫ r := by
   sorry
 
@@ -272,6 +274,12 @@ theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : 
 end const
 
 namespace PR
+
+variable {C} [CartesianMonoidalCategory C] [ListArithmetic C]
+
+
+
+
 
 /-- The general primitive recursion schema. -/
 def pr := 2
