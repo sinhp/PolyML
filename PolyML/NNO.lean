@@ -204,12 +204,9 @@ theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
   simp [add, succ_iter]
 
 theorem one_add_zero : (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  simp only [one, add]
-  rw [tensorHom_def, assoc]
-  dsimp [iter]
-  rw [prec_precompose]
+  simp only [one, add, iter, one ]
+  rw [tensorHom_def, assoc, prec_precompose]
   refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
-  dsimp [one]
   rw [comp_whiskerRight, assoc, succ_prec]
   have : (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ ≫ succ=
   (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ) ≫ succ := by {
@@ -220,11 +217,8 @@ theorem one_add_zero : (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one :
   simp only [comp_id, assoc, Iso.inv_hom_id_assoc]
 
 theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  simp only [add]
-  rw [tensorHom_def, assoc]
-  dsimp [one]
-  rw [whiskerLeft_comp, assoc]
-  dsimp [iter]
+  simp only [add, one, iter]
+  rw [tensorHom_def, assoc, whiskerLeft_comp, assoc]
   rw [prec_precompose, prec_precompose, zero_prec]
   simp only [comp_id]
 
@@ -273,8 +267,7 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
     succ_prec {A B f g} := by
       rw [comp_whiskerRight, assoc]
       refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
-      rw [list.cons_prec]
-      rw [← assoc, ← assoc, ← assoc]
+      rw [list.cons_prec, ← assoc, ← assoc, ← assoc]
       refine ?_ =≫ g
       simp only [id_whiskerLeft, assoc,
         Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
@@ -284,7 +277,7 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
      apply list.prec_uniq r hnil
      simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
      refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
-     simp_all only [ id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+     simp_all only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
      rw [← assoc]
      refine (Iso.inv_comp_eq (λ_ (list (𝟙_ C) ⊗ A))).mp ?_
      simpa only [assoc]
