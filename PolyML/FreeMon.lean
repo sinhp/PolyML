@@ -54,8 +54,6 @@ theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ :=
   sorry
 
---#check IsCommMon.mul_comm
-
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
 theorem functor_obj (A : C) : functor.obj A = list A := rfl
