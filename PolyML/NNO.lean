@@ -138,31 +138,56 @@ def duplicate : (N : C) ⟶ N ⊗ N :=
 
 def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
+#check leftUnitor_inv_naturality
+
 /-- The comonoid structure on the natural number object. -/
 instance : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
-  counit_comul := by
-    simp only [duplicate, delete]
+  counit_comul := by {
+    dsimp [delete,duplicate]
+    simp only [comp_whiskerRight, assoc]
+    rw [← iter_prec]
+    simp only [whiskerLeft_comp, assoc]
+    dsimp [iter]
     sorry
+  }
   comul_counit := sorry
   comul_assoc := sorry
 
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist (A : C) : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
 
-theorem twist_swap : twist N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
-  sorry
+theorem twist_swap [BraidedCategory C] :
+    twist N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
+  dsimp [twist]
+  dsimp [prec]
+  apply IsNNO.congr_arg
+  · refine (Iso.eq_inv_comp (λ_ N)).mpr ?_
+    rw [← assoc]
+    rw [← braiding_tensorUnit_left]
+    refine (Iso.eq_inv_comp (β_ (𝟙_ C) N)).mp ?_
+    rw [← BraidedCategory.braiding_inv_naturality_right]
+    sorry
+  · rfl
 
 theorem twist_braiding [BraidedCategory C] {A : C} :
     twist A = (β_ N A).hom := by
-  sorry
+  dsimp [twist, prec]
+  rw [← prec_uniq]
+  · simp only [BraidedCategory.braiding_naturality_left,
+      braiding_tensorUnit_left, assoc]
+  · simp only [BraidedCategory.braiding_naturality_left]
 
 theorem twist_is_iso {A : C} [BraidedCategory C] : IsIso (twist A) := by
+  constructor
+  use ((β_ N A).inv)
+  rw [twist_braiding]
+  simp only [Iso.hom_inv_id, Iso.inv_hom_id, and_self]
+
+theorem twist_twist [BraidedCategory C]  : twist N ≫ twist N = 𝟙 (N ⊗ N : C) := by
   sorry
 
-theorem twist_twist : twist N ≫ twist N = 𝟙 (N ⊗ N : C) := by
-  sorry
 
 end Comon
 
@@ -171,10 +196,10 @@ def add : (N : C) ⊗ N ⟶ N := iter succ
 
 @[reassoc (attr := simp)]
 theorem zero_add : zero ▷ (N : C) ≫ add = (λ_ N).hom := by
-  simp [add]
+  simp only [add, zero_iter]
 
 theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
-  simp [add, succ_iter]
+  simp only [add, succ_iter]
 
 theorem one_add_zero :
     (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
@@ -203,9 +228,26 @@ theorem zero_add_one : (zero ⊗ₘ one) ≫ add =
   rw [prec_precompose, prec_precompose, zero_prec]
   simp only [comp_id]
 
+#check leftUnitor_naturality
+#check BraidedCategory.braiding_naturality_right
+
+#moogle "rightUnitor leftUnitor whisker exchange monoidal."
+
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
-  sorry
+  dsimp [add]
+  dsimp [iter]
+  apply prec_uniq
+  · sorry
+  · simp only [BraidedCategory.braiding_naturality_left_assoc, assoc, Iso.cancel_iso_hom_left]
+    rw [prec_precompose]
+    simp only [comp_id]
+    apply Eq.symm
+    apply prec_uniq
+    · rw [← assoc]
+      rw [zero_prec]
+      simp only [comp_id]
+    · rw [← assoc,succ_prec]
 
 theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom := by
   rw [← add_comm]
@@ -343,7 +385,6 @@ variable {C} [MonoidalCategory C] [ListArithmetic C] (h : IsTerminal (𝟙_ C))
 theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) {n} :
     r = (const h N n) ▷ A ≫ r := by
   sorry
-
 
 end const
 
