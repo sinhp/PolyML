@@ -442,14 +442,14 @@ noncomputable def true [HasBinaryCoproducts C] : 𝟙_ C ⟶ bool C := coprod.in
 
 variable {C}
 
-def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
 
-def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
 
 noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C :=
   (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub) ≫ eq
 
-theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ (true C) := by
+theorem zero_le [HasBinaryCoproducts C] : (zero ▷ N) ≫ le = fst _ _ ≫ true C := by
   sorry
 
 end operations
