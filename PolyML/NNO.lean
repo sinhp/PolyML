@@ -158,6 +158,7 @@ def twist₀ : N^[0] ⊗ A ⟶ A ⊗ N^[0] := (λ_ A).hom ≫ (ρ_ A).inv
 def twist₁ : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
 
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
+  dsimp [twist₁]
   sorry
 
 theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
@@ -259,7 +260,6 @@ end NNO
 
 open NNO
 
-set_option linter.countHeartbeats true in
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
 instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NNO C where
@@ -269,13 +269,16 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   isNNO := {
     prec e a := list.prec e ((λ_ _).hom ≫ a)
     zero_prec := by {
-      intros A B f g
-      rw [list.nil_prec]}
+      intros A B f g; rw [list.nil_prec]}
     succ_prec {A B f g} := by
       rw [comp_whiskerRight, assoc]
       refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
       rw [list.cons_prec]
-      sorry
+      rw [← assoc, ← assoc, ← assoc]
+      refine ?_ =≫ g
+      simp only [id_whiskerLeft, assoc,
+        Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
+        IsIso.inv_comp, IsIso.Iso.inv_inv]
     prec_uniq := by
      intros A B f g r hnil hcons
      apply list.prec_uniq r hnil
