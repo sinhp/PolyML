@@ -5,6 +5,7 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Monoidal.Category
+import Mathlib.Data.PNat.Notation
 
 /-! # Powers of an object in a monoidal category
 
@@ -21,24 +22,49 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
 namespace MonoidalCategory
 
+-- @[expose]
+-- def iteratedTensor : Nat → C → C
+--   | 0, _ => 𝟙_ C
+--   | n + 1, A =>  iteratedTensor n A ⊗ A
+
 @[expose]
 def iteratedTensor : Nat → C → C
-  | 0, _ => 𝟙_ C
-  | n + 1, A =>  iteratedTensor n A ⊗ A
+  | 0, A => A
+  | n + 1, A =>  A ⊗ iteratedTensor n A
 
-@[simps]
-instance : Pow C ℕ where
-  pow A n := iteratedTensor n A
+def pow : ℕ → C → C := fun n  A => if n = 0 then 𝟙_ C else iteratedTensor (n - 1) A
 
-theorem pow_zero (A : C) : A ^ 0 = 𝟙_ C := rfl
+scoped notation  A "^[" n "]" => pow n A
 
-def powZeroIso (A : C) : A ^ 0 ≅ 𝟙_ C := Iso.refl _
+-- theorem pow_zero (A : C) : A ^ 0 = 𝟙_ C := rfl
 
-def powSuccIso (A : C) (n : ℕ) : A ^ (n + 1) ≅ A ^ n ⊗ A := Iso.refl _
+-- def powZeroIso (A : C) : A ^ 0 ≅ 𝟙_ C := Iso.refl _
 
-def powOneIso (A : C) : A ^ 1 ≅ A := powSuccIso (A) 0 ≪≫ (λ_ A)
+def powZeroIso (A : C) : A^[0] ≅ 𝟙_ C := Iso.refl _
 
-def powTwoIso (A : C) : A ^ 2 ≅ A ⊗ A := powSuccIso (A) 1 ≪≫ (whiskerRightIso (powOneIso A) A)
+def powSuccEq (A : C) (n : ℕ) (h : 0 < n) : A ^[(n + 1)] = A ⊗ A ^[n] := by
+  dsimp [pow]
+  cases n with
+  | zero => aesop
+  | succ =>
+  simp_all only [Nat.zero_lt_succ, Nat.add_eq_zero, Nat.succ_ne_self, and_false, ↓reduceIte, Nat.add_one_sub_one]
+  rfl
+  --rw [Nat.sub_succ, if_pos (Nat.succ_ne_zero _), iteratedTensor]
+
+def powSuccIso' (A : C) (n : ℕ) (h : 0 < n := by aesop) : A ^[(n + 1)] ≅ A ⊗ A ^[n] :=
+  eqToIso <| powSuccEq A n h
+
+def powSuccIso (A : C) (n : ℕ)  : A ^[(n + 1)] ≅ A ⊗ A^[n] := by
+  match n with
+  | Nat.zero => exact (ρ_ A).symm
+  | Nat.succ k => exact powSuccIso' A (k + 1)
+
+def powOneIso (A : C) : A^[1] ≅ A := Iso.refl _
+
+def powTwoIso (A : C) : A^[2] ≅ A ⊗ A := Iso.refl _ --whiskerRightIso (powOneIso A) A
+
+def powThreeIso (A : C) : A^[3] ≅ A ⊗ A ⊗ A := Iso.refl _ --whiskerRightIso (powTwoIso A) A
+
 
 end MonoidalCategory
 
