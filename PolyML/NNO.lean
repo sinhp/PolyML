@@ -5,15 +5,16 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Monoidal.Comon_
-import PolyML.ForMathlib.ConstantMorphism
 import PolyML.ListArithmetic
 import PolyML.ForMathlib.Monoidal.Powers
+import PolyML.ForMathlib.Monoidal.Semicartesian
+import Mathlib.Tactic.CategoryTheory.Coherence
 
 universe u v
 
 namespace CategoryTheory
 
-open Category Opposite Limits MonoidalCategory CartesianMonoidalCategory
+open Category Opposite MonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
@@ -119,7 +120,7 @@ theorem succ_iter {f : A ⟶ A} :
 theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g := by
   simpa using prec_precompose (u:= f) (f:= 𝟙 B) (g:= g)
 
-theorem uniq {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
+theorem eq_whisker_iter {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
     (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ : (succ ▷ A) ≫ r = r ≫ g) :
     r = (N ◁ f) ≫ iter g := by
   rw [iter_prec]
@@ -233,6 +234,7 @@ end NNO
 
 open NNO
 
+set_option linter.countHeartbeats true in
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
 instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NNO C where
@@ -251,21 +253,25 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
 
 namespace list
 
-variable {C} [MonoidalCategory C] [ListArithmetic C]
+open Limits
+
+variable {C} [SemiCartesianMonoidalCategory C] [ListArithmetic C]
 
 /-- The length of a list. -/
-def len (isTerminalTensorUnit : IsTerminal (𝟙_ C) := by aesop) {A : C} : list A ⟶ N :=
-  list.map <| isTerminalTensorUnit.from A
+def len  {A : C} : list A ⟶ N :=
+  list.map <| SemiCartesianMonoidalCategory.toUnit A
 
 namespace length
+
+open SemiCartesianMonoidalCategory
 
 variable (h : IsTerminal (𝟙_ C))
 
 variable {A : C}
 
-theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len h =
-    A ◁ list.map (toUnit h A) ≫ (toUnit h A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
-  dsimp [list.len, list.cons, list.map]
+theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
+    A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
+  dsimp [list.len, list.cons, list.map, toUnit]
   rw [plist.cons_map]
   rfl
 
@@ -276,7 +282,7 @@ theorem nil_len_zero : list.nil (A:= A) ≫ list.len = zero := by
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ :
-    list.cons ≫ list.len = (toUnit h A ⊗ₘ list.len) ≫ (λ_ N).hom ≫ succ := by
+    list.cons ≫ list.len = (toUnit A ⊗ₘ list.len) ≫ (λ_ N).hom ≫ succ := by
   dsimp [list.len]
   rw [list.cons_map]
   rw [← Category.assoc]
@@ -287,7 +293,7 @@ theorem cons_len_succ :
 set_option diagnostics true
 -- len ([x]) = 1
 theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit h A ≫ one := by
+    list.singleton ≫ list.len = toUnit A ≫ one := by
   dsimp [len, singleton, one]
   sorry
 
@@ -299,31 +305,114 @@ namespace NNO
 
 section const
 
-open ConstantMorphism
+variable {C} [SemiCartesianMonoidalCategory C] [NNO C]
 
-variable {C} [MonoidalCategory C] [ListArithmetic C] (h : IsTerminal (𝟙_ C))
+open SemiCartesianMonoidalCategory
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
 theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) {n} :
-    r = (const h N n) ▷ A ≫ r := by
+    r = (constMorphism N n) ▷ A ≫ r := by
   sorry
-
 
 end const
 
 namespace PR
 
-variable {C} [CartesianMonoidalCategory C] [ListArithmetic C]
+open MorphismProperty CartesianMonoidalCategory
 
+variable {C} [CartesianMonoidalCategory C] [NNO C]
 
+-- SH : rfpi coherence
+lemma prec_zero_succ_eq_rightUnitor : prec (A := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
+  symm
+  apply IsNNO.prec_uniq
+  · coherence
+  · apply rightUnitor_naturality succ
 
+def fst_eq_prec {A : C} : fst N A = prec (constMorphism isTerminalTensorUnit A zero) succ := by
+  sorry
 
+/-- The diagonal morphism on an object `P`. -/
+private def δ (X : C) : X ⟶ X ⊗ X :=
+  lift (𝟙 X) (𝟙 X)
 
-/-- The general primitive recursion schema. -/
-def pr := 2
+def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N ⊗ X  :=
+  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)
 
+theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
+  simp only [uprimrecAux]
+  sorry
+
+theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    succ ≫ uprimrecAux init step = uprimrecAux init step ≫  (lift (fst N X ≫ succ) step) := by
+  simp only [uprimrecAux]
+  sorry
+
+theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    uprimrecAux init step ≫ fst N X = 𝟙 N := by
+  simp only [uprimrecAux]
+  rw [fst_eq_prec]
+  sorry
+
+def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
+  uprimrecAux init step ≫ snd N X
+
+theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    zero ≫ uprimrec init step = init := by
+  simp [uprimrec, uprimrecAux]
+  sorry
+
+theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    succ ≫ uprimrec init step = δ _ ≫ N ◁ (uprimrec init step) ≫ step := by
+  sorry
+
+/-- The helper morphism for defining primitive recursion. -/
+def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
+  prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
+    ( lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
+
+/-- The full primitive recursion schema. -/
+def primrec {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ B :=
+  sorry
 
 end PR
+
+section operations
+
+open CartesianMonoidalCategory PR Limits
+
+variable {C} [CartesianMonoidalCategory C] [NNO C]
+
+/-- The predecessor morphism. -/
+def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
+
+@[reassoc (attr := simp)]
+theorem pred_zero : zero (C:= C) ≫ pred = zero := by
+  simp only [pred, PR.uprimrec, uprimrecAux]
+  sorry
+
+@[reassoc (attr := simp)]
+theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
+  simp only [pred, PR.uprimrec, uprimrecAux]
+  sorry
+
+/-- The Subtraction morphism of natural numbers, truncated at `0`.-/
+def sub : (N : C) ⊗ N ⟶ N := sorry
+
+def eq : (N : C) ⊗ N ⟶ N := sorry
+
+variable (C)
+
+noncomputable def bool [HasBinaryCoproducts C] := (𝟙_ C) ⨿ (𝟙_ C)
+
+variable {C}
+
+def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+
+def le [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+
+end operations
 
 end NNO
 

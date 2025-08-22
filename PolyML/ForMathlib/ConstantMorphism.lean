@@ -6,8 +6,7 @@ Authors: Sina Hazratpour
 
 import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
 import Mathlib.CategoryTheory.Monoidal.Category
-
-import Mathlib
+import Mathlib.CategoryTheory.MorphismProperty.Composition
 
 universe u v
 

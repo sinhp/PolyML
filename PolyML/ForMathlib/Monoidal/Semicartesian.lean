@@ -36,13 +36,10 @@ def fst (X Y : C) : X ⊗ Y ⟶ X := (X ◁ toUnit Y) ≫ (ρ_ X).hom
 /-- The second projection from the tensor product. -/
 def snd (X Y : C) : X ⊗ Y ⟶ Y := (toUnit X ▷ Y) ≫ (λ_ Y).hom
 
-def const {X Y : C} (y : 𝟙_ C ⟶ Y) : X ⟶ Y := constMorphism isTerminalTensorUnit X y
+def constMorphism (X : C) {Y : C} (y : 𝟙_ C ⟶ Y) : X ⟶ Y := MorphismProperty.constMorphism isTerminalTensorUnit X y
 
-theorem const_self_eq_toUnit_self (X Y : C) (y : 𝟙_ C ⟶ Y) : const y = toUnit X ≫ y := rfl
+theorem const_self_eq_toUnit_self (X Y : C) (y : 𝟙_ C ⟶ Y) : constMorphism X y = toUnit X ≫ y := rfl
 
 end SemiCartesianMonoidalCategory
-
-open CartesianMonoidalCategory
-
 
 end CategoryTheory

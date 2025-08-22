@@ -819,7 +819,8 @@ noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoprodu
         BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
     }
 
-noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]    {A P L : C} :
+noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoproducts C]
+    [ListArithmetic C] {A P : C} :
     Semirecursive A P (plist A P) where
   nil := plist.nil
   cons := plist.cons
