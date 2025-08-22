@@ -165,10 +165,17 @@ theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (
 
 theorem twist₁_braiding [BraidedCategory C] {A : C} :
     twist₁ A = (β_ N A).hom := by
-  sorry
+  dsimp [twist₁, prec]
+  rw [← prec_uniq]
+  · simp only [BraidedCategory.braiding_naturality_left,
+      braiding_tensorUnit_left, assoc]
+  · simp only [BraidedCategory.braiding_naturality_left]
 
 theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
-  sorry
+  constructor
+  use ((β_ N A).inv)
+  rw [twist₁_braiding]
+  simp only [Iso.hom_inv_id, Iso.inv_hom_id, and_self]
 
 theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
@@ -196,11 +203,29 @@ theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
   simp [add, succ_iter]
 
 theorem one_add_zero : (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  simp [add, one]
-  sorry
+  simp only [one, add]
+  rw [tensorHom_def, assoc]
+  dsimp [iter]
+  rw [prec_precompose]
+  refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
+  dsimp [one]
+  rw [comp_whiskerRight, assoc, succ_prec]
+  have : (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ ≫ succ=
+  (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ) ≫ succ := by {
+    simp only [whiskerRight_id, comp_id, assoc]}
+  rw [this]
+  clear this
+  rw [zero_prec]
+  simp only [comp_id, assoc, Iso.inv_hom_id_assoc]
 
 theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
-  sorry
+  simp only [add]
+  rw [tensorHom_def, assoc]
+  dsimp [one]
+  rw [whiskerLeft_comp, assoc]
+  dsimp [iter]
+  rw [prec_precompose, prec_precompose, zero_prec]
+  simp only [comp_id]
 
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
@@ -243,12 +268,23 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
   isNNO := {
     prec e a := list.prec e ((λ_ _).hom ≫ a)
-    zero_prec := by sorry -- list.nil_prec
-    succ_prec {A B f g}:= by
+    zero_prec := by {
+      intros A B f g
+      rw [list.nil_prec]}
+    succ_prec {A B f g} := by
       rw [comp_whiskerRight, assoc]
+      refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
       rw [list.cons_prec]
       sorry
-    prec_uniq := by sorry --simp [list.prec_uniq]
+    prec_uniq := by
+     intros A B f g r hnil hcons
+     apply list.prec_uniq r hnil
+     simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
+     refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
+     simp_all only [ id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+     rw [← assoc]
+     refine (Iso.inv_comp_eq (λ_ (list (𝟙_ C) ⊗ A))).mp ?_
+     simpa only [assoc]
   }
 
 namespace list
