@@ -439,17 +439,25 @@ theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
 /-- The Subtraction morphism of natural numbers, truncated at `0`.-/
 def sub : (N : C) ⊗ N ⟶ N := sorry
 
-def eq : (N : C) ⊗ N ⟶ N := sorry
+def eq' : (N : C) ⊗ N ⟶ N := sorry
 
 variable (C)
 
 noncomputable def bool [HasBinaryCoproducts C] := (𝟙_ C) ⨿ (𝟙_ C)
 
+noncomputable def true [HasBinaryCoproducts C] : 𝟙_ C ⟶ bool C := coprod.inr
+
 variable {C}
+
+def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
 
 def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
 
-def le [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C :=
+  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub) ≫ eq
+
+theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ (true C) := by
+  sorry
 
 end operations
 
