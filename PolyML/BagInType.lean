@@ -3,7 +3,8 @@ Copyright (c) 2025 Sina Hazratpour. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
-import Mathlib.CategoryTheory.Monoidal.Internal.Types.Basic
+
+import PolyML.ForMathlib.Monoidal.Internal.Types.Basic
 import Mathlib.Data.Finsupp.Weight
 import PolyML.FreeCommMon
 

@@ -6,7 +6,7 @@ Authors: Sina Hazratpour
 
 import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
-import PolyML.ForMathlib.Monoidal.Semicartesian
+import PolyML.ForMathlib.Monoidal.SemiCartesian
 import PolyML.ForMathlib.ConstantMorphism
 
 universe u v
@@ -19,40 +19,43 @@ open Category Limits MonoidalCategory
 
 variable {C : Type u} [Category.{v} C]
 
-def bool (T : C) (_ : IsTerminal T := by aesop) [HasBinaryCoproducts C] := T ⨿ T
+def boolOf (T : C) (_ : IsTerminal T := by aesop) [HasBinaryCoproducts C] := T ⨿ T
 
-namespace bool
+namespace boolOf
 
 variable {T : C} (h : IsTerminal T) [HasBinaryCoproducts C]
 
-def false : T ⟶ bool T := coprod.inl
+def false : T ⟶ boolOf T := coprod.inl
 
-def true : T ⟶ bool T := coprod.inr
+def true : T ⟶ boolOf T := coprod.inr
 
-def elim {X : C} (f : T ⟶ X) (g : T ⟶ X) : bool T ⟶ X := coprod.desc f g
+def elim {X : C} (f : T ⟶ X) (g : T ⟶ X) : boolOf T ⟶ X := coprod.desc f g
 
-end bool
+end boolOf
 
 namespace SemiCartesianMonoidalCategory
 
-variable (C) [SemiCartesianMonoidalCategory C] [HasBinaryCoproducts C]
+variable [SemiCartesianMonoidalCategory C] [HasBinaryCoproducts C]
 
-def bool := CategoryTheory.bool (𝟙_ C) (isTerminalTensorUnit)
+def bool := CategoryTheory.boolOf (𝟙_ C) (isTerminalTensorUnit)
 
-variable {C}
+namespace bool
 
-def false : 𝟙_ C ⟶ bool C := bool.false (isTerminalTensorUnit)
+scoped notation "𝟮" => bool
 
-def true : 𝟙_ C ⟶ bool C := bool.true (isTerminalTensorUnit)
+def false : 𝟙_ C ⟶ 𝟮 := boolOf.false (isTerminalTensorUnit)
 
-def elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : bool C ⟶ X := bool.elim (isTerminalTensorUnit) f g
+def true : 𝟙_ C ⟶ 𝟮 := boolOf.true (isTerminalTensorUnit)
 
-def and : bool C ⊗ bool C ⟶ bool C := sorry
+def elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮 ⟶ X := boolOf.elim (isTerminalTensorUnit) f g
 
-theorem false_and : (false ▷ (bool C)) ≫ and = constMorphism _ false := sorry
+def and : (𝟮 : C) ⊗ 𝟮 ⟶ 𝟮 := sorry
 
-theorem true_and : (true ▷ (bool C)) ≫ and = (λ_ _).hom := sorry
+theorem false_and : (false ▷ (𝟮 : C)) ≫ and = constMorphism _ false := sorry
 
+theorem true_and : (true ▷ (𝟮 : C)) ≫ and = (λ_ _).hom := sorry
+
+end bool
 
 end SemiCartesianMonoidalCategory
 
