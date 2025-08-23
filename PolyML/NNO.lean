@@ -15,7 +15,7 @@ universe u v
 
 namespace CategoryTheory
 
-open Category Opposite MonoidalCategory
+open Category Opposite MonoidalCategory Limits
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
@@ -100,7 +100,13 @@ theorem prec_precompose {A'} {u : A' ⟶ A} {f : A ⟶ B} {g : B ⟶ B} :
   · rw [succ_prec]
     aesop
 
-/-- Iterates an endofunction a natural number of times. -/
+theorem prec_postcompose {B'} {f : A ⟶ B} {g : B ⟶ B} {g' : B' ⟶ B'} (d : B ⟶ B') :
+    prec f g ≫ d = prec (f ≫ d) g' := by
+  apply prec_uniq
+  · sorry
+  sorry
+
+/-- Iterates an endomorphism `n` times. -/
 def iter (f : A ⟶ A) : N ⊗ A ⟶ A := prec (𝟙 _) (f)
 
 /-- Recursion with the parameter `A` set to the unit object `𝟙_ C` -/
@@ -131,6 +137,30 @@ theorem eq_whisker_iter {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
 
 /-- The number one. -/
 def one : 𝟙_ C ⟶ N := zero ≫ succ
+
+def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prec x (𝟙 X)
+
+def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
+
+theorem const_toUnit (X : C) (x : 𝟙_ C ⟶ X) : const X x = toUnit ≫ x := by
+  sorry
+
+open bool coprod
+
+variable (C)
+
+noncomputable def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 :=
+  (ρ_ _).inv ≫ prec inl (desc inr inr)
+
+variable {C}
+
+theorem toBool_zero [HasBinaryCoproducts C] :
+    zero ≫ toBool C = bool.false := by
+  sorry
+
+theorem toBool_succ [HasBinaryCoproducts C] :
+    succ ≫ toBool C = toUnit ≫ bool.true := by
+  sorry
 
 section Comon
 
@@ -174,10 +204,8 @@ theorem twist₁_braiding [BraidedCategory C] {A : C} :
   · simp only [BraidedCategory.braiding_naturality_left]
 
 theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
-  constructor
-  use ((β_ N A).inv)
   rw [twist₁_braiding]
-  simp only [Iso.hom_inv_id, Iso.inv_hom_id, and_self]
+  infer_instance
 
 theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
@@ -291,7 +319,7 @@ open Limits
 variable {C} [SemiCartesianMonoidalCategory C] [ListArithmetic C]
 
 /-- The length of a list. -/
-def len  {A : C} : list A ⟶ N :=
+def len {A : C} : list A ⟶ N :=
   list.map <| SemiCartesianMonoidalCategory.toUnit A
 
 namespace length
@@ -304,7 +332,7 @@ variable {A : C}
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
-  dsimp [list.len, list.cons, list.map, toUnit]
+  dsimp [list.len, list.cons, list.map]
   rw [plist.cons_map]
   rfl
 
@@ -414,7 +442,7 @@ end PR
 
 section operations
 
-open CartesianMonoidalCategory PR Limits
+open CartesianMonoidalCategory PR Limits bool
 
 variable {C} [CartesianMonoidalCategory C] [NNO C]
 
@@ -435,8 +463,6 @@ theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
 def sub : (N : C) ⊗ N ⟶ N := sorry
 
 def eq' : (N : C) ⊗ N ⟶ N := sorry
-
-open SemiCartesianMonoidalCategory.bool
 
 noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
 

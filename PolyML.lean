@@ -3,6 +3,6 @@
 import PolyML.Basic
 import PolyML.ListArithmetic
 import PolyML.NNO
-import PolyML.FreeMon
+import PolyML.CartesianFreeMon
 import PolyML.FreeCommMon
 import PolyML.BagInType
