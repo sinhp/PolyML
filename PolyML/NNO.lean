@@ -7,8 +7,9 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.Comon_
 import PolyML.ListArithmetic
 import PolyML.ForMathlib.Monoidal.Powers
-import PolyML.ForMathlib.Monoidal.Semicartesian
+import PolyML.ForMathlib.Monoidal.SemiCartesian
 import Mathlib.Tactic.CategoryTheory.Coherence
+import  PolyML.ForMathlib.Bool
 
 universe u v
 
@@ -386,6 +387,7 @@ theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   simp only [uprimrecAux]
   rw [fst_eq_prec]
   sorry
+  sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
   uprimrecAux init step ≫ snd N X
@@ -434,22 +436,16 @@ def sub : (N : C) ⊗ N ⟶ N := sorry
 
 def eq' : (N : C) ⊗ N ⟶ N := sorry
 
-variable (C)
+open SemiCartesianMonoidalCategory.bool
 
-noncomputable def bool [HasBinaryCoproducts C] := (𝟙_ C) ⨿ (𝟙_ C)
+noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
 
-noncomputable def true [HasBinaryCoproducts C] : 𝟙_ C ⟶ bool C := coprod.inr
+noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
 
-variable {C}
-
-noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
-
-noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
-
-noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C :=
+noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
   (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub) ≫ eq
 
-theorem zero_le [HasBinaryCoproducts C] : (zero ▷ N) ≫ le = fst _ _ ≫ true C := by
+theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
   sorry
 
 end operations
