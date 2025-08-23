@@ -554,7 +554,7 @@ theorem nil_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
 
 theorem cons_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prec init action = (α_ _ _ _).hom ≫ (A ◁ list.prec init action) ≫ action := by
-  dsimp [prec]
+  dsimp [prec,cons]
   sorry
 
 @[simp]
@@ -562,10 +562,22 @@ theorem prec_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
     (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ init)
     (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ action) :
     r = prec init action := by
-  simp [list, prec]
   simp [nil, cons] at *
-  -- use relevant facts about `cmp` to connect `plist A P` to `list A ⊗ P`
-  sorry
+  refine (Iso.eq_inv_comp (plistIsoTensor A P)).mpr ?_
+  rw [plist.rec_uniq (r:= (plistIsoTensor A P).hom ≫ r)]
+  · dsimp [plistIsoTensor]
+    rw [← assoc,← assoc, plist.map'_eq_rec]
+    simp only [plist.nil_rec, assoc, plist.nil_cmp]
+    rw [h_nil]
+    simp only [Iso.inv_hom_id_assoc]
+  · simp only [whiskerLeft_comp, assoc]
+    dsimp [plistIsoTensor]
+    rw [plist.map'_eq_rec]
+    rw [← assoc, ← assoc, plist.cons_rec]
+    simp only [assoc, plist.cons_cmp, whiskerLeft_comp]
+    rw [h_cons]
+    dsimp [list]
+    simp only [Iso.inv_hom_id_assoc]
 
 def pfoldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
 

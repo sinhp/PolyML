@@ -5,14 +5,13 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
-import Mathlib.CategoryTheory.Monoidal.Category
 import Mathlib.CategoryTheory.MorphismProperty.Composition
 
 universe u v
 
 namespace CategoryTheory
 
-open Category Opposite Limits MonoidalCategory
+open Category Limits
 
 variable {C : Type u} [Category.{v} C]
 
