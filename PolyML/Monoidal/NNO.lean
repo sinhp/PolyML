@@ -193,13 +193,47 @@ def duplicate : (N : C) ⟶ N ⊗ N :=
 
 def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
+#check rightUnitor_inv_naturality
+
 /-- The comonoid structure on the natural number object. -/
-instance : Comon_Class (N : C) where
+instance [BraidedCategory C] : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
   counit_comul := by
     simp only [duplicate, delete]
+    simp only [comp_whiskerRight, assoc]
     sorry
+
+    -- rw [← prec_precompose]
+    -- rw [tensorHom_def]
+    -- rw [← prec_precompose]
+    -- rw [← id_comp (N ◁ zero)]
+    -- rw [← prec_precompose]
+    -- simp only [whiskerRight_id, whiskerLeft_comp, whiskerLeft_rightUnitor,
+    --   whiskerLeft_rightUnitor_inv, assoc,
+    --   triangle_assoc_comp_left_inv_assoc, Iso.hom_inv_id_assoc,
+    --   Iso.inv_hom_id_assoc]
+    -- rw [← comp_id (f:= (λ_ N).inv )]
+    -- refine (Iso.eq_inv_comp (λ_ N)).mpr ?_
+    -- rw [← assoc]
+    -- rw [← braiding_tensorUnit_left]
+    -- rw [← assoc]
+    -- rw [← BraidedCategory.braiding_naturality_left]
+    -- have : (zero ▷ N ≫ (β_ N N).hom) ≫
+    -- (ρ_ (N ⊗ N)).inv ≫ (α_ N N (𝟙_ C)).hom ≫
+    -- prec (N ◁ zero) (succ ⊗ₘ succ) ≫ (ρ_ N).inv ▷ N ≫ iter (𝟙 (𝟙_ C)) ▷ N =
+    -- zero ▷ N ≫ ((β_ N N).hom ≫
+    -- (ρ_ (N ⊗ N)).inv ≫ (α_ N N (𝟙_ C)).hom) ≫
+    -- (prec (N ◁ zero) (succ ⊗ₘ succ) ≫ (ρ_ N).inv ▷ N ≫ iter (𝟙 (𝟙_ C)) ▷ N) := by {
+    --   simp only [BraidedCategory.braiding_naturality_left, braiding_tensorUnit_left, assoc,
+    --     BraidedCategory.braiding_naturality_left_assoc]
+    -- }
+    -- rw [this]
+    -- clear this
+
+
+
+
   comul_counit := sorry
   comul_assoc := sorry
 
@@ -212,9 +246,12 @@ def twist₁ : N ⊗ P ⟶ P ⊗ N := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P �
 
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
-  sorry
+  apply Eq.symm
+  apply prec_uniq
+  · coherence
+  · coherence
 
-theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
+theorem twist₁_swap [BraidedCategory C] : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
 
 theorem twist₁_braiding [BraidedCategory C] {A : C} :
@@ -227,19 +264,19 @@ theorem twist₁_braiding [BraidedCategory C] {A : C} :
 
 theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
   rw [twist₁_braiding]
-  infer_instance
+  simp only [Iso.hom_inv_id, Iso.inv_hom_id, and_self]
 
 theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
 
-def Twist : ℕ → Type v := fun k => (N^[k] ⊗ P ⟶ P ⊗ N^[k])
+def Twist : ℕ → Type v := fun k => (N^[k] ⊗ A ⟶ A ⊗ N^[k])
 
-def twist : (k : ℕ) → Twist P k
-  | 0 => twist₀ P
-  | n + 1 => (powSuccIso N n).hom ▷ P ≫ (α_ N _ P).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
-   (twist₁ P ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (P ◁ (powSuccIso N n).inv)
+def twist : (k : ℕ) → Twist A k
+  | 0 => twist₀ A
+  | n + 1 => (powSuccIso N n).hom ▷ A ≫ (α_ N _ A).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
+   (twist₁ A ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (A ◁ (powSuccIso N n).inv)
 
-theorem twist_one : twist P 1 = twist₁ P := by
+theorem twist_one : twist A 1 = twist₁ A := by
   sorry
 
 end Comon
@@ -275,7 +312,25 @@ theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one :
 
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
-  sorry
+  dsimp [add]
+  nth_rw 2 [iter]
+  apply prec_uniq
+  · simp only [BraidedCategory.braiding_naturality_left_assoc,
+      braiding_tensorUnit_left, iter_prec,
+    assoc, comp_id]
+    nth_rw 2 [← comp_id (f:= (λ_ N).hom)]
+    refine (Iso.cancel_iso_hom_left (λ_ N) ((ρ_ N).inv ≫ prec zero succ) (𝟙 N)).mpr ?_
+    refine (Iso.inv_comp_eq_id (ρ_ N)).mpr ?_
+    apply Eq.symm
+    apply prec_uniq
+    coherence
+    coherence
+  · simp only [BraidedCategory.braiding_naturality_left_assoc, iter_prec, assoc,
+    Iso.cancel_iso_hom_left]
+    apply Eq.symm
+    apply prec_uniq
+    · simp only [zero_iter_assoc]
+    · rw [← assoc, succ_iter]
 
 theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom := by
   rw [← add_comm]
@@ -284,7 +339,6 @@ theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom :=
 -- associativity of addition
 theorem add_assoc [BraidedCategory C] :
     add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
-  dsimp [add]
   sorry
 
 /-- The monoid structure on the natural number object. -/
@@ -377,7 +431,6 @@ set_option diagnostics true
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
-  dsimp [len, singleton, one]
   sorry
 
 end length
@@ -395,10 +448,118 @@ open SemiCartesianMonoidalCategory
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
 theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) {n} :
     r = (constMorphism N n) ▷ A ≫ r := by
+  dsimp [constMorphism]
   sorry
 
 end const
 
+namespace PR
+
+open MorphismProperty CartesianMonoidalCategory
+
+variable {C} [CartesianMonoidalCategory C] [NNO C]
+
+-- SH : rfpi coherence
+lemma prec_zero_succ_eq_rightUnitor : prec (A := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
+  symm
+  apply IsNNO.prec_uniq
+  · coherence
+  · apply rightUnitor_naturality succ
+
+def fst_eq_prec {A : C} : fst N A = prec (constMorphism isTerminalTensorUnit A zero) succ := by
+  sorry
+
+/-- The diagonal morphism on an object `P`. -/
+private def δ (X : C) : X ⟶ X ⊗ X :=
+  lift (𝟙 X) (𝟙 X)
+
+def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N ⊗ X  :=
+  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)
+
+theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
+  simp only [uprimrecAux]
+  sorry
+
+theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    succ ≫ uprimrecAux init step = uprimrecAux init step ≫  (lift (fst N X ≫ succ) step) := by
+  simp only [uprimrecAux]
+  sorry
+
+theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    uprimrecAux init step ≫ fst N X = 𝟙 N := by
+  simp only [uprimrecAux]
+  rw [fst_eq_prec]
+  sorry
+
+def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
+  uprimrecAux init step ≫ snd N X
+
+theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    zero ≫ uprimrec init step = init := by
+  simp [uprimrec, uprimrecAux]
+  sorry
+
+theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
+    succ ≫ uprimrec init step = δ _ ≫ N ◁ (uprimrec init step) ≫ step := by
+  sorry
+
+/-- The helper morphism for defining primitive recursion. -/
+def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
+  prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
+    ( lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
+
+/-- The full primitive recursion schema. -/
+def primrec {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ B :=
+  sorry
+
+end PR
+
+section operations
+
+open CartesianMonoidalCategory PR Limits
+
+variable {C} [CartesianMonoidalCategory C] [NNO C]
+
+/-- The predecessor morphism. -/
+def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
+
+@[reassoc (attr := simp)]
+theorem pred_zero : zero (C:= C) ≫ pred = zero := by
+  simp only [pred, PR.uprimrec, uprimrecAux]
+  sorry
+
+@[reassoc (attr := simp)]
+theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
+  simp only [pred, PR.uprimrec, uprimrecAux]
+  sorry
+
+/-- The Subtraction morphism of natural numbers, truncated at `0`.-/
+def sub : (N : C) ⊗ N ⟶ N := sorry
+
+def eq' : (N : C) ⊗ N ⟶ N := sorry
+
+variable (C)
+
+noncomputable def bool [HasBinaryCoproducts C] := (𝟙_ C) ⨿ (𝟙_ C)
+
+noncomputable def true [HasBinaryCoproducts C] : 𝟙_ C ⟶ bool C := coprod.inr
+
+variable {C}
+
+def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+
+def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C := sorry
+
+noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ bool C :=
+  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub) ≫ eq
+
+theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ (true C) := by
+  sorry
+
+end operations
+
+>>>>>>> 24eea14 (etc):PolyML/NNO.lean
 end NNO
 
 end CategoryTheory
