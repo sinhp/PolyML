@@ -409,7 +409,7 @@ lemma prec_zero_succ_eq_rightUnitor : prec (A := 𝟙_ C) (B := N) zero succ = (
 def fst_eq_prec {A : C} : fst N A = prec (constMorphism isTerminalTensorUnit A zero) succ := by
   sorry
 
-/-- The diagonal morphism on an object `P`. -/
+/-- The diagonal morphism on an object `X`. -/
 private def δ (X : C) : X ⟶ X ⊗ X :=
   lift (𝟙 X) (𝟙 X)
 
