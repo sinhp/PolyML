@@ -193,8 +193,6 @@ def duplicate : (N : C) ⟶ N ⊗ N :=
 
 def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
-#check rightUnitor_inv_naturality
-
 /-- The comonoid structure on the natural number object. -/
 instance [BraidedCategory C] : Comon_Class (N : C) where
   counit := delete
