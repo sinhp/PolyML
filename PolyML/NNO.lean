@@ -148,41 +148,7 @@ def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 instance [BraidedCategory C] : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
-  counit_comul := by
-    simp only [duplicate, delete]
-    simp only [comp_whiskerRight, assoc]
-    sorry
-
-    -- rw [← prec_precompose]
-    -- rw [tensorHom_def]
-    -- rw [← prec_precompose]
-    -- rw [← id_comp (N ◁ zero)]
-    -- rw [← prec_precompose]
-    -- simp only [whiskerRight_id, whiskerLeft_comp, whiskerLeft_rightUnitor,
-    --   whiskerLeft_rightUnitor_inv, assoc,
-    --   triangle_assoc_comp_left_inv_assoc, Iso.hom_inv_id_assoc,
-    --   Iso.inv_hom_id_assoc]
-    -- rw [← comp_id (f:= (λ_ N).inv )]
-    -- refine (Iso.eq_inv_comp (λ_ N)).mpr ?_
-    -- rw [← assoc]
-    -- rw [← braiding_tensorUnit_left]
-    -- rw [← assoc]
-    -- rw [← BraidedCategory.braiding_naturality_left]
-    -- have : (zero ▷ N ≫ (β_ N N).hom) ≫
-    -- (ρ_ (N ⊗ N)).inv ≫ (α_ N N (𝟙_ C)).hom ≫
-    -- prec (N ◁ zero) (succ ⊗ₘ succ) ≫ (ρ_ N).inv ▷ N ≫ iter (𝟙 (𝟙_ C)) ▷ N =
-    -- zero ▷ N ≫ ((β_ N N).hom ≫
-    -- (ρ_ (N ⊗ N)).inv ≫ (α_ N N (𝟙_ C)).hom) ≫
-    -- (prec (N ◁ zero) (succ ⊗ₘ succ) ≫ (ρ_ N).inv ▷ N ≫ iter (𝟙 (𝟙_ C)) ▷ N) := by {
-    --   simp only [BraidedCategory.braiding_naturality_left, braiding_tensorUnit_left, assoc,
-    --     BraidedCategory.braiding_naturality_left_assoc]
-    -- }
-    -- rw [this]
-    -- clear this
-
-
-
-
+  counit_comul := sorry
   comul_counit := sorry
   comul_assoc := sorry
 
