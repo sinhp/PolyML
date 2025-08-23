@@ -152,6 +152,8 @@ variable (C)
 noncomputable def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 :=
   (ρ_ _).inv ≫ prec inl (desc inr inr)
 
+noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
+
 variable {C}
 
 theorem toBool_zero [HasBinaryCoproducts C] :
@@ -161,6 +163,20 @@ theorem toBool_zero [HasBinaryCoproducts C] :
 theorem toBool_succ [HasBinaryCoproducts C] :
     succ ≫ toBool C = toUnit ≫ bool.true := by
   sorry
+
+theorem fromBool_false [HasBinaryCoproducts C] :
+    bool.false ≫ fromBool C = zero := by
+  sorry
+
+theorem fromBool_true [HasBinaryCoproducts C] :
+    bool.true ≫ fromBool C = one := by
+  sorry
+
+theorem fromBool_toBool [HasBinaryCoproducts C] :
+    fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
+  apply bool.ext
+  · sorry
+  · sorry
 
 section Comon
 
