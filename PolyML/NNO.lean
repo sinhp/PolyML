@@ -144,7 +144,7 @@ def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 #check rightUnitor_inv_naturality
 
 /-- The comonoid structure on the natural number object. -/
-instance [BraidedCategory C] : Comon_Class (N : C) where
+instance : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
   counit_comul := sorry
@@ -165,7 +165,7 @@ theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom �
   · coherence
   · coherence
 
-theorem twist₁_swap [BraidedCategory C] : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
+theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
 
 theorem twist₁_braiding [BraidedCategory C] {A : C} :
