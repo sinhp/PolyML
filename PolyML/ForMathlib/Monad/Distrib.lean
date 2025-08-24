@@ -6,10 +6,11 @@ Authors: Sina Hazratpour
 
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monad.Algebra
-import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Mathlib
-import PolyML.FreeCommMon
-import PolyML.BagInType
+import PolyML.ForMathlib.Monoidal.Cartesian.Basic
+-- import Mathlib
+import Mathlib.CategoryTheory.Monoidal.End
+import PolyML.Cartesian.FreeCommMon
+import PolyML.Cartesian.BagInType
 
 /-
 There is no reason any two monads `S` and `T` on the same category can be composed to give
