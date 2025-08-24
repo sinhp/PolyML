@@ -6,7 +6,7 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.Mon_
 import Mathlib.CategoryTheory.Monad.Adjunction
 import Mathlib.CategoryTheory.Monad.Algebra
-import PolyML.ListArithmetic
+import PolyML.Monoidal.ListArithmetic
 
 /-
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.

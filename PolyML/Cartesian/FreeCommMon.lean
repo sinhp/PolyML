@@ -6,8 +6,8 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.CommMon_
 import Mathlib.CategoryTheory.Monad.Adjunction
 import Mathlib.CategoryTheory.Monad.Algebra
-import PolyML.ListArithmetic
-import PolyML.CartesianFreeMon
+import PolyML.Monoidal.ListArithmetic
+import PolyML.Cartesian.FreeMon
 
 /-
 In this file, we define `bag A` as the free commutative monoid on `A`,

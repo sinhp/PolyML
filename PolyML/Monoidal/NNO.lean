@@ -5,11 +5,11 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Monoidal.Comon_
-import PolyML.ListArithmetic
+import PolyML.Monoidal.ListArithmetic
 import PolyML.ForMathlib.Monoidal.Powers
 import PolyML.ForMathlib.Monoidal.SemiCartesian
 import Mathlib.Tactic.CategoryTheory.Coherence
-import  PolyML.ForMathlib.Bool
+import PolyML.ForMathlib.Bool
 
 universe u v
 
@@ -17,9 +17,7 @@ namespace CategoryTheory
 
 open Category Opposite MonoidalCategory Limits
 
-attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
-open Endofunctor Algebra
+-- attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
 variable {C : Type u} [Category.{v} C]
 
@@ -293,6 +291,11 @@ instance monClass [BraidedCategory C] : Mon_Class (N : C) where
 instance [BraidedCategory C] : IsCommMon (N : C) where
   mul_comm := add_comm
 
+-- open CartesianMonoidalCategory in
+-- def mul' [CartesianMonoidalCategory C] : (N : C) ⊗ N ⟶ N :=
+--   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add snd)) ≫ (fst (N : C) N)
+
+
 def iterCurried [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
@@ -307,7 +310,7 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   zero := list.nil
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
   isNNO := {
-    prec e a := list.prec e ((λ_ _).hom ≫ a)
+    prec {P B} e a := list.prec e ((λ_ _).hom ≫ a)
     zero_prec := by {
       intros A B f g; rw [list.nil_prec]}
     succ_prec {A B f g} := by
@@ -393,119 +396,6 @@ theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : 
   sorry
 
 end const
-
-namespace PR
-
-open MorphismProperty CartesianMonoidalCategory
-
-variable {C} [CartesianMonoidalCategory C] [NNO C]
-
--- SH : rfpi coherence
-lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
-  symm
-  apply IsNNO.prec_uniq
-  · coherence
-  · apply rightUnitor_naturality succ
-
-def fst_eq_prec {A : C} : fst N A = prec (constMorphism isTerminalTensorUnit A zero) succ := by
-  sorry
-
-/-- The diagonal morphism on an object `X`. -/
-private def δ (X : C) : X ⟶ X ⊗ X :=
-  lift (𝟙 X) (𝟙 X)
-
-def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N ⊗ X  :=
-  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)
-
-theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
-  simp only [uprimrecAux]
-  sorry
-
-theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
-  simp only [uprimrecAux]
-  sorry
-
-theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    uprimrecAux init step ≫ fst N X = 𝟙 N := by
-  simp only [uprimrecAux]
-  rw [fst_eq_prec]
-  sorry
-  sorry
-
-def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
-  uprimrecAux init step ≫ snd N X
-
-theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    zero ≫ uprimrec init step = init := by
-  simp [uprimrec, uprimrecAux]
-  sorry
-
-theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    succ ≫ uprimrec init step = δ _ ≫ N ◁ (uprimrec init step) ≫ step := by
-  sorry
-
-/-- The helper morphism for defining primitive recursion. -/
-def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
-  prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
-    ( lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
-
-/-- The full primitive recursion schema. -/
-def primrec {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ B :=
-  sorry
-
-end PR
-
-section operations
-
-open CartesianMonoidalCategory PR Limits bool
-
-variable {C} [CartesianMonoidalCategory C] [NNO C]
-
-/-- The predecessor morphism. -/
-def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
-
-@[reassoc (attr := simp)]
-theorem pred_zero : zero (C:= C) ≫ pred = zero := by
-  simp only [pred, PR.uprimrec, uprimrecAux]
-  sorry
-
-@[reassoc (attr := simp)]
-theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
-  simp only [pred, PR.uprimrec, uprimrecAux]
-  sorry
-
-def sumUpTo : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) add
-
-theorem sumUpTo_zero : zero ≫ sumUpTo (C:= C) = zero := by
-  simp [sumUpTo]
-  sorry
-
--- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
---   sorry
-
-/-- The Subtraction morphism of natural numbers, truncated at `0`.-/
-def sub : (N : C) ⊗ N ⟶ N := sorry
-
--- theorem sub_toBool [HasBinaryCoproducts C] :
---     sub ≫ toBool C = (toBool C ▷ (toBool C)) ≫ bool.and := by
---   sorry
-
-
-def eq' : (N : C) ⊗ N ⟶ N := sorry
-
-noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
-
-noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
-
-noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
-  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub) ≫ eq
-
-theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
-  sorry
-
-end operations
 
 end NNO
 

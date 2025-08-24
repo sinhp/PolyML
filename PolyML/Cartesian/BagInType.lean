@@ -6,7 +6,7 @@ Authors: Sina Hazratpour
 
 import PolyML.ForMathlib.Monoidal.Internal.Types.Basic
 import Mathlib.Data.Finsupp.Weight
-import PolyML.FreeCommMon
+import PolyML.Cartesian.FreeCommMon
 
 /-
 We show that the category of types admit bags construction. In particular,

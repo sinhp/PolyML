@@ -50,7 +50,7 @@ universe u v
 
 namespace CategoryTheory
 
-open Category Opposite Limits MonoidalCategory CartesianMonoidalCategory
+open Category Opposite Limits MonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
@@ -918,7 +918,9 @@ noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoprod
 
 section Tail
 
-variable [CartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+variable [SemiCartesianMonoidalCategory C] [HasBinaryCoproducts C] [ListArithmetic C]
+
+open SemiCartesianMonoidalCategory
 
 noncomputable def list.tail {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
   list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (snd A (list A)))
