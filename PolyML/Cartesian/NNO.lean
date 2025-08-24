@@ -12,7 +12,7 @@ namespace CategoryTheory
 
 open Category Opposite MonoidalCategory Limits IsNNO CartesianMonoidalCategory
 
--- attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
 namespace NNO
 
