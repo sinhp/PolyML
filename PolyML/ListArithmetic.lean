@@ -429,7 +429,8 @@ def foldr {Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plis
 -- SH: I don't think this is foldl. It gives
 -- [a, b, c].foldl f init  = f (f (f init c) b) a`
 -- while it should be f (f (f init a) b) c
-def foldl [BraidedCategory C] {Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e ((β_ A Y).hom ≫ f)
+def foldl [BraidedCategory C] {Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
+  plist.rec e ((β_ A Y).hom ≫ f)
 
 def map {B : C} (f : A ⟶ B) : list A ⟶ list B := plist.map (P := 𝟙_ C) f
 
@@ -1030,7 +1031,7 @@ noncomputable def listAlgebraIso [ListArithmetic C] (A : C) :
 
 end listAsEndofunctorAlgebra
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [ListArithmetic C]
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 
