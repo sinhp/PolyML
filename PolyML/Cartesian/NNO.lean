@@ -5,6 +5,7 @@ Authors: Sina Hazratpour
 -/
 
 import PolyML.Monoidal.NNO
+import PolyML.ForMathlib.Monad.Distrib
 
 universe u v
 
@@ -36,6 +37,12 @@ theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
   sorry
+
+instance semiring [ListArithmetic C] [WithBags C] : Semiring_ C := sorry
+
+end NNO
+
+end CategoryTheory
 
 section PR
 

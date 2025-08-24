@@ -409,11 +409,17 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   }
   mul_right := sorry
 
+end Monad
+
+open Monad
+
+variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
+
 def Semiring_ := LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
 
 namespace Semiring_
 
-variable (α : Semiring_ C)
+variable {C} (α : Semiring_ C)
 
 def X : C := α.A.A
 
@@ -440,7 +446,5 @@ instance commMon : CommMon_ C where
   comm := sorry
 
 end Semiring_
-
-end Monad
 
 end CategoryTheory
