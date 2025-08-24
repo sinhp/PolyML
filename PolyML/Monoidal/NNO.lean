@@ -10,6 +10,7 @@ import PolyML.ForMathlib.Monoidal.Powers
 import PolyML.ForMathlib.Monoidal.SemiCartesian
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
+import PolyML.ForMathlib.Bool
 
 universe u v
 
@@ -102,8 +103,9 @@ theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
 theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} {g' : B' ⟶ B'} (d : B ⟶ B') :
     prec f g ≫ d = prec (f ≫ d) g' := by
   apply prec_uniq
-  · sorry
   sorry
+  sorry
+
 
 /-- Iterates an endomorphism `n` times. -/
 def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prec (𝟙 _) (f)
@@ -149,7 +151,12 @@ def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prec x (𝟙 
 def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
 theorem const_toUnit (X : C) (x : 𝟙_ C ⟶ X) : const X x = toUnit ≫ x := by
-  sorry
+  dsimp [const, toUnit]
+  simp only [assoc, Iso.cancel_iso_inv_left]
+  apply Eq.symm
+  apply prec_uniq
+  · rw [← assoc]; rw [zero_iter]
+  · rw [← assoc]; rw [succ_iter]; simp only [comp_id]
 
 open bool coprod
 
@@ -164,25 +171,70 @@ variable {C}
 
 theorem toBool_zero [HasBinaryCoproducts C] :
     zero ≫ toBool C = bool.false := by
-  sorry
+  dsimp [toBool]
+  rw [← assoc]
+  rw [rightUnitor_inv_naturality]
+  rw [assoc]
+  rw [zero_prec]
+  dsimp [bool.false]
+  refine (Iso.inv_comp_eq (ρ_ (𝟙_ C))).mpr ?_
+  refine ?_ =≫ _
+  exact unitors_equal
 
 theorem toBool_succ [HasBinaryCoproducts C] :
     succ ≫ toBool C = toUnit ≫ bool.true := by
-  sorry
+  dsimp [toBool, bool.true, toUnit]
+  rw [← assoc]
+  rw [rightUnitor_inv_naturality]
+  rw [assoc]
+  rw [succ_prec]
+  rw [prec_postcompose]
+  dsimp [iter]
+  rw [assoc]
+  rw [prec_postcompose]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left, BinaryCofan.mk_inl, id_comp,
+    Iso.cancel_iso_inv_left]
+  congr
+  exact 𝟙 𝟮
 
 theorem fromBool_false [HasBinaryCoproducts C] :
     bool.false ≫ fromBool C = zero := by
-  sorry
+  dsimp [bool.false, fromBool, elim]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
 
 theorem fromBool_true [HasBinaryCoproducts C] :
     bool.true ≫ fromBool C = one := by
-  sorry
+  dsimp [bool.true, fromBool, elim]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
 
 theorem fromBool_toBool [HasBinaryCoproducts C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
   apply bool.ext
-  · sorry
-  · sorry
+  · dsimp [bool.false, fromBool, elim, toBool]
+    simp only [desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
+      BinaryCofan.mk_inl, comp_id]
+    rw [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [assoc]
+    rw [zero_prec]
+    simp only [unitors_equal, Iso.inv_hom_id_assoc]
+  · dsimp [bool.true, fromBool, elim, toBool, one]
+    simp only [desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
+      BinaryCofan.mk_inr, comp_id]
+    rw [← assoc]
+    rw [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [assoc]
+    rw [comp_whiskerRight]
+    simp only [assoc]
+    rw [succ_prec]
+    rw [← assoc (zero ▷ 𝟙_ C) (prec inl (desc inr inr)) (desc inr inr)]
+    rw [zero_prec]
+    simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
+      BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+    simp only [unitors_equal, Iso.inv_hom_id_assoc]
 
 section Comon
 
@@ -212,7 +264,6 @@ def twist₀ : N^[0] ⊗ P ⟶ P ⊗ N^[0] := (λ_ P).hom ≫ (ρ_ P).inv
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist₁ : N ⊗ P ⟶ P ⊗ N := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
-set_option linter.countHeartbeats true in
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
   apply Eq.symm
@@ -324,7 +375,7 @@ theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom :=
   aesop
 
 -- associativity of addition
-theorem add_assoc [BraidedCategory C] :
+theorem add_assoc :
     add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
   sorry
 
@@ -469,32 +520,76 @@ theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   simp only [uprimrecAux]
 =======
   dsimp [uprimrecAux]
-  rw [← prec_precompose]
->>>>>>> d14de57 (etc):PolyML/NNO.lean
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc,zero_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  refine ?_ =≫ (zero ⊗ₘ init)
+  aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrecAux init step = uprimrecAux init step ≫  (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
-  simp only [uprimrecAux]
-  rw [fst_eq_prec]
-  sorry
+  dsimp [uprimrecAux, prec]
+  rw [← prec_uniq]
+  · change ((ρ_ N).inv ≫ N ◁ init) ≫ fst N X = 𝟙 N
+    simp only [assoc, whiskerLeft_fst, rightUnitor_inv_fst]
+  · rw [tensorHom_def]
+    simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
+  · simp only [whiskerRight_id, assoc]
+    rw [←assoc, ← assoc, rightUnitor_inv_naturality]
+    sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
   uprimrecAux init step ≫ snd N X
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
-  simp [uprimrec, uprimrecAux]
-  sorry
+  dsimp [uprimrec,uprimrecAux]
+  rw [← assoc, ← assoc, rightUnitor_inv_naturality]
+  rw [assoc, assoc]
+  have : zero ▷ 𝟙_ C ≫ prec ((λ_ (𝟙_ C)).inv ≫
+    (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step) ≫ snd N X =
+  (zero ▷ 𝟙_ C ≫ prec ((λ_ (𝟙_ C)).inv ≫
+    (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)) ≫
+  snd N X := by {simp only [whiskerRight_id, assoc]}
+  rw [this]; clear this
+  rw [zero_prec]
+  simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
+  dsimp [CartesianMonoidalCategory.toUnit]
+  simp only [IsTerminal.from_self, id_comp]
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrec init step = δ _ ≫ N ◁ (uprimrec init step) ≫ step := by
+  dsimp [uprimrec, uprimrecAux, δ]
+  rw [← assoc, ← assoc, rightUnitor_inv_naturality]
+  have : (((ρ_ N).inv ≫ succ ▷ 𝟙_ C) ≫ prec ((λ_ (𝟙_ C)).inv ≫
+  (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)) ≫ snd N X =
+  (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prec ((λ_ (𝟙_ C)).inv ≫
+  (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)) ≫ snd N X:= by {
+    simp only [whiskerRight_id,
+    Iso.inv_hom_id_assoc, assoc]}
+  rw [this]; clear this
+  rw [succ_prec]
+  simp only [comp_lift, lift_snd, assoc, whiskerLeft_comp]
+  rw [← assoc]
+  have : lift (𝟙 N) (𝟙 N) ≫
+    N ◁ (ρ_ N).inv ≫ N ◁ prec ((λ_ (𝟙_ C)).inv ≫
+      (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step) ≫ N ◁ snd N X ≫ step=
+    (lift (𝟙 N) (𝟙 N) ≫
+    N ◁ (ρ_ N).inv ≫ N ◁ prec ((λ_ (𝟙_ C)).inv ≫
+      (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step) ≫ N ◁ snd N X) ≫ step := by {
+        simp only [whiskerLeft_rightUnitor_inv, assoc]
+      }
+  rw [this]; clear this
+  refine ?_ =≫  _
+  simp only [whiskerLeft_rightUnitor_inv, assoc]
   sorry
+
+  -- sorry
 
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
@@ -518,13 +613,16 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
-  simp only [pred, PR.uprimrec, uprimrecAux]
-  sorry
+  dsimp [pred]
+  rw [uprimrec_zero]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
-  simp only [pred, PR.uprimrec, uprimrecAux]
-  sorry
+  simp only [pred]
+  rw [uprimrec_succ]
+  simp only [whiskerLeft_fst]
+  dsimp [δ]
+  simp only [lift_fst]
 
 /-- The Subtraction morphism of natural numbers, truncated at `0`.-/
 def sub : (N : C) ⊗ N ⟶ N := sorry
