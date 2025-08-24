@@ -24,12 +24,13 @@ open Endofunctor Algebra
 variable {C : Type u} [Category.{v} C]
 
 -- SH: prec for "parameterized" recursion.
+-- SH: usually params are on the left, although this becomes incompatible with plist.
 class IsNNO [MonoidalCategory C] {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
-  prec {A B : C} (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B
-  zero_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (zero ▷ A) ≫ prec f g = (λ_ A).hom ≫ f
-  succ_prec {A B : C} {f : A ⟶ B} {g : B ⟶ B} : (succ ▷ A) ≫ prec f g = prec f g ≫ g
-  prec_uniq {A B : C} {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
-  (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ: (succ ▷ A) ≫ r = r ≫ g) : r = prec f g
+  prec {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
+  zero_prec {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (zero ▷ P) ≫ prec f g = (λ_ P).hom ≫ f
+  succ_prec {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prec f g = prec f g ≫ g
+  prec_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
+  (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prec f g
 
 namespace IsNNO
 
@@ -74,25 +75,25 @@ namespace NNO
 
 open IsNNO
 
-variable {C} [MonoidalCategory C] [NNO C] {A B : C}
+variable {C} [MonoidalCategory C] [NNO C] {P B : C}
 
 instance : IsNNO (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
   NNO.isNNO
 
-def prec (f : A ⟶ B) (g : B ⟶ B) : N ⊗ A ⟶ B :=
+def prec (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B :=
   IsNNO.prec zero succ f g
 
 @[simp]
-theorem zero_prec {f : A ⟶ B} {g : B ⟶ B} :
-    (zero ▷ A) ≫ prec f g = (λ_ A).hom ≫ f := by
+theorem zero_prec {f : P ⟶ B} {g : B ⟶ B} :
+  (zero ▷ P) ≫ prec f g = (λ_ P).hom ≫ f := by
   apply IsNNO.zero_prec
 
-theorem succ_prec {f : A ⟶ B} {g : B ⟶ B} :
-    (succ ▷ A) ≫ prec f g = prec f g ≫ g := by
+theorem succ_prec {f : P ⟶ B} {g : B ⟶ B} :
+  (succ ▷ P) ≫ prec f g = prec f g ≫ g := by
   apply IsNNO.succ_prec
 
-theorem prec_precompose {A'} {u : A' ⟶ A} {f : A ⟶ B} {g : B ⟶ B} :
-    N ◁ u ≫ prec f g = prec (u ≫ f) g := by
+theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
+  N ◁ u ≫ prec f g = prec (u ≫ f) g := by
   apply prec_uniq
   all_goals rw [← assoc, ← whisker_exchange, assoc]
   · rw [zero_prec]
@@ -100,36 +101,36 @@ theorem prec_precompose {A'} {u : A' ⟶ A} {f : A ⟶ B} {g : B ⟶ B} :
   · rw [succ_prec]
     aesop
 
-theorem prec_postcompose {B'} {f : A ⟶ B} {g : B ⟶ B} {g' : B' ⟶ B'} (d : B ⟶ B') :
+theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} {g' : B' ⟶ B'} (d : B ⟶ B') :
     prec f g ≫ d = prec (f ≫ d) g' := by
   apply prec_uniq
   · sorry
   sorry
 
 /-- Iterates an endomorphism `n` times. -/
-def iter (f : A ⟶ A) : N ⊗ A ⟶ A := prec (𝟙 _) (f)
+def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prec (𝟙 _) (f)
 
 /-- Recursion with the parameter `A` set to the unit object `𝟙_ C` -/
 def urec (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
   (ρ_ _).inv ≫ prec f g
 
 @[reassoc (attr := simp)]
-theorem zero_iter {f : A ⟶ A} :
-    zero ▷ A ≫ iter f = (λ_ A).hom := by
+theorem zero_iter {f : P ⟶ P} :
+  zero ▷ P ≫ iter f = (λ_ P).hom := by
   simp [iter]
 
-theorem succ_iter {f : A ⟶ A} :
-    succ ▷ A ≫ iter f = iter f ≫ f := by
+theorem succ_iter {f : P ⟶ P} :
+  succ ▷ P ≫ iter f = iter f ≫ f := by
   simp [iter, succ_prec]
 
 /-- `prec` can be reconstructed from `iter`. -/
 @[reassoc (attr := simp)]
-theorem iter_prec {f : A ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g := by
+theorem iter_prec {f : P ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g := by
   simpa using prec_precompose (u:= f) (f:= 𝟙 B) (g:= g)
 
-theorem eq_whisker_iter {f : A ⟶ B} {g : B ⟶ B} (r : N ⊗ A ⟶ B)
-    (h_zero : (zero ▷ A) ≫ r = (λ_ A).hom ≫ f) (h_succ : (succ ▷ A) ≫ r = r ≫ g) :
-    r = (N ◁ f) ≫ iter g := by
+theorem eq_whisker_iter {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
+  (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ : (succ ▷ P) ≫ r = r ≫ g) :
+  r = (N ◁ f) ≫ iter g := by
   rw [iter_prec]
   apply IsNNO.prec_uniq
   all_goals
@@ -197,12 +198,12 @@ instance : Comon_Class (N : C) where
   comul_counit := sorry
   comul_assoc := sorry
 
-variable (A)
+variable (P)
 
-def twist₀ : N^[0] ⊗ A ⟶ A ⊗ N^[0] := (λ_ A).hom ≫ (ρ_ A).inv
+def twist₀ : N^[0] ⊗ P ⟶ P ⊗ N^[0] := (λ_ P).hom ≫ (ρ_ P).inv
 
 /-- The twist map induced by the universal property of the natural number object. -/
-def twist₁ : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
+def twist₁ : N ⊗ P ⟶ P ⊗ N := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
@@ -226,14 +227,14 @@ theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
 theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
 
-def Twist : ℕ → Type v := fun k => (N^[k] ⊗ A ⟶ A ⊗ N^[k])
+def Twist : ℕ → Type v := fun k => (N^[k] ⊗ P ⟶ P ⊗ N^[k])
 
-def twist : (k : ℕ) → Twist A k
-  | 0 => twist₀ A
-  | n + 1 => (powSuccIso N n).hom ▷ A ≫ (α_ N _ A).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
-   (twist₁ A ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (A ◁ (powSuccIso N n).inv)
+def twist : (k : ℕ) → Twist P k
+  | 0 => twist₀ P
+  | n + 1 => (powSuccIso N n).hom ▷ P ≫ (α_ N _ P).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
+   (twist₁ P ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (P ◁ (powSuccIso N n).inv)
 
-theorem twist_one : twist A 1 = twist₁ A := by
+theorem twist_one : twist P 1 = twist₁ P := by
   sorry
 
 end Comon
@@ -400,7 +401,7 @@ open MorphismProperty CartesianMonoidalCategory
 variable {C} [CartesianMonoidalCategory C] [NNO C]
 
 -- SH : rfpi coherence
-lemma prec_zero_succ_eq_rightUnitor : prec (A := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
+lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
   symm
   apply IsNNO.prec_uniq
   · coherence
@@ -475,8 +476,22 @@ theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
   simp only [pred, PR.uprimrec, uprimrecAux]
   sorry
 
+def sumUpTo : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) add
+
+theorem sumUpTo_zero : zero ≫ sumUpTo (C:= C) = zero := by
+  simp [sumUpTo]
+  sorry
+
+-- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
+--   sorry
+
 /-- The Subtraction morphism of natural numbers, truncated at `0`.-/
 def sub : (N : C) ⊗ N ⟶ N := sorry
+
+-- theorem sub_toBool [HasBinaryCoproducts C] :
+--     sub ≫ toBool C = (toBool C ▷ (toBool C)) ≫ bool.and := by
+--   sorry
+
 
 def eq' : (N : C) ⊗ N ⟶ N := sorry
 
