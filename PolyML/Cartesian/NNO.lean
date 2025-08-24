@@ -18,10 +18,24 @@ namespace NNO
 
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C]
 
--- open CartesianMonoidalCategory in
--- def mul' [CartesianMonoidalCategory C] : (N : C) ⊗ N ⟶ N :=
---   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add snd)) ≫ (fst (N : C) N)
+def mul' : (N : C) ⊗ N ⟶ N :=
+  (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
 
+theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
+  simp [mul']
+  sorry
+
+-- SH: can the rhs be a simpler term involving `mul'`?
+theorem succ_mul' :
+    succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
+  simp [mul']
+  sorry
+
+theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
+  sorry
+
+theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
+  sorry
 
 section PR
 
