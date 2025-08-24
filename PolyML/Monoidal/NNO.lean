@@ -127,12 +127,19 @@ theorem iter_prec {f : P ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g 
   simpa using prec_precompose (u:= f) (f:= 𝟙 B) (g:= g)
 
 theorem eq_whisker_iter {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
-  (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ : (succ ▷ P) ≫ r = r ≫ g) :
-  r = (N ◁ f) ≫ iter g := by
+    (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ : (succ ▷ P) ≫ r = r ≫ g) :
+    r = (N ◁ f) ≫ iter g := by
   rw [iter_prec]
   apply IsNNO.prec_uniq
   all_goals
   assumption
+
+-- SH : rfpi coherence
+lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
+  symm
+  apply IsNNO.prec_uniq
+  · coherence
+  · apply rightUnitor_naturality succ
 
 /-- The number one. -/
 def one : 𝟙_ C ⟶ N := zero ≫ succ
@@ -291,12 +298,7 @@ instance monClass [BraidedCategory C] : Mon_Class (N : C) where
 instance [BraidedCategory C] : IsCommMon (N : C) where
   mul_comm := add_comm
 
--- open CartesianMonoidalCategory in
--- def mul' [CartesianMonoidalCategory C] : (N : C) ⊗ N ⟶ N :=
---   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add snd)) ≫ (fst (N : C) N)
-
-
-def iterCurried [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
+def iterCurried {A : C} [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
 end NNO

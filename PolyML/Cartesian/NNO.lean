@@ -18,18 +18,16 @@ namespace NNO
 
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C]
 
+-- open CartesianMonoidalCategory in
+-- def mul' [CartesianMonoidalCategory C] : (N : C) ⊗ N ⟶ N :=
+--   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add snd)) ≫ (fst (N : C) N)
+
+
 section PR
 
 open MorphismProperty CartesianMonoidalCategory
 
--- SH : rfpi coherence
-lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
-  symm
-  apply IsNNO.prec_uniq
-  · coherence
-  · apply rightUnitor_naturality succ
-
-def fst_eq_prec {A : C} : fst N A = prec (constMorphism isTerminalTensorUnit A zero) succ := by
+def fst_eq_prec {A : C} : fst N A = prec (SemiCartesianMonoidalCategory.constMorphism A zero) succ := by
   sorry
 
 /-- The diagonal morphism on an object `X`. -/
@@ -53,7 +51,6 @@ theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
   simp only [uprimrecAux]
   rw [fst_eq_prec]
-  sorry
   sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
