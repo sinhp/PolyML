@@ -147,7 +147,9 @@ def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 instance : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
-  counit_comul := sorry
+  counit_comul := by
+    simp only [duplicate, delete]
+    sorry
   comul_counit := sorry
   comul_assoc := sorry
 
@@ -158,12 +160,17 @@ def twist₀ : N^[0] ⊗ A ⟶ A ⊗ N^[0] := (λ_ A).hom ≫ (ρ_ A).inv
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist₁ : N ⊗ A ⟶ A ⊗ N := prec ((ρ_ _ ).inv ≫ (A ◁ zero)) (A ◁ succ)
 
+set_option linter.countHeartbeats true in
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
   apply Eq.symm
   apply prec_uniq
-  · coherence
-  · coherence
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
+    nth_rw 2 [← assoc, ← assoc]
+    refine ?_ =≫ _
+    rw [assoc, unitors_equal]
+    simp only [Iso.inv_hom_id, comp_id]
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
 theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
@@ -182,7 +189,7 @@ theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
   rw [twist₁_braiding]
   simp only [Iso.hom_inv_id, Iso.inv_hom_id, and_self]
 
-theorem twist₁_twist₁  [BraidedCategory C]: twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
+theorem twist₁_twist₁ [BraidedCategory C] : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   nth_rw 1 [twist₁_braiding]
   refine (Iso.hom_comp_eq_id (β_ N N)).mpr ?_
   dsimp [twist₁]
@@ -196,8 +203,7 @@ def Twist : ℕ → Type v := fun k => (N^[k] ⊗ A ⟶ A ⊗ N^[k])
 
 def twist : (k : ℕ) → Twist A k
   | 0 => twist₀ A
-  | n + 1 => (powSuccIso N n).hom ▷ A ≫
-      (α_ N _ A).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
+  | n + 1 => (powSuccIso N n).hom ▷ A ≫ (α_ N _ A).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
    (twist₁ A ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (A ◁ (powSuccIso N n).inv)
 
 theorem twist_one : twist A 1 = twist₁ A := by
@@ -285,8 +291,10 @@ theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
     refine (Iso.inv_comp_eq_id (ρ_ N)).mpr ?_
     apply Eq.symm
     apply prec_uniq
-    coherence
-    coherence
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+    refine ?_ =≫ _
+    exact Eq.symm unitors_equal
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
   · simp only [BraidedCategory.braiding_naturality_left_assoc, iter_prec, assoc,
     Iso.cancel_iso_hom_left]
     apply Eq.symm
@@ -449,6 +457,8 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
+  dsimp [uprimrecAux]
+  rw [← prec_precompose]
   sorry
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
