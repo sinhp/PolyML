@@ -312,8 +312,17 @@ def twist : (k : ℕ) → Twist A k
   | n + 1 => (powSuccIso N n).hom ▷ A ≫ (α_ N _ A).hom ≫ (N ◁ twist n) ≫ (α_ _ _ _).inv ≫
    (twist₁ A ▷ N^[n]) ≫ (α_ _ _ _).hom ≫ (A ◁ (powSuccIso N n).inv)
 
-theorem twist_one : twist A 1 = twist₁ A := by
+theorem twist_one : twist P 1 = twist₁ P := by
   sorry
+  -- nth_rw 1 [twist₁_braiding]
+  -- refine (Iso.hom_comp_eq_id (β_ N N)).mpr ?_
+  -- dsimp [twist₁]
+  -- apply Eq.symm
+  -- apply prec_uniq
+  -- · simp only [BraidedCategory.braiding_inv_naturality_left,
+  --   braiding_inv_tensorUnit_right, assoc]
+  -- · simp only [BraidedCategory.braiding_inv_naturality_left]
+
 
 end Comon
 
@@ -618,11 +627,27 @@ theorem pred_zero : zero (C:= C) ≫ pred = zero := by
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
+<<<<<<< HEAD:PolyML/Monoidal/NNO.lean
   simp only [pred]
+=======
+  dsimp only [pred]
+>>>>>>> d1d64e4 (rebase):PolyML/NNO.lean
   rw [uprimrec_succ]
   simp only [whiskerLeft_fst]
   dsimp [δ]
   simp only [lift_fst]
+<<<<<<< HEAD:PolyML/Monoidal/NNO.lean
+=======
+
+def sumUpTo : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) add
+
+theorem sumUpTo_zero : zero ≫ sumUpTo (C:= C) = zero := by
+  simp [sumUpTo]
+  rw [uprimrec_zero]
+
+-- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
+--   sorry
+>>>>>>> d1d64e4 (rebase):PolyML/NNO.lean
 
 /-- The Subtraction morphism of natural numbers, truncated at `0`.-/
 def sub : (N : C) ⊗ N ⟶ N := sorry
