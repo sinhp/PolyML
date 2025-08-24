@@ -635,6 +635,10 @@ theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
 
 def snoc {A : C} : list A ⊗ A ⟶ list A := (list A ◁ singleton) ≫ append
 
+theorem braiding_hom_list_unit_twist [BraidedCategory C] {P : C} :
+    (β_ (list (𝟙_ C)) P).hom = list.prec ((ρ_ P).inv ≫ P ◁ (list.nil (A:= 𝟙_C))) (λ_ _).hom := by
+  sorry
+
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
   list.rec list.nil ((η ▷ list A) ≫ (β_ _ _).hom ≫ append)
