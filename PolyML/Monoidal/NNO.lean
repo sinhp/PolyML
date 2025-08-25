@@ -99,7 +99,7 @@ theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
   · rw [succ_prec]
     aesop
 
-theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} {g' : B' ⟶ B'} (d : B ⟶ B')
+theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B ⟶ B')
     (comm_sq : CommSq g d d g') :
     prec f g ≫ d = prec (f ≫ d) g' := by
   apply prec_uniq
