@@ -220,8 +220,7 @@ theorem succ_toBool [HasBinaryCoproducts C] :
 theorem false_fromBool [HasBinaryCoproducts C] :
     bool.false ≫ fromBool C = zero := by
   dsimp [bool.false, fromBool, elim]
-  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-    BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+  simp only [inl_desc]
 
 theorem true_fromBool [HasBinaryCoproducts C] :
     bool.true ≫ fromBool C = one := by
