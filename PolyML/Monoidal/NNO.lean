@@ -10,7 +10,6 @@ import PolyML.ForMathlib.Monoidal.Powers
 import PolyML.ForMathlib.Monoidal.SemiCartesian
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
-import PolyML.ForMathlib.Bool
 
 universe u v
 
@@ -485,6 +484,8 @@ open MorphismProperty CartesianMonoidalCategory
 
 variable {C} [CartesianMonoidalCategory C] [NNO C]
 
+open IsNNO
+
 -- SH : rfpi coherence
 lemma prec_zero_succ_eq_rightUnitor : prec (A := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
   symm
@@ -494,7 +495,14 @@ lemma prec_zero_succ_eq_rightUnitor : prec (A := 𝟙_ C) (B := N) zero succ = (
   · apply rightUnitor_naturality succ
 
 def fst_eq_prec {A : C} : fst N A = prec (constMorphism isTerminalTensorUnit A zero) succ := by
-  sorry
+  apply prec_uniq
+  · simp only [whiskerRight_fst]
+    dsimp [constMorphism]
+    rw [← assoc]
+    refine ?_ =≫ _
+    simp only [Limits.IsTerminal.comp_from]
+    ext : 1
+  · simp only [whiskerRight_fst]
 
 /-- The diagonal morphism on an object `P`. -/
 private def δ (X : C) : X ⟶ X ⊗ X :=
@@ -505,9 +513,6 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
-<<<<<<< HEAD:PolyML/Monoidal/NNO.lean
-  simp only [uprimrecAux]
-=======
   dsimp [uprimrecAux]
   rw [← assoc, rightUnitor_inv_naturality, assoc,zero_prec]
   simp only [Iso.hom_inv_id_assoc]
@@ -562,6 +567,8 @@ variable {C} [CartesianMonoidalCategory C] [NNO C]
 
 /-- The predecessor morphism. -/
 def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
+
+open IsNNO
 
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
