@@ -25,16 +25,19 @@ def mul' : (N : C) ⊗ N ⟶ N :=
 
 theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
   simp [mul']
-  sorry
+  rw [← assoc, zero_prec]
+  simp only [Iso.hom_inv_id_assoc, whiskerRight_fst]
 
 -- SH: can the rhs be a simpler term involving `mul'`?
 theorem succ_mul' :
     succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
   simp [mul']
-  sorry
+  rw [← assoc, succ_prec]
+  simp only [comp_lift, lift_fst]
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
-  sorry
+  simp [one]
+  rw [succ_mul', ← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
   sorry
