@@ -219,13 +219,11 @@ theorem succ_toBool [HasBinaryCoproducts C] :
 
 theorem false_fromBool [HasBinaryCoproducts C] :
     bool.false ≫ fromBool C = zero := by
-  dsimp [bool.false, fromBool, elim]
-  simp only [inl_desc]
+  simp only [fromBool, false_elim]
 
 theorem true_fromBool [HasBinaryCoproducts C] :
     bool.true ≫ fromBool C = one := by
-  dsimp [bool.true, fromBool, elim, one]
-  rw [inr_desc]
+  simp only [fromBool, true_elim]
 
 theorem fromBool_toBool [HasBinaryCoproducts C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
