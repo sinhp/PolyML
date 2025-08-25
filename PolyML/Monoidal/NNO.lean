@@ -100,7 +100,7 @@ theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
     aesop
 
 theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B ⟶ B')
-    (comm_sq : CommSq g d d g') :
+    (comm_sq : CommSq g d d g' := by aesop) :
     prec f g ≫ d = prec (f ≫ d) g' := by
   apply prec_uniq
   · sorry
@@ -131,14 +131,14 @@ theorem eq_whisker_iter {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
     (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ : (succ ▷ P) ≫ r = r ≫ g) :
     r = (N ◁ f) ≫ iter g := by
   rw [iter_prec]
-  apply IsNNO.prec_uniq
+  apply prec_uniq
   all_goals
   assumption
 
 -- SH : rfpi coherence
 lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
   symm
-  apply IsNNO.prec_uniq
+  apply prec_uniq
   · coherence
   · apply rightUnitor_naturality succ
 
@@ -149,7 +149,26 @@ def one : 𝟙_ C ⟶ N := zero ≫ succ
 def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prec x (𝟙 X)
 
 /-- Mapping the NNO to the unit of the monoidal category. -/
-def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
+def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 (𝟙_ C))
+
+@[reassoc (attr := simp)]
+theorem zero_toUnit : zero ≫ toUnit = 𝟙 (𝟙_ C) := by
+  rw [toUnit, ← assoc, rightUnitor_inv_naturality, assoc, zero_iter, unitors_equal]
+  simp only [Iso.inv_hom_id]
+
+theorem succ_toUnit : succ ≫ toUnit = toUnit (C:= C) := by
+  rw [toUnit, ← assoc, rightUnitor_inv_naturality, assoc, succ_iter, comp_id]
+
+@[simp]
+theorem iter_id : iter (𝟙 P) = toUnit ▷ P ≫ (λ_ _).hom := by
+  simp [iter, prec]
+  symm
+  apply prec_uniq
+  · rw [← assoc, ← comp_whiskerRight, zero_toUnit, id_whiskerRight, id_comp, comp_id]
+  · rw [← assoc, ← comp_whiskerRight, succ_toUnit, comp_id]
+
+theorem iter_id_unit : iter (𝟙 (𝟙_ C)) = (ρ_ _).hom ≫ toUnit := by
+  simp only [toUnit, Iso.hom_inv_id_assoc]
 
 theorem const_toUnit (X : C) (x : 𝟙_ C ⟶ X) : const X x = toUnit ≫ x := by
   dsimp [const, toUnit]
@@ -165,14 +184,14 @@ variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
 noncomputable
-def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl (desc inr inr)
+def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl constTrue
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
 noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
 
 variable {C}
 
-theorem toBool_zero [HasBinaryCoproducts C] :
+theorem zero_toBool [HasBinaryCoproducts C] :
     zero ≫ toBool C = bool.false := by
   dsimp [toBool]
   rw [← assoc, rightUnitor_inv_naturality]
@@ -182,50 +201,40 @@ theorem toBool_zero [HasBinaryCoproducts C] :
   refine ?_ =≫ _
   exact unitors_equal
 
-theorem toBool_succ [HasBinaryCoproducts C] :
-    succ ≫ toBool C = toUnit ≫ bool.true := by
-  dsimp [toBool, bool.true, toUnit]
-  rw [← assoc, rightUnitor_inv_naturality, assoc]
-  rw [succ_prec, prec_postcompose]
-  dsimp [iter]
-  rw [assoc, prec_postcompose]
-  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-    BinaryCofan.ι_app_left, BinaryCofan.mk_inl, id_comp, Iso.cancel_iso_inv_left]
-  congr
-  exact 𝟙 𝟮
+theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
+  sorry
 
-theorem fromBool_false [HasBinaryCoproducts C] :
+theorem foo {X : C} : 1 = 2 := sorry
+
+theorem succ_toBool [HasBinaryCoproducts C] :
+    succ ≫ toBool C = toUnit ≫ bool.true := by
+  rw [← toBool_desc_eq_toUnit]
+  unfold toBool
+  rw [← assoc, rightUnitor_inv_naturality, assoc, assoc, assoc]
+  refine _ ≫= ?_
+  rw [← assoc]
+  rw [succ_prec, assoc]
+  refine _ ≫= ?_
+  exact constTrue_eq_toUnit_true
+
+theorem false_fromBool [HasBinaryCoproducts C] :
     bool.false ≫ fromBool C = zero := by
   dsimp [bool.false, fromBool, elim]
   simp only [colimit.ι_desc, BinaryCofan.mk_pt,
     BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
 
-theorem fromBool_true [HasBinaryCoproducts C] :
+theorem true_fromBool [HasBinaryCoproducts C] :
     bool.true ≫ fromBool C = one := by
-  dsimp [bool.true, fromBool, elim]
-  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
-    BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
+  dsimp [bool.true, fromBool, elim, one]
+  rw [inr_desc]
 
 theorem fromBool_toBool [HasBinaryCoproducts C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
   apply bool.ext
-  · dsimp [bool.false, fromBool, elim, toBool]
-    simp only [desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
-      BinaryCofan.mk_inl, comp_id]
-    rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prec]
-    simp only [unitors_equal, Iso.inv_hom_id_assoc]
-  · dsimp [bool.true, fromBool, elim, toBool, one]
-    simp only [desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
-      BinaryCofan.mk_inr, comp_id]
-    rw [← assoc, ← assoc, rightUnitor_inv_naturality]
-    rw [assoc, comp_whiskerRight]
-    simp only [assoc]
-    rw [succ_prec]
-    rw [← assoc (zero ▷ 𝟙_ C) (prec inl (desc inr inr)) (desc inr inr)]
-    rw [zero_prec]
-    simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
-      BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
-    simp only [unitors_equal, Iso.inv_hom_id_assoc]
+  · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
+  · simp only [← assoc, true_fromBool, one]
+    rw [assoc]
+    simp only [succ_toBool, comp_id, ← assoc, zero_toUnit, id_comp]
 
 section Comon
 
@@ -239,7 +248,7 @@ def duplicate : (N : C) ⟶ N ⊗ N :=
 abbrev delete : N ⟶ 𝟙_ C := toUnit
 
 /-- The comonoid structure on the natural number object. -/
-instance : Comon_Class (N : C) where
+instance comonClass : Comon_Class (N : C) where
   counit := delete
   comul := duplicate
   counit_comul := by
