@@ -36,7 +36,7 @@ variable [MonoidalCategory C]
 
 variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsNNO zero succ]
 
-theorem congr_arg {A B : C} {f f' : A ⟶ B} {g g' : B ⟶ B}
+theorem congr_arg {P B : C} {f f' : P ⟶ B} {g g' : B ⟶ B}
     (h : f = f') (h' : g = g') :
     prec zero succ f g = prec zero succ f' g' := by
   subst h h'
@@ -108,7 +108,7 @@ theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} {g' : B' ⟶ B'} (d : 
 /-- Iterates an endomorphism `n` times. -/
 def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prec (𝟙 _) (f)
 
-/-- Recursion with the parameter `A` set to the unit object `𝟙_ C` -/
+/-- Recursion with the parameter `P` set to the unit object `𝟙_ C` -/
 def urec (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
   (ρ_ _).inv ≫ prec f g
 
@@ -141,11 +141,13 @@ lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (
   · coherence
   · apply rightUnitor_naturality succ
 
-/-- The number one. -/
+/-- The morphism for number one, i.e. the successor of zero. -/
 def one : 𝟙_ C ⟶ N := zero ≫ succ
 
+/-- Maps any natural number to the fixed element `x`. -/
 def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prec x (𝟙 X)
 
+/-- Mapping the NNO to the unit of the monoidal category. -/
 def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
 theorem const_toUnit (X : C) (x : 𝟙_ C ⟶ X) : const X x = toUnit ≫ x := by
@@ -155,9 +157,11 @@ open bool coprod
 
 variable (C)
 
-noncomputable def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 :=
-  (ρ_ _).inv ≫ prec inl (desc inr inr)
+/-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
+noncomputable
+def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl (desc inr inr)
 
+/-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
 noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
 
 variable {C}
@@ -188,10 +192,12 @@ section Comon
 
 variable [MonoidalCategory C] [NNO C]
 
+/-- Duplicates a natural number, it maps `n` to `n ⊗ n`. Note that this is not necessarily the diagonal morphism, it
+does not use the cartesian monoidal structure. -/
 def duplicate : (N : C) ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
 
-def delete : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
+abbrev delete : N ⟶ 𝟙_ C := toUnit
 
 /-- The comonoid structure on the natural number object. -/
 instance : Comon_Class (N : C) where
@@ -205,10 +211,13 @@ instance : Comon_Class (N : C) where
 
 variable (P)
 
-def twist₀ : N^[0] ⊗ P ⟶ P ⊗ N^[0] := (λ_ P).hom ≫ (ρ_ P).inv
+/-- The type of twists maps of monoidal powers of `N`. -/
+def Twist : ℕ → Type v := fun k => (N^[k] ⊗ P ⟶ P ⊗ N^[k])
+
+def twist₀ : Twist P 0 := (λ_ P).hom ≫ (ρ_ P).inv
 
 /-- The twist map induced by the universal property of the natural number object. -/
-def twist₁ : N ⊗ P ⟶ P ⊗ N := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
+def twist₁ : Twist P 1 := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
@@ -217,22 +226,20 @@ theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom �
 theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
 
-theorem twist₁_braiding [BraidedCategory C] {A : C} :
-    twist₁ A = (β_ N A).hom := by
+theorem twist₁_braiding [BraidedCategory C] {P : C} :
+    twist₁ P = (β_ N P).hom := by
   dsimp [twist₁, prec]
   rw [← prec_uniq]
   · simp only [BraidedCategory.braiding_naturality_left,
       braiding_tensorUnit_left, assoc]
   · simp only [BraidedCategory.braiding_naturality_left]
 
-theorem twist₁_is_iso {A : C} [BraidedCategory C] : IsIso (twist₁ A) := by
+theorem twist₁_is_iso {P : C} [BraidedCategory C] : IsIso (twist₁ P) := by
   rw [twist₁_braiding]
   infer_instance
 
 theorem twist₁_twist₁ : twist₁ N ≫ twist₁ N = 𝟙 (N ⊗ N : C) := by
   sorry
-
-def Twist : ℕ → Type v := fun k => (N^[k] ⊗ P ⟶ P ⊗ N^[k])
 
 def twist : (k : ℕ) → Twist P k
   | 0 => twist₀ P
@@ -298,7 +305,7 @@ instance monClass [BraidedCategory C] : Mon_Class (N : C) where
 instance [BraidedCategory C] : IsCommMon (N : C) where
   mul_comm := add_comm
 
-def iterCurried {A : C} [Closed A] [BraidedCategory C] (f : A ⟶ A) : N ⟶ (A ⟶[C] A) :=
+def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
 end NNO
@@ -393,8 +400,8 @@ variable {C} [SemiCartesianMonoidalCategory C] [NNO C]
 open SemiCartesianMonoidalCategory
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
-theorem const_of_no_change_succ {A B : C} (r : N ⊗ A ⟶ B) (no_change_succ : succ ▷ A ≫ r = r) {n} :
-    r = (constMorphism N n) ▷ A ≫ r := by
+theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : succ ▷ P ≫ r = r) {n} :
+    r = (constMorphism N n) ▷ P ≫ r := by
   sorry
 
 end const

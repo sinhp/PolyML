@@ -6,6 +6,7 @@ Authors: Sina Hazratpour
 
 import PolyML.Monoidal.NNO
 import PolyML.ForMathlib.Monad.Distrib
+import PolyML.ForMathlib.ConstantMorphism
 
 universe u v
 
@@ -40,10 +41,6 @@ theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
 
 instance semiring [ListArithmetic C] [WithBags C] : Semiring_ C := sorry
 
-end NNO
-
-end CategoryTheory
-
 section PR
 
 open MorphismProperty CartesianMonoidalCategory
@@ -52,7 +49,7 @@ def fst_eq_prec {A : C} : fst N A = prec (SemiCartesianMonoidalCategory.constMor
   sorry
 
 /-- The diagonal morphism on an object `X`. -/
-private def δ (X : C) : X ⟶ X ⊗ X :=
+private def δ' (X : C) : X ⟶ X ⊗ X :=
   lift (𝟙 X) (𝟙 X)
 
 def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N ⊗ X  :=
@@ -83,12 +80,12 @@ theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   sorry
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    succ ≫ uprimrec init step = δ _ ≫ N ◁ (uprimrec init step) ≫ step := by
+    succ ≫ uprimrec init step = δ' _ ≫ N ◁ (uprimrec init step) ≫ step := by
   sorry
 
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
-  prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
+  prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ' P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
     ( lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
 
 /-- The full primitive recursion schema. -/
@@ -114,21 +111,37 @@ theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
   simp only [pred, uprimrec, uprimrecAux]
   sorry
 
-def sumUpTo : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
+def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
 
-theorem sumUpTo_zero : zero ≫ sumUpTo (C:= C) = zero := by
-  simp [sumUpTo]
+theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
+  simp [sumUpTo']
   sorry
 
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry
 
 /-- The Subtraction morphism of natural numbers, truncated at `0`.-/
-def sub : (N : C) ⊗ N ⟶ N := sorry
+def sub' : (N : C) ⊗ N ⟶ N := sorry
+
+/-- The maximum morphism on natural numbers.-/
+def max' : (N : C) ⊗ N ⟶ N := (lift sub' (snd N N)) ≫ add
+
+/-- The minimum morphism on natural numbers.-/
+def min' : (N : C) ⊗ N ⟶ N := (lift add max') ≫ sub'
+
+theorem max'_min'_add : lift max' min' ≫ add = add (C:= C) := by
+  sorry
 
 -- theorem sub_toBool [HasBinaryCoproducts C] :
 --     sub ≫ toBool C = (toBool C ▷ (toBool C)) ≫ bool.and := by
 --   sorry
+
+def eqZero': N ⟶ (N : C) := (λ_ _).inv ≫ (one ▷ N) ≫ sub'
+
+theorem eqZero'_toBool_eq_toBool [HasBinaryCoproducts C] : eqZero' ≫ toBool C = toBool C := by
+  simp [eqZero']
+  sorry
+
 
 def eq' : (N : C) ⊗ N ⟶ N := sorry
 
@@ -137,7 +150,7 @@ noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
 noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
 
 noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
-  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub) ≫ eq
+  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub') ≫ eq
 
 theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
   sorry
