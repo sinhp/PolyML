@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import PolyML.ForMathlib.Monoidal.SemiCartesian
 import PolyML.ForMathlib.ConstantMorphism
+import Mathlib.CategoryTheory.Distributive.Monoidal
 
 universe u v
 
@@ -99,15 +100,35 @@ lemma elim_iff {X : C} {f : 𝟮 ⟶ X} {a b : 𝟙_ C ⟶ X} : elim a b = f ↔
     · rw [true_elim]
       exact h1.symm
 
-def and : (𝟮 : C) ⊗ 𝟮 ⟶ 𝟮 := sorry
+def constTrue : (𝟮 : C) ⟶ 𝟮 := elim true true
 
-theorem false_and : (false ▷ (𝟮 : C)) ≫ and = (λ_ _).hom ≫ (desc inr inr) := by
+def constFalse : (𝟮 : C) ⟶ 𝟮 := elim false false
+
+def toUnit : (𝟮 : C) ⟶ 𝟙_ C := elim (𝟙 _) (𝟙 _)
+
+theorem constTrue_toUnit : constTrue ≫ toUnit (C:= C) = toUnit := by
+  simp only [constTrue, elim_comp, toUnit]
+  congr 1
+  all_goals
+  simp only [true_elim]
+
+theorem constTrue_eq_toUnit_true : constTrue (C:= C) = bool.toUnit ≫ bool.true := by
+  dsimp only [constTrue, toUnit, false, true]
+  apply elim_iff.mpr
+  simp
+
+def not : (𝟮 : C) ⟶ 𝟮 := elim true false
+
+def and [IsMonoidalLeftDistrib C] : (𝟮 : C) ⊗ 𝟮 ⟶ 𝟮 := sorry
+
+theorem false_and [IsMonoidalLeftDistrib C] :
+    (false ▷ (𝟮 : C)) ≫ and = (λ_ _).hom ≫ (desc inr inr) := by
   sorry
 
 -- theorem false_and' [SemiCartesianMonoidalCategory C] :
 --     (false ▷ (𝟮 : C)) ≫ and = SemiCartesianMonoidalCategory.constMorphism _ false := sorry
 
-theorem true_and : (true ▷ (𝟮 : C)) ≫ and = (λ_ _).hom := sorry
+theorem true_and [IsMonoidalLeftDistrib C] : (true ▷ (𝟮 : C)) ≫ and = (λ_ _).hom := sorry
 
 variable {X : C}
 

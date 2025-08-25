@@ -148,20 +148,22 @@ theorem max'_min'_add : lift max' min' ≫ add = add (C:= C) := by
 --     sub ≫ toBool C = (toBool C ▷ (toBool C)) ≫ bool.and := by
 --   sorry
 
-def eqZero': N ⟶ (N : C) := (λ_ _).inv ≫ (one ▷ N) ≫ sub'
+def eqZero' : N ⟶ (N : C) := (λ_ _).inv ≫ (one ▷ N) ≫ sub'
 
 theorem eqZero'_toBool_eq_toBool [HasBinaryCoproducts C] : eqZero' ≫ toBool C = toBool C := by
   simp [eqZero']
   sorry
 
-def eq' : (N : C) ⊗ N ⟶ N := sorry
+/-- Testing for equality of two natural numbers.-/
+def eq'Aux : (N : C) ⊗ N ⟶ N :=  lift (sub' ≫ eqZero') (twist₁ N ≫ sub' ≫ eqZero') ≫ min'
 
-noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
-
-noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
+noncomputable
+def eq' [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := eq'Aux ≫ toBool C
 
 noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
-  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub') ≫ eq
+  (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub') ≫ eq'
+
+noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
 
 theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
   sorry
