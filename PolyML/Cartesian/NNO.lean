@@ -142,7 +142,6 @@ theorem eqZero'_toBool_eq_toBool [HasBinaryCoproducts C] : eqZero' ≫ toBool C 
   simp [eqZero']
   sorry
 
-
 def eq' : (N : C) ⊗ N ⟶ N := sorry
 
 noncomputable def eq [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
