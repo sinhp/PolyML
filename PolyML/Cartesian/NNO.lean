@@ -60,13 +60,17 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
-  simp only [uprimrecAux]
-  sorry
+  dsimp [uprimrecAux]
+  rw [← assoc, rightUnitor_inv_naturality, assoc,zero_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  refine ?_ =≫ (zero ⊗ₘ init)
+  aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
@@ -79,8 +83,15 @@ def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
-  simp [uprimrec, uprimrecAux]
-  sorry
+  dsimp [uprimrec,uprimrecAux]
+  rw [← assoc, ← assoc, rightUnitor_inv_naturality]
+  rw [assoc, assoc]
+  rw [Eq.symm (assoc (zero ▷ 𝟙_ C)
+       (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)) (snd N X))]
+  rw [zero_prec]
+  simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
+  dsimp [CartesianMonoidalCategory.toUnit]
+  simp only [IsTerminal.from_self, id_comp]
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrec init step = δ' _ ≫ N ◁ (uprimrec init step) ≫ step := by
@@ -106,8 +117,7 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
-  simp only [pred, uprimrec, uprimrecAux]
-  sorry
+  simp [pred, uprimrec_zero]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
@@ -117,8 +127,7 @@ theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
 
 theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
-  simp [sumUpTo']
-  sorry
+  simp [sumUpTo', uprimrec_zero]
 
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry
