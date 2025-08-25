@@ -149,7 +149,12 @@ def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prec x (𝟙 
 def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 _)
 
 theorem const_toUnit (X : C) (x : 𝟙_ C ⟶ X) : const X x = toUnit ≫ x := by
-  sorry
+  dsimp [const, toUnit]
+  simp only [assoc, Iso.cancel_iso_inv_left]
+  apply Eq.symm
+  apply prec_uniq
+  · rw [← assoc]; rw [zero_iter]
+  · rw [← assoc]; rw [succ_iter]; simp only [comp_id]
 
 open bool coprod
 
@@ -164,25 +169,58 @@ variable {C}
 
 theorem toBool_zero [HasBinaryCoproducts C] :
     zero ≫ toBool C = bool.false := by
-  sorry
+  dsimp [toBool]
+  rw [← assoc, rightUnitor_inv_naturality]
+  rw [assoc, zero_prec]
+  dsimp [bool.false]
+  refine (Iso.inv_comp_eq (ρ_ (𝟙_ C))).mpr ?_
+  refine ?_ =≫ _
+  exact unitors_equal
 
 theorem toBool_succ [HasBinaryCoproducts C] :
     succ ≫ toBool C = toUnit ≫ bool.true := by
-  sorry
+  dsimp [toBool, bool.true, toUnit]
+  rw [← assoc, rightUnitor_inv_naturality, assoc]
+  rw [succ_prec, prec_postcompose]
+  dsimp [iter]
+  rw [assoc, prec_postcompose]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.ι_app_left, BinaryCofan.mk_inl, id_comp, Iso.cancel_iso_inv_left]
+  congr
+  exact 𝟙 𝟮
 
 theorem fromBool_false [HasBinaryCoproducts C] :
     bool.false ≫ fromBool C = zero := by
-  sorry
+  dsimp [bool.false, fromBool, elim]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
 
 theorem fromBool_true [HasBinaryCoproducts C] :
     bool.true ≫ fromBool C = one := by
-  sorry
+  dsimp [bool.true, fromBool, elim]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.ι_app_right, BinaryCofan.mk_inr]
 
 theorem fromBool_toBool [HasBinaryCoproducts C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
   apply bool.ext
-  · sorry
-  · sorry
+  · dsimp [bool.false, fromBool, elim, toBool]
+    simp only [desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
+      BinaryCofan.mk_inl, comp_id]
+    rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prec]
+    simp only [unitors_equal, Iso.inv_hom_id_assoc]
+  · dsimp [bool.true, fromBool, elim, toBool, one]
+    simp only [desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
+      BinaryCofan.mk_inr, comp_id]
+    rw [← assoc, ← assoc, rightUnitor_inv_naturality]
+    rw [assoc, comp_whiskerRight]
+    simp only [assoc]
+    rw [succ_prec]
+    rw [← assoc (zero ▷ 𝟙_ C) (prec inl (desc inr inr)) (desc inr inr)]
+    rw [zero_prec]
+    simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
+      BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
+    simp only [unitors_equal, Iso.inv_hom_id_assoc]
 
 section Comon
 
@@ -212,7 +250,14 @@ def twist₁ : N ⊗ P ⟶ P ⊗ N := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P �
 
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
-  sorry
+  apply Eq.symm
+  apply prec_uniq
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
+    nth_rw 2 [← assoc, ← assoc]
+    refine ?_ =≫ _
+    rw [assoc, unitors_equal]
+    simp only [Iso.inv_hom_id, comp_id]
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
 theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
@@ -275,17 +320,47 @@ theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one :
 
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
-  sorry
+  dsimp [add]
+  nth_rw 2 [iter]
+  apply prec_uniq
+  · simp only [BraidedCategory.braiding_naturality_left_assoc,
+      braiding_tensorUnit_left, iter_prec,
+    assoc, comp_id]
+    nth_rw 2 [← comp_id (f:= (λ_ N).hom)]
+    refine (Iso.cancel_iso_hom_left (λ_ N) ((ρ_ N).inv ≫ prec zero succ) (𝟙 N)).mpr ?_
+    refine (Iso.inv_comp_eq_id (ρ_ N)).mpr ?_
+    apply Eq.symm
+    apply prec_uniq
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+    refine ?_ =≫ _
+    exact Eq.symm unitors_equal
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+  · simp only [BraidedCategory.braiding_naturality_left_assoc, iter_prec, assoc,
+    Iso.cancel_iso_hom_left]
+    apply Eq.symm
+    apply prec_uniq
+    · simp only [zero_iter_assoc]
+    · rw [← assoc, succ_iter]
 
 theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom := by
   rw [← add_comm]
   aesop
 
 -- associativity of addition
-theorem add_assoc [BraidedCategory C] :
+theorem add_assoc :
     add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
   dsimp [add]
-  sorry
+  simp only [iter_prec]
+  rw [← IsIso.inv_comp_eq]
+  apply prec_uniq
+  · simp only [whiskerRight_tensor, IsIso.Iso.inv_hom, assoc, Iso.hom_inv_id_assoc]
+    rw [← assoc (zero ▷ N ▷ N) (iter succ ▷ N) (iter succ)]
+    rw [← comp_whiskerRight, zero_iter]
+    simp only [leftUnitor_whiskerRight, assoc, Iso.inv_hom_id_assoc]
+  · simp only [whiskerRight_tensor, IsIso.Iso.inv_hom, assoc, Iso.hom_inv_id_assoc,
+    Iso.cancel_iso_inv_left]
+    rw [← assoc, ← comp_whiskerRight, succ_iter, comp_whiskerRight]
+    rw [assoc, succ_iter]
 
 /-- The monoid structure on the natural number object. -/
 instance monClass [BraidedCategory C] : Mon_Class (N : C) where
