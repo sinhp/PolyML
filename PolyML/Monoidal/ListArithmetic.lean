@@ -1041,7 +1041,7 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 
-instance mon_class (A : C) : Mon_Class (list A) where
+instance list.mon_class (A : C) : Mon_Class (list A) where
   one := list.nil
   mul := list.append
   one_mul := list.whiskerRight_nil_append

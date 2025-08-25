@@ -423,6 +423,10 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
      simpa only [assoc]
   }
 
+/-- In a list-arithmetic category, the natural number object is isomorphic to the list object
+on the unit. -/
+def listUnitIsoNNO [MonoidalCategory C] [ListArithmetic C] : list (𝟙_ C) ≅ N := Iso.refl _
+
 namespace list
 
 open Limits
@@ -433,11 +437,9 @@ variable {C} [SemiCartesianMonoidalCategory C] [ListArithmetic C]
 def len {A : C} : list A ⟶ N :=
   list.map <| SemiCartesianMonoidalCategory.toUnit A
 
-namespace length
+section length
 
 open SemiCartesianMonoidalCategory
-
-variable (h : IsTerminal (𝟙_ C))
 
 variable {A : C}
 
@@ -462,12 +464,20 @@ theorem cons_len_succ :
   congr 1
   simp_all only [Iso.hom_inv_id_assoc]
 
-set_option diagnostics true
+theorem append_len_add : list.append (A:= A) ≫ list.len = (list.len ⊗ₘ list.len) ≫ add := by
+  sorry
+
+set_option diagnostics true in
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
   dsimp [len, singleton, one]
   sorry
+
+/-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
+def list.lenMonHom [BraidedCategory C] {A : C} :
+    Mon_.mk (list A) ⟶ Mon_.mk N :=
+  Mon_.Hom.mk' (list.len (A:= A)) list.nil_len_zero list.append_len_add
 
 end length
 
