@@ -489,7 +489,15 @@ variable {A : C}
 
 theorem len_eq_rec_zero_snd_succ {A : C} :
     list.len (A:= A) = list.rec zero (snd A N ≫ succ) := by
-  sorry
+  dsimp [list.rec]
+  apply plist.rec_uniq
+  · dsimp [nil,len,map,map]
+    simp only [plist.nil_map]
+  . dsimp [len, map, cons]
+    simp only [plist.cons_map]
+    refine _ ≫= ?_
+    dsimp [snd,list]
+    simp only [assoc, Iso.hom_inv_id_assoc]
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
