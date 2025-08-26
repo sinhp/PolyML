@@ -98,10 +98,10 @@ theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
     aesop
   · rw [succ_prec]
     aesop
+
 theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B ⟶ B')
     (comm_sq : CommSq g d d g' := by aesop) :
     prec f g ≫ d = prec (f ≫ d) g' := by
-
   apply prec_uniq
   · rw [← assoc, zero_prec]
     simp only [assoc]
@@ -527,7 +527,6 @@ set_option diagnostics true in
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
-  dsimp [len, singleton, one]
   sorry
 
 /-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
