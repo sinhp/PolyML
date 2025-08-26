@@ -103,8 +103,12 @@ theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : 
     (comm_sq : CommSq g d d g' := by aesop) :
     prec f g ≫ d = prec (f ≫ d) g' := by
   apply prec_uniq
-  · sorry
-  sorry
+  · rw [← assoc, zero_prec]
+    simp only [assoc]
+  · rw [← assoc, succ_prec]
+    simp only [assoc]
+    refine _ ≫= ?_
+    exact comm_sq.w
 
 /-- Iterates an endomorphism `n` times. -/
 def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prec (𝟙 _) (f)
@@ -201,21 +205,56 @@ theorem zero_toBool [HasBinaryCoproducts C] :
   refine ?_ =≫ _
   exact unitors_equal
 
+#check rightUnitor_naturality
+
+#check constTrue_eq_toUnit_true
+theorem succ_toBool [HasBinaryCoproducts C] :
+    succ ≫ toBool C = toUnit ≫ bool.true := by
+  --rw [← toBool_desc_eq_toUnit]
+  unfold toBool
+  rw [← assoc, rightUnitor_inv_naturality]
+  rw [assoc, succ_prec]
+  nth_rw 2 [constTrue_eq_toUnit_true]
+  rw [← assoc, ← assoc]
+  refine ?_ =≫ _
+  dsimp [toUnit, elim]
+  refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+  dsimp [iter]
+  apply prec_uniq
+  · sorry
+  · sorry
+
 theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
-  sorry
+  refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+  dsimp [iter]
+  apply prec_uniq
+  · simp only [whiskerRight_id, assoc, comp_id]
+    rw [← assoc zero (ρ_ N).inv  ((ρ_ N).hom ≫ toBool C ≫ bool.toUnit)]
+    simp only [assoc, Iso.inv_hom_id_assoc]
+    rw [← assoc zero (toBool C) bool.toUnit]
+    rw [zero_toBool]
+    dsimp [bool.false,bool.toUnit, elim]
+    rw [unitors_equal]
+    simp
+  · simp only [whiskerRight_id, assoc, comp_id]
+    have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ bool.toUnit=
+    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by {
+      simp only [Iso.inv_hom_id, id_comp, assoc, Iso.inv_hom_id_assoc]
+    }
+    rw [this]; clear this
+    rw [rightUnitor_inv_naturality]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
+    rw [← assoc]
+    refine ?_ =≫ _
+    dsimp [toBool]
+    sorry
+    -- · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, zero_toUnit_assoc]
+    --   rw [← unitors_equal]
 
 theorem foo {X : C} : 1 = 2 := sorry
 
-theorem succ_toBool [HasBinaryCoproducts C] :
-    succ ≫ toBool C = toUnit ≫ bool.true := by
-  rw [← toBool_desc_eq_toUnit]
-  unfold toBool
-  rw [← assoc, rightUnitor_inv_naturality, assoc, assoc, assoc]
-  refine _ ≫= ?_
-  rw [← assoc]
-  rw [succ_prec, assoc]
-  refine _ ≫= ?_
-  exact constTrue_eq_toUnit_true
+
+
 
 theorem false_fromBool [HasBinaryCoproducts C] :
     bool.false ≫ fromBool C = zero := by
