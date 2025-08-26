@@ -7,6 +7,7 @@ import Mathlib.CategoryTheory.Monoidal.Mon_
 import Mathlib.CategoryTheory.Monad.Adjunction
 import Mathlib.CategoryTheory.Monad.Algebra
 import PolyML.Monoidal.ListArithmetic
+import PolyML.Monoidal.NNO
 
 /-
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.
@@ -17,24 +18,33 @@ The development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic`
 -/
 namespace CategoryTheory
 
-open Category CategoryTheory ListArithmetic Functor MonoidalCategory Mon_Class Monad
+open Category CategoryTheory ListArithmetic Functor MonoidalCategory Mon_Class Monad NNO
 
 universe v u
 
-variable (C : Type u) [Category.{v} C] [MonoidalCategory C] [ListArithmetic C]
+variable (C : Type u) [Category.{v} C]
 
 
 /-- The free monoid functor given by the list objects of a list-arithmetic category. -/
 @[simps]
-def freeMon : C ⥤ Mon_ C where
+def freeMon [MonoidalCategory C] [ListArithmetic C] : C ⥤ Mon_ C where
   obj A := Mon_.mk (list A)
   map {X Y} f := Mon_.Hom.mk' (list.map f) (list.map_nil) (list.append_map)
   map_id := by aesop
   map_comp := by aesop
 
+/-- Extends the isomorphism `listUnitIsoNNO` of the types to the monoids. -/
+def freeMonUnitIsoMonNNO [MonoidalCategory C] [BraidedCategory C] [ListArithmetic C] :
+    (freeMon C).obj (𝟙_ C) ≅ Mon_.mk N := by
+  refine Mon_.mkIso (listUnitIsoNNO C) ?_ ?_
+  · simp [listUnitIsoNNO]
+    aesop
+  · simp [listUnitIsoNNO]
+    sorry
+
 namespace list
 
-variable {C}
+variable {C} [MonoidalCategory C] [ListArithmetic C]
 
 /-- Given a monoid object `M` in `C`, we define a morphism from `list X` to `M.X` by folding the list with the multiplication of the monoid. -/
 def lift {X : C} {M : Mon_ C} (f : X ⟶ M.X) : list X ⟶ M.X :=
@@ -84,7 +94,7 @@ def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.f
   right_inv := fun f => sorry
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
-def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
+def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
   Adjunction.mkOfHomEquiv {
     homEquiv (X : C) (Y : Mon_ C) := homEquiv X Y
     homEquiv_naturality_left_symm := by
@@ -116,14 +126,14 @@ def freeMonoidAdjunction : freeMon C ⊣ Mon_.forget C :=
 variable (C)
 
 def monad : Monad C :=
-  freeMonoidAdjunction |> Adjunction.toMonad
+  freeMonForgetAdjunction |> Adjunction.toMonad
 
 variable {C}
 
 def join {A : C} : list (list A) ⟶ list A := (monad C).μ.app A
 
 theorem join_nil {A : C} : list.nil ≫ list.join = list.nil (C:=C) (A:=A)  := by
-  dsimp [list.join, monad, freeMonoidAdjunction, homEquiv, lift, list.foldr]
+  dsimp [list.join, monad, freeMonForgetAdjunction, homEquiv, lift, list.foldr]
   simp [nil, plist.nil_rec]
   rfl
 
@@ -155,7 +165,7 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
   unit := by
-    dsimp [monad, freeMonoidAdjunction, homEquiv, lift, list.foldr]
+    dsimp [monad, freeMonForgetAdjunction, homEquiv, lift, list.foldr]
     simp only [comp_id]
     dsimp [list.singleton]
     simp only [id_whiskerRight, id_comp, Category.assoc]
@@ -164,7 +174,7 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
     dsimp [list.nil]
     sorry
   assoc := by
-    dsimp [monad, freeMonoidAdjunction, homEquiv, list.foldl]
+    dsimp [monad, freeMonForgetAdjunction, homEquiv, list.foldl]
     sorry
 
 end algebra

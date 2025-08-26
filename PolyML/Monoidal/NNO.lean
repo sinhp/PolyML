@@ -190,6 +190,9 @@ variable (C)
 noncomputable
 def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl constTrue
 
+theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
+  sorry
+
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
 noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
 
@@ -205,9 +208,6 @@ theorem zero_toBool [HasBinaryCoproducts C] :
   refine ?_ =≫ _
   exact unitors_equal
 
-#check rightUnitor_naturality
-
-#check constTrue_eq_toUnit_true
 theorem succ_toBool [HasBinaryCoproducts C] :
     succ ≫ toBool C = toUnit ≫ bool.true := by
   --rw [← toBool_desc_eq_toUnit]
@@ -462,6 +462,10 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
      simpa only [assoc]
   }
 
+/-- In a list-arithmetic category, the natural number object is isomorphic to the list object
+on the unit. -/
+def listUnitIsoNNO [MonoidalCategory C] [ListArithmetic C] : list (𝟙_ C) ≅ N := Iso.refl _
+
 namespace list
 
 open Limits
@@ -472,13 +476,15 @@ variable {C} [SemiCartesianMonoidalCategory C] [ListArithmetic C]
 def len {A : C} : list A ⟶ N :=
   list.map <| SemiCartesianMonoidalCategory.toUnit A
 
-namespace length
+section length
 
 open SemiCartesianMonoidalCategory
 
-variable (h : IsTerminal (𝟙_ C))
-
 variable {A : C}
+
+theorem len_eq_rec_zero_snd_succ {A : C} :
+    list.len (A:= A) = list.rec zero (snd A N ≫ succ) := by
+  sorry
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
@@ -501,12 +507,20 @@ theorem cons_len_succ :
   congr 1
   simp_all only [Iso.hom_inv_id_assoc]
 
-set_option diagnostics true
+theorem append_len_add : list.append (A:= A) ≫ list.len = (list.len ⊗ₘ list.len) ≫ add := by
+  sorry
+
+set_option diagnostics true in
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
   dsimp [len, singleton, one]
   sorry
+
+/-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
+def list.lenMonHom [BraidedCategory C] {A : C} :
+    Mon_.mk (list A) ⟶ Mon_.mk N :=
+  Mon_.Hom.mk' (list.len (A:= A)) list.nil_len_zero list.append_len_add
 
 end length
 
