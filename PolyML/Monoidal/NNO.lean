@@ -98,10 +98,10 @@ theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
     aesop
   · rw [succ_prec]
     aesop
-
 theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B ⟶ B')
     (comm_sq : CommSq g d d g' := by aesop) :
     prec f g ≫ d = prec (f ≫ d) g' := by
+
   apply prec_uniq
   · rw [← assoc, zero_prec]
     simp only [assoc]
@@ -193,9 +193,6 @@ def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec in
 theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
   refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
   rw [iter]
-
-
-
   apply prec_uniq
   · dsimp [toBool]
     have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prec inl constTrue) ≫ bool.toUnit =
@@ -208,12 +205,10 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [unitors_equal, bool.toUnit, elim]
     simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
      BinaryCofan.ι_app_left, BinaryCofan.mk_inl, comp_id]
-  ·
-    simp only [whiskerRight_id, assoc, comp_id]
+  · simp only [whiskerRight_id, assoc, comp_id]
     have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ bool.toUnit =
     (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by {
-      simp only [assoc, Iso.inv_hom_id_assoc]
-    }
+      simp only [assoc, Iso.inv_hom_id_assoc]}
     rw [this]; clear this
     rw [rightUnitor_inv_naturality]
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
@@ -297,6 +292,8 @@ instance comonClass : Comon_Class (N : C) where
   comul := duplicate
   counit_comul := by
     simp only [duplicate, delete]
+    rw [assoc]
+    dsimp [toUnit]
     sorry
   comul_counit := sorry
   comul_assoc := sorry
