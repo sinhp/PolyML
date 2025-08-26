@@ -443,6 +443,10 @@ open SemiCartesianMonoidalCategory
 
 variable {A : C}
 
+theorem len_eq_rec_zero_snd_succ {A : C} :
+    list.len (A:= A) = list.rec zero (snd A N ≫ succ) := by
+  sorry
+
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
   dsimp [list.len, list.cons, list.map]
