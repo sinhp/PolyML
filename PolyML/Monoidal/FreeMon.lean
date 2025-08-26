@@ -48,6 +48,15 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   dsimp [list.nil]
   rw [plist.nil_rec]
 
+theorem lift_one_whiskerRight {M : Mon_ C} {f : X ⟶ M.X} {Y : C} :
+  (η ▷ X) ≫ (list.lift f ▷ X) = η ▷ X := by
+  dsimp [lift]
+  dsimp [list.foldr]
+  dsimp [Mon_Class.one]
+  dsimp [list.nil]
+  have :=plist.whiskerRight_nil_whiskerRight_rec (A:=X) (init := η) (action :=(f ▷ M.X ≫ (μ: M.X ⊗ M.X ⟶ M.X)))
+  exact this
+
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ :=
   sorry
@@ -149,7 +158,7 @@ def ofMon (M : Mon_ C) : Algebra (monad C) where
     dsimp [monad, freeMonoidAdjunction, homEquiv, lift, list.foldr]
     simp only [comp_id]
     dsimp [list.singleton]
-    rw [Category.assoc, Category.assoc]
+    simp only [id_whiskerRight, id_comp, Category.assoc]
     dsimp [list.cons]
     rw [plist.cons_rec]
     dsimp [list.nil]
@@ -177,14 +186,39 @@ theorem aggregator_singleton {M : Mon_ C} :
   dsimp [lift, list.foldr, list.cons]
   rw [plist.cons_rec]
   dsimp [list.nil]
-  sorry
+  simp only [id_whiskerRight, id_comp, plist.whiskerLeft_nil_whiskerLeft_rec_assoc,
+    Mon_Class.mul_one, Iso.inv_hom_id]
 
 theorem aggregator_join {M : Mon_ C} :
-  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by sorry
+  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by {
+    dsimp [list.join]
+    dsimp [monad, freeMonoidAdjunction, homEquiv, lift, list.foldr]
+    dsimp [aggregator, ofMon, list.singleton]
+    simp only [id_whiskerRight, id_comp]
+    refine ?_=≫ _
+    apply Eq.symm
+    apply plist.rec_uniq
+    · dsimp [map]
+      simp only [plist.nil_map]
+      rfl
+    · dsimp [map]
+      dsimp [Mon_Class.mul]
+      dsimp [append]
+      simp only [plist.cons_map]
+      refine _ ≫= ?_
+      apply prec_uniq
+      ·
+        rw [← Category.assoc]
+        sorry
+      · simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
+        sorry
+  }
 
 /-- Theorem: Aggregator is functorial. -/
 theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
-  list.map f ≫ aggregator M' = aggregator M ≫ f := by sorry
+  list.map f ≫ aggregator M' = aggregator M ≫ f := by {
+    dsimp [list.map, aggregator,ofMon]
+  }
 
 end list
 
