@@ -186,6 +186,9 @@ variable (C)
 noncomputable
 def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl constTrue
 
+theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
+  sorry
+
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
 noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
 
@@ -200,11 +203,6 @@ theorem zero_toBool [HasBinaryCoproducts C] :
   refine (Iso.inv_comp_eq (ρ_ (𝟙_ C))).mpr ?_
   refine ?_ =≫ _
   exact unitors_equal
-
-theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
-  sorry
-
-theorem foo {X : C} : 1 = 2 := sorry
 
 theorem succ_toBool [HasBinaryCoproducts C] :
     succ ≫ toBool C = toUnit ≫ bool.true := by
