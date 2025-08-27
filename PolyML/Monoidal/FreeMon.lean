@@ -155,8 +155,7 @@ def monad : Monad C :=
 
 end list
 
-def monToListAlgebraFunctor : Mon_ C ⥤ (list.monad C).Algebra :=
-  Monad.comparison _
+def monToListAlgebraFunctor : Mon_ C ⥤ (list.monad C).Algebra := Monad.comparison _
 
 /-- The equivalence between the category of algebras for the `list` monad and the category of monoids in `C`. -/
 instance monToListAlgebraFunctorIsEquivalence [ListArithmetic C] : (monToListAlgebraFunctor C).IsEquivalence := by
@@ -230,8 +229,17 @@ def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
   counitIso := sorry
   functor_unitIso_comp := sorry
 
-def aggregator (M : Mon_ C) : list M.X ⟶ M.X :=
-  (ofMon M).a
+end Algebra
+
+end list
+
+namespace Mon_
+
+variable {C}
+
+open list Algebra
+
+def aggregator (M : Mon_ C) : list M.X ⟶ M.X := ofMon M |>.a
 
 section aggregator
 
@@ -251,3 +259,7 @@ theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
   list.map f ≫ aggregator M' = aggregator M ≫ f := sorry
 
 end aggregator
+
+end list
+
+end CategoryTheory
