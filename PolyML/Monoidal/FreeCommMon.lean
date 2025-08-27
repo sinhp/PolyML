@@ -255,7 +255,7 @@ theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
   sorry
 
 theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :
-    ofList ≫ bag.aggregator M = list.aggregator M.toMon_ := by
+    ofList ≫ bag.aggregator M = M.toMon_.aggregator := by
   sorry
 
 end bag
