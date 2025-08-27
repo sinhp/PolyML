@@ -205,10 +205,15 @@ def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
 
 end Algebra
 
-open Algebra
+end list
 
-def aggregator (M : Mon_ C) : list M.X ⟶ M.X :=
-  (ofMon M).a
+namespace Mon_
+
+variable {C}
+
+open list Algebra
+
+def aggregator (M : Mon_ C) : list M.X ⟶ M.X := ofMon M |>.a
 
 section aggregator
 
@@ -236,6 +241,6 @@ theorem aggregator_map {M' : Mon_ C} {f : M.X ⟶ M'.X} :
 
 end aggregator
 
-end list
+end Mon_
 
 end CategoryTheory
