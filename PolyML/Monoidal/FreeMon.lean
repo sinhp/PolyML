@@ -130,8 +130,7 @@ def monad : Monad C :=
 
 end list
 
-def monToListAlgebraFunctor : Mon_ C ⥤ (list.monad C).Algebra :=
-  Monad.comparison _
+def monToListAlgebraFunctor : Mon_ C ⥤ (list.monad C).Algebra := Monad.comparison _
 
 /-- The equivalence between the category of algebras for the `list` monad and the category of monoids in `C`. -/
 instance monToListAlgebraFunctorIsEquivalence [ListArithmetic C] : (monToListAlgebraFunctor C).IsEquivalence := by
