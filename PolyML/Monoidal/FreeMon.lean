@@ -86,30 +86,8 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := fun f => by {
-    simp only [Mon_.forget_obj]
-    refine Mon_.Hom.ext' ?_
-    simp only [freeMon_obj_X]
-    dsimp [lift,foldr]
-    apply Eq.symm
-    apply plist.rec_uniq
-    · sorry
-    · sorry
-  }
-  right_inv := fun f => by {
-    simp only [Mon_.forget_obj]
-    dsimp [lift, foldr,singleton]
-    rw [Category.assoc]
-    rw [Category.assoc]
-    rw [cons, plist.cons_rec]
-    have : X ◁ nil ≫ X ◁ plist.rec η (f ▷ M.X ≫ (μ :  M.X ⊗ M.X ⟶ M.X)) ≫ f ▷ M.X
-     ≫ (μ :  M.X ⊗ M.X ⟶ M.X) =
-     (X ◁ nil ≫ X ◁ plist.rec η (f ▷ M.X ≫ (μ :  M.X ⊗ M.X ⟶ M.X))) ≫
-      f ▷ M.X ≫ (μ :  M.X ⊗ M.X ⟶ M.X)  := by {simp only [Mon_.forget_obj, Category.assoc]}
-    rw [this]; clear this
-    --rw [plist.whiskerLeft_nil_whiskerLeft_rec]
-    sorry
-  }
+  left_inv := fun f => sorry
+  right_inv := fun f => by sorry
 
 /-- `list A` is a free monoid on the object `A` witnessed by the left adjoint of the forgetful functor from `Mon_ C` to `C`. -/
 def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
@@ -213,7 +191,7 @@ def ofMon (M : Mon_ C) : Monad.Algebra (monad C) where
     simp only [plist.whiskerLeft_nil_whiskerLeft_rec_assoc,
       Mon_Class.mul_one, Iso.inv_hom_id]
   assoc := by
-    dsimp [monad, freeMonForgetAdjunction, map,plist.map,plist.rec]
+    dsimp [monad, freeMonForgetAdjunction, map, plist.map, plist.rec]
     dsimp [homEquiv]
     sorry
 
