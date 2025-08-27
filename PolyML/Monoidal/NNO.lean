@@ -103,8 +103,12 @@ theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : 
     (comm_sq : CommSq g d d g' := by aesop) :
     prec f g ≫ d = prec (f ≫ d) g' := by
   apply prec_uniq
-  · sorry
-  sorry
+  · rw [← assoc, zero_prec]
+    simp only [assoc]
+  · rw [← assoc, succ_prec]
+    simp only [assoc]
+    refine _ ≫= ?_
+    exact comm_sq.w
 
 /-- Iterates an endomorphism `n` times. -/
 def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prec (𝟙 _) (f)
@@ -187,7 +191,46 @@ noncomputable
 def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl constTrue
 
 theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
-  sorry
+  refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+  rw [iter]
+  apply prec_uniq
+  · dsimp [toBool]
+    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prec inl constTrue) ≫ bool.toUnit =
+    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prec inl constTrue) ≫ bool.toUnit := by
+      simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
+    rw [this]; clear this
+    simp only [ Iso.hom_inv_id, id_comp, comp_id]
+    rw [zero_prec]
+    rw [unitors_equal, bool.toUnit, elim]
+    simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
+     BinaryCofan.ι_app_left, BinaryCofan.mk_inl, comp_id]
+  · simp only [whiskerRight_id, assoc, comp_id]
+    have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ bool.toUnit =
+    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by
+      simp only [assoc, Iso.inv_hom_id_assoc]
+    rw [this]; clear this
+    rw [rightUnitor_inv_naturality]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
+    rw [← assoc]
+    dsimp [toBool]
+    rw [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [assoc, assoc]
+    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prec inl constTrue ≫ bool.toUnit=
+    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prec inl constTrue) ≫ bool.toUnit := by
+      simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+    rw [this]; clear this
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+    rw [← assoc,rightUnitor_inv_naturality]
+    rw [assoc]
+    refine _ ≫= ?_
+    rw [← assoc,succ_prec]
+    rw [assoc]
+    refine _ ≫= ?_
+    rw [constTrue_eq_toUnit_true]
+    dsimp [bool.toUnit,elim,bool.true]
+    simp only [desc_comp, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
+      BinaryCofan.mk_inr]
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
 noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
@@ -248,6 +291,8 @@ instance comonClass : Comon_Class (N : C) where
   comul := duplicate
   counit_comul := by
     simp only [duplicate, delete]
+    rw [assoc]
+    dsimp [toUnit]
     sorry
   comul_counit := sorry
   comul_assoc := sorry
@@ -317,8 +362,8 @@ theorem one_add_zero : (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one :
   refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
   rw [comp_whiskerRight, assoc, succ_prec]
   have : (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ ≫ succ=
-  (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ) ≫ succ := by {
-    simp only [whiskerRight_id, comp_id, assoc]}
+  (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ) ≫ succ := by
+    simp only [whiskerRight_id, comp_id, assoc]
   rw [this]
   clear this
   rw [zero_prec]
@@ -400,8 +445,7 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
   isNNO := {
     prec {P B} e a := list.prec e ((λ_ _).hom ≫ a)
-    zero_prec := by {
-      intros A B f g; rw [list.nil_prec]}
+    zero_prec {A B f g} := by rw [list.nil_prec]
     succ_prec {A B f g} := by
       rw [comp_whiskerRight, assoc]
       refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
@@ -410,8 +454,7 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
       simp only [id_whiskerLeft, assoc,
         Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
         IsIso.inv_comp, IsIso.Iso.inv_inv]
-    prec_uniq := by
-     intros A B f g r hnil hcons
+    prec_uniq {A B f g r hnil hcons} := by
      apply list.prec_uniq r hnil
      simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
      refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
@@ -443,7 +486,15 @@ variable {A : C}
 
 theorem len_eq_rec_zero_snd_succ {A : C} :
     list.len (A:= A) = list.rec zero (snd A N ≫ succ) := by
-  sorry
+  dsimp [list.rec]
+  apply plist.rec_uniq
+  · dsimp [nil,len,map,map]
+    simp only [plist.nil_map]
+  . dsimp [len, map, cons]
+    simp only [plist.cons_map]
+    refine _ ≫= ?_
+    dsimp [snd,list]
+    simp only [assoc, Iso.hom_inv_id_assoc]
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
@@ -473,7 +524,6 @@ set_option diagnostics true in
 -- len ([x]) = 1
 theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
-  dsimp [len, singleton, one]
   sorry
 
 /-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
