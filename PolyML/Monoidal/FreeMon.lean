@@ -209,7 +209,13 @@ theorem ofMon_a_eq {M : Mon_ C} : (ofMon M).a = list.lift (𝟙 M.X) := by
 instance monClass (α : (monad C).Algebra) : Mon_Class α.A where
   one := nil ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ append ≫ α.a
-  one_mul := sorry
+  one_mul := by {
+    have := α.unit
+    dsimp [append]
+    rw [tensorHom_def]
+    dsimp [singleton]
+    sorry
+  }
   mul_one := sorry
   mul_assoc := sorry
 
@@ -220,10 +226,10 @@ noncomputable def monToListAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ 
 def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
   functor := {
     obj α := ⟨α.A⟩
-    map {α α'} f := Mon_.Hom.mk' f.1 (sorry) (by sorry)
-    map_id := sorry
-    map_comp := sorry
-  }
+    map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
+    map_id X := rfl
+    map_comp := by
+      intros X Y Z f g; ext; rw [Monad.Algebra.comp_f, Mon_.comp_hom'] }
   inverse := monToListAlgebraFunctor C
   unitIso := sorry
   counitIso := sorry
@@ -245,14 +251,18 @@ section aggregator
 
 variable {M : Mon_ C}
 
-theorem aggregator_one : η ≫ aggregator M = η := lift_one
+theorem aggregator_one : η ≫ aggregator M = η := by
+  exact lift_one
 
-theorem aggregator_mul : μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := lift_mul
+theorem aggregator_mul : μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := by
+  exact lift_mul
 
-theorem aggregator_singleton : list.singleton ≫ aggregator M = 𝟙 M.X := sorry
+theorem aggregator_singleton : list.singleton ≫ aggregator M = 𝟙 M.X := by
+  sorry
 
 theorem aggregator_join {M : Mon_ C} :
-  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := sorry
+  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
+  sorry
 
 /-- Theorem: Aggregator is functorial. -/
 theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
