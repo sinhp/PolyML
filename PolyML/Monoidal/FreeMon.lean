@@ -112,7 +112,6 @@ def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
       rw [← Category.assoc]
       rw [plist.cons_rec]
       rw [Category.assoc]
-      --letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
       simp only [ Category.assoc]
       rw [plist.cons_rec]
       simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
