@@ -18,7 +18,7 @@ The development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic`
 -/
 namespace CategoryTheory
 
-open Category CategoryTheory ListArithmetic Functor MonoidalCategory Mon_Class Monad NNO
+open Category CategoryTheory ListArithmetic MonoidalCategory Mon_Class NNO
 
 universe v u
 
@@ -59,6 +59,7 @@ def lift {X : C} {M : Mon_ C} (f : X ⟶ M.X) : list X ⟶ M.X :=
 theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     η ≫ list.lift f = η := by
   dsimp [lift, list.foldr, Mon_Class.one, list.nil]
+  dsimp [lift, list.foldr, Mon_Class.one, list.nil]
   rw [plist.nil_rec]
 
 theorem lift_one_whiskerRight {M : Mon_ C} {f : X ⟶ M.X} {Y : C} :
@@ -73,11 +74,14 @@ theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   dsimp [append]
   sorry
 
+/-- The underlying functor of the list monad. -/
 def functor : C ⥤ C := freeMon C ⋙ Mon_.forget C
 
-theorem functor_obj (A : C) : functor.obj A = list A := rfl
+theorem functor_obj (A : C) : functor.obj A = list A := by
+  rfl
 
-theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := rfl
+theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
+  rfl
 
 /-- The adjoint transposition equivalence of the hom-sets. -/
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
@@ -115,17 +119,13 @@ def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
     homEquiv_naturality_left_symm := by {
       intros X X' f g h
       simp only [Mon_.forget_obj]
-      dsimp [homEquiv]
-      dsimp [Mon_.Hom.mk']
-      dsimp [freeMon, Mon_.Hom.mk']
+      dsimp [homEquiv, Mon_.Hom.mk', freeMon, Mon_.Hom.mk']
       congr
-      simp only
       dsimp [list.lift]
       dsimp [list.foldl]
       rw [← plist.rec_uniq]
       · dsimp [list.map, plist.map]
-        rw [← Category.assoc]
-        simp only [plist.nil_rec]
+        simp only [← assoc, plist.nil_rec]
       · dsimp [list.map, plist.map]
         rw [← Category.assoc]
         rw [plist.cons_rec]
@@ -208,7 +208,7 @@ namespace algebra
 open Category
 
 /-- A monoid structure on `A` gives rise to an algebra for the `list` monad. -/
-def ofMon (M : Mon_ C) : Algebra (monad C) where
+def ofMon (M : Mon_ C) : Monad.Algebra (monad C) where
   A := M.X
   a := lift (𝟙 _)
   unit := by
@@ -258,7 +258,7 @@ theorem aggregator_mul {M : Mon_ C} :
 theorem aggregator_singleton {M : Mon_ C} :
     list.singleton ≫ aggregator M = 𝟙 M.X := by
   dsimp [aggregator, ofMon, list.singleton]
-  simp only [Category.assoc]
+  simp only [assoc]
   dsimp [lift, list.foldr, list.cons]
   rw [plist.cons_rec, list.nil]
   simp only [id_whiskerRight, id_comp, plist.whiskerLeft_nil_whiskerLeft_rec_assoc,

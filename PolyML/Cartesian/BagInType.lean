@@ -6,7 +6,8 @@ Authors: Sina Hazratpour
 
 import PolyML.ForMathlib.Monoidal.Internal.Types.Basic
 import Mathlib.Data.Finsupp.Weight
-import PolyML.Cartesian.FreeCommMon
+import PolyML.Monoidal.FreeCommMon
+-- import PolyML.Deprecated.Cartesian.FreeCommMon
 
 /-
 We show that the category of types admit bags construction. In particular,
@@ -53,7 +54,7 @@ universe v u
 --   { monAddMonoid α with
 --     add_comm := fun x y => congr_fun (IsCommMon.mul_comm α) (y, x) }
 
-instance (β : AddCommMonCat) :  AddCommMonoid ((forget AddCommMonCat).obj β) := β.str
+instance (β : AddCommMonCat) :  AddCommMonoid <| (forget AddCommMonCat).obj β := β.str
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
@@ -107,7 +108,6 @@ def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
         simp only [toAddMonoidHom_coe, linearCombination_single, types_comp_apply, one_smul]}
     exact h1
   }
-
   homEquiv_naturality_right X X' := by {
     simp only [Equiv.coe_fn_mk, AddCommMonCat.hom_comp, AddMonoidHom.coe_comp, Function.comp_apply,
       ConcreteCategory.forget_map_eq_coe]
@@ -128,7 +128,8 @@ instance withBags : WithBags (Type u) where
     refine Adjunction.comp AddCommMonCat.equivalence.toAdjunction
       commMonTypeEquivalenceCommMon.symm.toAdjunction
 
-theorem eq_Finsupp (α : Type u) : bag α = (α →₀ ℕ) := by rfl
+theorem eq_Finsupp (α : Type u) : bag α = (α →₀ ℕ) := by
+  rfl
 
 def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
   have := Classical.decEq α
