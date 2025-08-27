@@ -7,10 +7,9 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monad.Algebra
 import PolyML.ForMathlib.Monoidal.Cartesian.Basic
--- import Mathlib
 import Mathlib.CategoryTheory.Monoidal.End
-import PolyML.Cartesian.FreeCommMon
-import PolyML.Cartesian.BagInType
+import PolyML.Monoidal.FreeCommMon
+import PolyML.Monoidal.BagInType
 
 /-
 There is no reason any two monads `S` and `T` on the same category can be composed to give
@@ -34,7 +33,6 @@ The notion of distributive law was first introduced by Beck in 1969, and it is a
 
 Jon Beck, Distributive Laws, in: Seminar on Triples and Categorical Homology Theory, ETH 1966/67, Lecture Notes in Mathemativs, Springer (1969), Reprints in Theory and Applications of Categories 18 (2008) 1-303.
 -/
-set_option linter.simpsNoConstructor false
 
 universe v₁ v₂ u₁ u₂
 
@@ -42,7 +40,7 @@ namespace CategoryTheory
 
 open Category MonoidalCategory Endofunctor Functor Recursive
 
-variable {C : Type u₁} [Category.{v₁} C] {D : Type u₁} [Category.{v₂} D]
+variable {C : Type u₁} [Category.{v₁} C]
 
 attribute [local instance] CategoryTheory.endofunctorMonoidalCategory
 
@@ -387,7 +385,7 @@ theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
 -- #check Mon_
 -- #check Semiring
 
-variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
+variable (C) [MonoidalCategory C] [ListArithmetic C] [BraidedCategory C] [WithBags C]
 
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
@@ -410,41 +408,5 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   mul_right := sorry
 
 end Monad
-
-open Monad
-
-variable (C) [CartesianMonoidalCategory C] [ListArithmetic C] [WithBags C]
-
-def Semiring_ := LiftingMonad.monad (list.monad C) (bag.monad C) |>.Algebra
-
-namespace Semiring_
-
-variable {C} (α : Semiring_ C)
-
-def X : C := α.A.A
-
-instance mon_Class : Mon_Class α.X where
-  one := by
-    dsimp [X]
-    dsimp [Semiring_] at α
-    sorry
-  mul := by
-    dsimp [X];
-    sorry
-  one_mul := sorry
-  mul_one := sorry
-  mul_assoc := sorry
-
-def mon : Mon_ C where
-  X := α.X
-
-attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
-instance commMon : CommMon_ C where
-  X := α.X
-  mon := sorry
-  comm := sorry
-
-end Semiring_
 
 end CategoryTheory
