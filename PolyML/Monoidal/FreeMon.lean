@@ -100,8 +100,7 @@ def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
         rw [← assoc, plist.cons_rec, assoc, assoc, plist.cons_rec]
         simp only [whiskerLeft_comp, assoc]
         refine _ ≫= ?_
-        simp only [comp_whiskerRight]
-        rw [assoc, ← assoc, ← assoc _ (g ▷ M.X) (h ▷ M.X ≫ _)]
+        rw [comp_whiskerRight, assoc, ← assoc, ← assoc _ (g ▷ M.X) (h ▷ M.X ≫ _)]
         refine ?_ =≫ _
         sorry
     homEquiv_naturality_right f g := by
