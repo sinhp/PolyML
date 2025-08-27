@@ -6,4 +6,4 @@ import PolyML.Monoidal.NNO
 import PolyML.Cartesian.NNO
 import PolyML.Monoidal.FreeMon
 import PolyML.Monoidal.FreeCommMon
-import PolyML.Cartesian.BagInType
+import PolyML.Monoidal.BagInType
