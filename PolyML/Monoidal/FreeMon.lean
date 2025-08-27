@@ -3,19 +3,20 @@ Copyright (c) 2025 Sina Hazratpour. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
-import Mathlib.CategoryTheory.Monoidal.Mon_
 import Mathlib.CategoryTheory.Monad.Adjunction
-import Mathlib.CategoryTheory.Monad.Algebra
-import PolyML.Monoidal.ListArithmetic
 import PolyML.Monoidal.NNO
 
-/-
+/-!
+# Free Monoid Monad
+
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.
 
 This provides a left adjoint to the forgetful functor from `Mon_ C` to `C`.
 
 The development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic` for types.
 -/
+
+
 namespace CategoryTheory
 
 open Category CategoryTheory ListArithmetic MonoidalCategory Mon_Class NNO

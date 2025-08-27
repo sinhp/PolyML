@@ -3,13 +3,13 @@ Copyright (c) 2025 Sina Hazratpour. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
-
 import Mathlib.CategoryTheory.Adjunction.Mates
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
 import PolyML.ForMathlib.Monoidal.Types.Basic
 
-/-! # List Arithmetic Categories
+/-!
+# List Arithmetic Categories
 
 In category theory, the notion of parameterized list object models the list type, directly
 generalising Lawvere’s notion of NNO (Natural Numbers Object)

@@ -9,7 +9,8 @@ import Mathlib.CategoryTheory.Monad.Algebra
 import PolyML.Monoidal.ListArithmetic
 import PolyML.Monoidal.FreeMon
 
-/-
+/-! # The Free Commutative Monoid Monad
+
 In this file, we define `bag A` as the free commutative monoid on `A`,
 and establish useful relations between `bag A` and `list A`.
 
@@ -18,8 +19,8 @@ algbera for the bag monad. Given a monoid structure on `A`, we define an aggrega
 `bag A ⟶ A` as the structure map of the algebra.
 
 Therefore a bag structure on `A` is equivalent to the data of an aggregator.
-
 -/
+
 
 namespace CategoryTheory
 
@@ -193,8 +194,7 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
   }
   assoc := sorry
 
-instance monClassOfAlgebra {α : Algebra (monad C)} :
-    Mon_Class ((monad C).obj α.A) := by
+instance monClassOfAlgebra {α : Algebra (monad C)} : Mon_Class ((monad C).obj α.A) := by
   dsimp [monad_obj]
   infer_instance
 
@@ -226,12 +226,10 @@ open algebra
 
 def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X := (ofCommMon M).a
 
-theorem aggregator_eq_lift {M : CommMon_ C} :
-    aggregator M = lift (𝟙 M.X) := by
+theorem aggregator_eq_lift {M : CommMon_ C} : aggregator M = lift (𝟙 M.X) := by
   dsimp [aggregator, ofCommMon, lift]
 
-theorem aggregator_one {M : CommMon_ C} :
-    η ≫ aggregator M = η := by
+theorem aggregator_one {M : CommMon_ C} : η ≫ aggregator M = η := by
   dsimp [aggregator, ofCommMon, lift]
   simp only [IsMon_Hom.one_hom]
 
@@ -240,8 +238,7 @@ theorem aggregator_mul {M : CommMon_ C} :
   dsimp [aggregator, ofCommMon,lift]
   simp only [IsMon_Hom.mul_hom]
 
-theorem aggregator_singleton {M : CommMon_ C} :
-    singleton ≫ aggregator M = 𝟙 M.X := by
+theorem aggregator_singleton {M : CommMon_ C} : singleton ≫ aggregator M = 𝟙 M.X := by
   dsimp [aggregator, ofCommMon]
   rw [lift_singleton]
 
@@ -262,4 +259,5 @@ theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :
   sorry
 
 end bag
+
 end CategoryTheory

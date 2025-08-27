@@ -8,6 +8,10 @@ import PolyML.Monoidal.NNO
 import PolyML.ForMathlib.Monad.Distrib
 import PolyML.ForMathlib.ConstantMorphism
 
+/-!
+# The Natural Numbers Object in Monoidal Categories
+-/
+
 universe u v
 
 namespace CategoryTheory
