@@ -144,6 +144,13 @@ theorem self_tensor_map_self_cons {B : C} {f : A ⟶ B} :
   refine ?_ =≫ μ
   sorry
 
+  --rw [tensorHom_def]
+  --rw [tensorHom_def]
+
+  --dsimp [singleton, bagMon,freeCommMon, map,endofunctor]
+
+
+
 def ofList [ListArithmetic C] : list A ⟶ bag A := list.lift (bag.singleton)
 
 theorem ofList_nil [ListArithmetic C] :
@@ -226,9 +233,37 @@ instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
     dsimp [singleton, bag,bagMon,freeCommMon]
     have h1 := α.unit
     have h2 := Monad.unit_naturality C (monad C) (α.a)
+    --have h3 := Monad.right_unit (monad C) (α.A)
+    --have h4 := Monad.left_unit (monad C) (α.A)
+
     dsimp [monad] at *
     dsimp [forget₂Mon_] at *
+    rw [tensorHom_def]
+    have H : α.a ▷ α.A ≫ (WithBags.adj.unit.app α.A ▷ α.A) =
+       WithBags.adj.unit.app (WithBags.functor.obj α.A).X ▷ α.A ≫ (WithBags.functor.map α.a).hom ▷ α.A:= by {
+        simp only [comp_obj, CommMon_.forget_obj, Functor.id_obj, toMon__X]
+        rw [← comp_whiskerRight]
+        rw [← comp_whiskerRight]
+        simp_all only [comp_whiskerRight]
+       }
+    simp only [comp_obj, CommMon_.forget_obj, Functor.id_obj, toMon__X] at *
+    have : η ▷ α.A ≫
+      α.a ▷ α.A ≫ (WithBags.adj.unit.app α.A ▷ α.A ≫
+        (WithBags.functor.obj α.A).X ◁ WithBags.adj.unit.app α.A) ≫ μ ≫ α.a =
+        η ▷ α.A ≫
+      (α.a ▷ α.A ≫ (WithBags.adj.unit.app α.A ▷ α.A)) ≫
+        (((WithBags.functor.obj α.A).X ◁ WithBags.adj.unit.app α.A) ≫ μ ≫ α.a) := by {simp only [forget₂Mon_obj_one,
+          comp_obj, CommMon_.forget_obj, Functor.id_obj, Category.assoc]}
+    have haunit : WithBags.adj.unit.app α.A ▷ α.A ≫ α.a ▷ α.A = 𝟙 α.A ▷ α.A := by {
+      rw [← comp_whiskerRight]
+      simp_all only [Functor.id_obj, comp_obj, CommMon_.forget_obj, id_whiskerRight]
+    }
+    rw [this, H]
     sorry
+
+    --rw [this, H];clear this
+    --simp?
+
   }
   mul_one := sorry
   mul_assoc := sorry
