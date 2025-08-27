@@ -193,7 +193,7 @@ theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by
     dsimp [cons] at this
     exact this
 
-namespace algebra
+namespace Algebra
 
 open Category
 
@@ -260,6 +260,6 @@ theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
 
 end aggregator
 
-end list
+end Mon_
 
 end CategoryTheory
