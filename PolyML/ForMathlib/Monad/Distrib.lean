@@ -193,7 +193,7 @@ theorem unit_exchange {S T : Monad C} : S.η ≫ (S.1 ◁ T.η) = T.η ≫ (S.η
   ext X
   exact T.η.naturality <| S.η.app X
 
-@[simps!]
+@[simps]
 def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   toFunctor := S.toFunctor ⋙ T.toFunctor
   η := S.η ≫ (S.1 ◁ T.η)
