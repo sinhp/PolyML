@@ -140,7 +140,7 @@ theorem cons_map {B : C} {f : A ⟶ B} :
     (f ⊗ₘ map f) ≫ cons = cons ≫ map f := by {
   dsimp [cons, append, bag]
   rw [Category.assoc, ← append_map]
-  have := map_singleton (C:=C) (f:= (map f ⊗ₘ map f))
+  have := map_singleton (C := C) (f := (map f ⊗ₘ map f))
   rw [← Category.assoc, ← Category.assoc]
   refine ?_ =≫ μ
   ext

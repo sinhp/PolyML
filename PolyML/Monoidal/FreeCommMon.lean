@@ -191,7 +191,25 @@ def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
     rw [this]
     exact rfl
   }
-  assoc := sorry
+  assoc := by {
+    dsimp [monad,lift]
+    have h_nat := Adjunction.counit_naturality WithBags.adj (f:= (bagMon.lift (𝟙 M.X)))
+    have h_nat_C := congr_arg (CommMon_.forget C).map h_nat
+    simp only [CommMon_.forget_obj, Functor.id_obj,
+      CommMon_.forget_map, comp', comp_obj] at h_nat
+    have h_nat_hom := congr_arg (fun f => f.hom) h_nat
+    simp only [toMon__X, Mon_.comp_hom'] at h_nat_hom
+    dsimp [freeCommMon] at h_nat_hom
+    rw [← h_nat_hom]
+    dsimp [bagMon.lift,freeCommMon.lift]
+    congr
+    have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M)
+    simp only [CommMon_.forget_obj,forget₂Mon_] at this
+    rw [← this]
+    simp only [inducedFunctor_obj, toMon__X]
+    ext
+    rfl
+  }
 
 instance monClassOfAlgebra {α : Algebra (monad C)} :
     Mon_Class ((monad C).obj α.A) := by
@@ -203,7 +221,15 @@ instance monClassOfAlgebra {α : Algebra (monad C)} :
 instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
   one := η ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
-  one_mul := sorry
+  one_mul := by {
+    simp only [forget₂Mon_obj_one, comp_whiskerRight, forget₂Mon_obj_mul, Category.assoc]
+    dsimp [singleton, bag,bagMon,freeCommMon]
+    have h1 := α.unit
+    have h2 := Monad.unit_naturality C (monad C) (α.a)
+    dsimp [monad] at *
+    dsimp [forget₂Mon_] at *
+    sorry
+  }
   mul_one := sorry
   mul_assoc := sorry
 
@@ -255,6 +281,26 @@ theorem aggregator_join {M : CommMon_ C} :
 
 theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
+  dsimp [aggregator]
+  dsimp [lift,map,endofunctor,bagMon.lift,freeCommMon.lift]
+  have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M)
+  simp only [CommMon_.forget_obj,forget₂Mon_] at *
+  simp only [inducedFunctor_obj, toMon__X] at this
+  have h_nat_hom := congr_arg (fun f => f.hom) this
+  simp only [toMon__X] at h_nat_hom
+  dsimp [freeCommMon]
+  rw [h_nat_hom]
+  have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M')
+  simp only [CommMon_.forget_obj,forget₂Mon_] at *
+  simp only [inducedFunctor_obj, toMon__X] at this
+  have h_nat_hom' := congr_arg (fun f => f.hom) this
+  simp only [toMon__X] at h_nat_hom'
+  rw [h_nat_hom']
+  have := Adjunction.counit_naturality WithBags.adj (Y:=M') (X:=M)
+  let g : M ⟶ M' := by {
+    sorry
+  }
+  simp only [CommMon_.forget_obj, Functor.id_obj, CommMon_.forget_map, comp', comp_obj] at *
   sorry
 
 theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :

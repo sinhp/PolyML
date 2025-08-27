@@ -59,7 +59,6 @@ def lift {X : C} {M : Mon_ C} (f : X ⟶ M.X) : list X ⟶ M.X :=
 theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     η ≫ list.lift f = η := by
   dsimp [lift, list.foldr, Mon_Class.one, list.nil]
-  dsimp [lift, list.foldr, Mon_Class.one, list.nil]
   rw [plist.nil_rec]
 
 theorem lift_one_whiskerRight {M : Mon_ C} {f : X ⟶ M.X} {Y : C} :
@@ -117,52 +116,46 @@ def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
   Adjunction.mkOfHomEquiv {
     homEquiv (X : C) (Y : Mon_ C) := homEquiv X Y
     homEquiv_naturality_left_symm := by {
-      intros X X' f g h
-      simp only [Mon_.forget_obj]
-      dsimp [homEquiv, Mon_.Hom.mk', freeMon, Mon_.Hom.mk']
-      congr
-      dsimp [list.lift]
-      dsimp [list.foldl]
-      rw [← plist.rec_uniq]
-      · dsimp [list.map, plist.map]
-        simp only [← assoc, plist.nil_rec]
-      · dsimp [list.map, plist.map]
-        rw [← Category.assoc]
-        rw [plist.cons_rec]
-        rw [Category.assoc]
-        letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-        simp only [ Category.assoc]
-        rw [plist.cons_rec]
-        simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
-        refine X ◁ plist.rec plist.nil (g ▷ plist X' (𝟙_ C) ≫ plist.cons) ≫= ?_
-        have :  g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
-          (β_ X' f.X).hom ≫ f.X ◁ h ≫ μ =
-          (g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
-          (β_ X' f.X).hom) ≫ f.X ◁ h ≫ μ := by {
-          simp only [Mon_.forget_obj,BraidedCategory.braiding_naturality_right_assoc,
-            BraidedCategory.braiding_naturality_left_assoc,
-            BraidedCategory.braiding_naturality_right, Category.assoc]}
-        rw [this]
-        have :  X ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
-          (β_ X f.X).hom ≫ f.X ◁ g ≫ f.X ◁ h ≫ μ=
-         (X ◁ plist.rec η ((β_ X' f.X).hom ≫ f.X ◁ h ≫ μ) ≫
-         (β_ X f.X).hom ≫ f.X ◁ g) ≫ f.X ◁ h ≫ μ := by {
-          simp only [Mon_.forget_obj, BraidedCategory.braiding_naturality_right_assoc, Category.assoc]}
-        rw [this]
-        refine ?_ =≫ f.X ◁ h ≫ μ
-        rename_i this_1 this_2
-        simp_all only [Mon_.forget_obj, BraidedCategory.braiding_naturality_right_assoc,
-           BraidedCategory.braiding_naturality_left_assoc,
-         BraidedCategory.braiding_naturality_right, Category.assoc,
-         Iso.cancel_iso_hom_left, this_1]
-        ext : 1
-        · simp_all only [Category.assoc, CartesianMonoidalCategory.whiskerRight_fst,
-        CartesianMonoidalCategory.whiskerLeft_fst_assoc, CartesianMonoidalCategory.whiskerLeft_fst]
-        · simp_all only [Category.assoc, CartesianMonoidalCategory.whiskerRight_snd,
-        CartesianMonoidalCategory.whiskerLeft_snd, CartesianMonoidalCategory.whiskerRight_snd_assoc]}
+    intros X X' f g h
+    simp only [Mon_.forget_obj]
+    dsimp [homEquiv]
+    dsimp [Mon_.Hom.mk']
+    dsimp [freeMon, Mon_.Hom.mk']
+    congr
+    simp only
+    dsimp [list.lift]
+    dsimp [list.foldr]
+    rw [← plist.rec_uniq]
+    · dsimp [list.map, plist.map]
+      rw [← Category.assoc]
+      simp only [plist.nil_rec]
+    · dsimp [list.map, plist.map]
+      rw [← Category.assoc]
+      rw [plist.cons_rec]
+      rw [Category.assoc]
+      --letI : BraidedCategory C := CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+      simp only [ Category.assoc]
+      rw [plist.cons_rec]
+      simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
+      refine X ◁ plist.rec plist.nil (g ▷ plist X' (𝟙_ C) ≫ plist.cons) ≫= ?_
+      simp only [comp_whiskerRight, assoc]
+      have :  g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η (h ▷ f.X ≫
+        (μ :  f.X ⊗ f.X ⟶ f.X)) ≫ h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)=
+       (g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η (h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)))
+         ≫ (h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)) := by {simp only [Mon_.forget_obj, assoc]}
+      rw [this]; clear this
+      have :  X ◁ plist.rec η (h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)) ≫
+         g ▷ f.X ≫ h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X) =
+       (X ◁ plist.rec η (h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)) ≫
+        g ▷ f.X) ≫ (h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)) := by {
+          simp only [Mon_.forget_obj, assoc]}
+      rw [this]; clear this
+      refine ?_ =≫ h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X)
+      exact Eq.symm (whisker_exchange g (plist.rec η (h ▷ f.X ≫ (μ : f.X ⊗ f.X ⟶ f.X))))}
     homEquiv_naturality_right f g := by {
       dsimp [homEquiv]; rw [Category.assoc]
-    }}
+    }
+  }
 
 variable (C)
 
@@ -224,25 +217,6 @@ def ofMon (M : Mon_ C) : Monad.Algebra (monad C) where
     dsimp [homEquiv]
     sorry
 
-    -- let f :Endofunctor.Algebra (tensorLeft (list M.X)) :=
-    --    { a := list M.X, str := 𝟙 (list M.X) ▷ list M.X ≫ μ }
-    -- have h_nat := Adjunction.counit_naturality (Recursive.freeForgetAdj (list M.X))
-    --   (f:= f.f)
-    -- have h_nat_C := congr_arg (CommMon_.forget C).map h_nat
-    -- simp only [CommMon_.forget_obj, Functor.id_obj, CommMon_.forget_map, comp', comp_obj] at h_nat
-    -- have h_nat_hom := congr_arg (fun f => f.hom) h_nat
-    -- simp only [toMon__X, Mon_.comp_hom'] at h_nat_hom
-    -- dsimp [freeCommMon] at h_nat_hom
-    -- rw [← h_nat_hom]
-    -- dsimp [bagMon.lift,freeCommMon.lift]
-    -- congr
-    -- have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M)
-    -- simp only [CommMon_.forget_obj,forget₂Mon_] at this
-    -- rw [← this]
-    -- simp only [inducedFunctor_obj, toMon__X]
-    -- ext
-    -- rfl
-
 end algebra
 
 open algebra
@@ -282,26 +256,6 @@ theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
   dsimp [map,plist.map,plist.rec,lift,foldr]
   have := Adjunction.homEquiv_symm_id (Recursive.freeForgetAdj M'.X) (C:=C)
   sorry
-
-  -- sorry
-  -- simp only [CommMon_.forget_obj,forget₂Mon_] at *
-  -- simp only [inducedFunctor_obj, toMon__X] at this
-  -- have h_nat_hom := congr_arg (fun f => f.hom) this
-  -- simp only [toMon__X] at h_nat_hom
-  -- dsimp [freeCommMon]
-  -- rw [h_nat_hom]
-  -- have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M')
-  -- simp only [CommMon_.forget_obj,forget₂Mon_] at *
-  -- simp only [inducedFunctor_obj, toMon__X] at this
-  -- have h_nat_hom' := congr_arg (fun f => f.hom) this
-  -- simp only [toMon__X] at h_nat_hom'
-  -- rw [h_nat_hom']
-  -- have := Adjunction.counit_naturality WithBags.adj (Y:=M') (X:=M)
-  -- let g : M ⟶ M' := by {
-
-  -- }
-  -- simp only [CommMon_.forget_obj, Functor.id_obj, CommMon_.forget_map, comp', comp_obj] at *
-
   }
 
 end list
