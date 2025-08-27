@@ -191,7 +191,7 @@ noncomputable def monToListAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ 
   (monToListAlgebraFunctor C).asEquivalence.symm
 
 -- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
-def equivalenceMon : Monad.Algebra (monad C) ≌ Mon_ C where
+def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
   functor := {
     obj α := ⟨α.A⟩
     map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
