@@ -176,7 +176,7 @@ def distrib (α : (monad S T).Algebra) :
   simp only [Functor.id_obj, comp_obj, Lean.Elab.WF.paramLet, endoFunctor_obj, Hom.h, map_str,
     endofunctorMonoidalCategory_tensorObj_obj, Category.assoc] at *
 
-instance {T : Monad C} [DistribLaw S T] : Lift S T where
+instance lift {T : Monad C} [DistribLaw S T] : Lift S T where
   toMonad := monad S T
   w := rfl
   respect_unit := by
@@ -193,7 +193,7 @@ theorem unit_exchange {S T : Monad C} : S.η ≫ (S.1 ◁ T.η) = T.η ≫ (S.η
   ext X
   exact T.η.naturality <| S.η.app X
 
-@[simps]
+@[simps!]
 def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   toFunctor := S.toFunctor ⋙ T.toFunctor
   η := S.η ≫ (S.1 ◁ T.η)
