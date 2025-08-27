@@ -56,8 +56,6 @@ universe v u
 
 instance (β : AddCommMonCat) :  AddCommMonoid <| (forget AddCommMonCat).obj β := β.str
 
-attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
 namespace bagType
 
 def functor : Type u ⥤ AddCommMonCat where
