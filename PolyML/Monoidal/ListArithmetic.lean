@@ -7,10 +7,7 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Adjunction.Mates
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
-import PolyML.ForMathlib.Monoidal.Cartesian.Basic
 import PolyML.ForMathlib.Monoidal.Types.Basic
-import Mathlib.CategoryTheory.Adjunction.Unique
-import Mathlib.CategoryTheory.Closed.Monoidal
 
 /-! # List Arithmetic Categories
 
@@ -1053,7 +1050,6 @@ The monoid structure on the list object in a list-arithmetic category.
 -/
 instance List.monoid (A : C) : Mon_ C where
   X := list A
-
 
 /-
 Extra challenge:
