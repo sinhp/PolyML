@@ -41,7 +41,13 @@ def freeMonUnitIsoMonNNO [BraidedCategory C] :
   · simp [listUnitIsoNNO]
     aesop
   · simp [listUnitIsoNNO]
-    sorry
+    dsimp [Mon_Class.mul, add, iter, prec]
+    apply list.prec_uniq
+    · simp only [list.whiskerRight_nil_append, comp_id]
+    · nth_rw 1 [list.append]
+      rw [← Category.assoc, list.cons_prec]
+      simp only [id_whiskerLeft, Category.assoc, Iso.hom_inv_id_assoc, Iso.cancel_iso_hom_left]
+      dsimp [list.append]
 
 namespace list
 
@@ -56,8 +62,13 @@ theorem lift_one {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
   dsimp [lift, list.foldr, Mon_Class.one, list.nil]
   rw [plist.nil_rec]
 
+theorem lift_one_whiskerRight {M : Mon_ C} {f : X ⟶ M.X} {Y : C} :
+  (η ▷ X) ≫ (list.lift f ▷ X) = η ▷ X := by
+  dsimp [lift, list.foldr, Mon_Class.one, list.nil]
+  apply plist.whiskerRight_nil_whiskerRight_rec
+
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
-    μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ :=
+    μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
   sorry
 
 /-- The underlying functor of the list monad. -/
@@ -71,17 +82,10 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
 
 /-- The adjoint transposition equivalence of the hom-sets. -/
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
-  toFun f := list.singleton ≫ f.hom
-  invFun f := Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul
-  left_inv f := by
-    refine Mon_.Hom.ext' ?_
-    simp only [freeMon_obj_X]
-    dsimp [lift,foldr]
-    rw [← plist.rec_uniq]
-    · dsimp [list]
-      sorry
-    · sorry
-  right_inv f := sorry
+  toFun := fun f => list.singleton ≫ f.hom
+  invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
+  left_inv f := by sorry
+  right_inv f := by sorry
 
 variable (C)
 
@@ -90,24 +94,29 @@ def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
   Adjunction.mkOfHomEquiv {
     homEquiv (X : C) (Y : Mon_ C) := homEquiv X Y
     homEquiv_naturality_left_symm := by
-      intros X X' M g h
-      simp only [Mon_.forget_obj]
-      dsimp [homEquiv, Mon_.Hom.mk', freeMon, Mon_.Hom.mk']
-      congr
-      dsimp [list.lift]
-      dsimp [list.foldr]
-      rw [← plist.rec_uniq]
-      · dsimp [list.map, plist.map]
-        simp only [← assoc, plist.nil_rec]
-      · dsimp [list.map, plist.map]
-        rw [← assoc, plist.cons_rec, assoc, assoc, plist.cons_rec]
-        simp only [whiskerLeft_comp, assoc]
-        refine _ ≫= ?_
-        rw [comp_whiskerRight, assoc, ← assoc, ← assoc _ (g ▷ M.X) (h ▷ M.X ≫ _)]
-        refine ?_ =≫ _
-        sorry
+     intros X X' M g h
+     dsimp [homEquiv]
+     congr
+     dsimp [list.lift, list.foldr]
+     rw [← plist.rec_uniq]
+     · dsimp [list.map, plist.map]
+       rw [← Category.assoc]
+       simp only [plist.nil_rec]
+     · dsimp [list.map, plist.map]
+       rw [← Category.assoc, plist.cons_rec, Category.assoc]
+       rw [Category.assoc, plist.cons_rec]
+       simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
+       refine X ◁ plist.rec plist.nil (g ▷ plist X' (𝟙_ C) ≫ plist.cons) ≫= ?_
+       simp only [comp_whiskerRight, assoc]
+       rw [Eq.symm (assoc (g ▷ plist X' (𝟙_ C))
+          (X' ◁ plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X))) (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)))]
+       rw [Eq.symm (assoc (X ◁ plist.rec η
+          (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X))) (g ▷ M.X) (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)))]
+       refine ?_ =≫ h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)
+       exact Eq.symm (whisker_exchange g (plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X))))
     homEquiv_naturality_right f g := by
-      dsimp [homEquiv]; rw [assoc]}
+      dsimp [homEquiv]; rw [Category.assoc]
+  }
 
 section Monadicity
 
@@ -148,29 +157,31 @@ theorem join_nil {A : C} : list.nil ≫ list.join = list.nil (C:=C) (A:=A)  := b
   rfl
 
 theorem flatten_nil {A : C} : list.nil ≫ list.flatten = list.nil (C:=C) (A:=A) := by
-  dsimp [list.flatten]
-  dsimp [list.rec]
-  dsimp [list,list.nil]
+  dsimp [list.flatten, list.rec, list, list.nil]
   simp only [plist.nil_rec]
 
 --flatten (xs:xss) = xs ++ flatten xss
 theorem flatten_cons {A : C} :
   list.cons ≫ list.flatten = (list A ◁ list.flatten (A:=A)) ≫ list.append (A:=A) := by
-  dsimp [list.flatten]
-  dsimp [list.rec]
-  dsimp [list.cons]
+  dsimp [list.flatten, list.rec, list.cons]
   rw [plist.cons_rec]
 
 theorem join_cons {A : C} : list.cons ≫ list.join = list A ◁ list.join (A:=A) ≫ list.append := by
   sorry
 
 theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by
-  sorry
+  dsimp [flatten,rec]
+  apply plist.rec_uniq
+  · rw [← join_nil, nil]
+  · have := join_cons (A:=A)
+    dsimp [cons] at this
+    exact this
 
 namespace Algebra
 
 open Category
 
+/-- A monoid structure on `A` gives rise to an algebra for the `list` monad. -/
 @[simps!]
 def ofMon (M : Mon_ C) : (monad C).Algebra := monToListAlgebraFunctor _ |>.obj M
 
@@ -197,9 +208,9 @@ def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
   functor := {
     obj := mon
     map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
-    map_id := sorry
-    map_comp := sorry
-  }
+    map_id X := rfl
+    map_comp := by
+      intros X Y Z f g; ext; rw [Monad.Algebra.comp_f, Mon_.comp_hom'] }
   inverse := monToListAlgebraFunctor C
   unitIso := sorry
   counitIso := sorry
@@ -228,18 +239,42 @@ theorem aggregator_mul : μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M
   exact lift_mul
 
 theorem aggregator_singleton : list.singleton ≫ aggregator M = 𝟙 M.X := by
-  dsimp [aggregator, ofMon, list.singleton]
-  simp only [assoc]
-  dsimp [lift, list.foldr, list.cons]
-  sorry
+  dsimp [aggregator]
+  have := ofMon_a_eq (C:=C) (M:=M)
+  dsimp [ofMon, monToListAlgebraFunctor] at this
+  rw [this]
+  dsimp [list.singleton, lift, foldr]
+  rw [assoc, assoc, cons, plist.cons_rec, list.nil]
+  simp only [id_whiskerRight, id_comp, plist.whiskerLeft_nil_whiskerLeft_rec_assoc,
+    Mon_Class.mul_one, Iso.inv_hom_id]
 
-theorem aggregator_join : list.join ≫ aggregator M = (map <| aggregator M) ≫ aggregator M := by
-  sorry
+theorem aggregator_join {M : Mon_ C} :
+  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
+    dsimp [list.join, aggregator]
+    have := (Algebra.ofMon M).assoc
+    dsimp [ofMon, monToListAlgebraFunctor] at *
+    rw [this]; clear this
+    refine _ ≫= ?_
+    simp only
 
 /-- Theorem: Aggregator is functorial. -/
-theorem aggregator_map {M' : Mon_ C} {f : M.X ⟶ M'.X} :
+theorem aggregator_map {M' : Mon_ C} {f : M ⟶ M'} :
+    map f.hom ≫ aggregator M' = aggregator M ≫ f.hom := by
+  dsimp [aggregator]
+  have := ((freeMonForgetAdjunction C)).counit.naturality (X:=M) (Y:=M') f
+  dsimp [freeMon] at *
+  dsimp [freeMon, homEquiv, lift,foldr,map, plist.map, plist.rec, Act.forget] at *
+  dsimp [Adjunction.homEquiv] at *
+  have h_nat_hom := congr_arg (fun f => f.hom) this
+  simp at h_nat_hom
+  rw [← h_nat_hom]
+  simp only [assoc]
+
+/-- Theorem: Aggregator is functorial. -/
+theorem aggregator_map' {M' : Mon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
   sorry
+
 
 end aggregator
 
