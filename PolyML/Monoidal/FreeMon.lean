@@ -82,8 +82,8 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
 
 /-- The adjoint transposition equivalence of the hom-sets. -/
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
-  toFun := fun f => list.singleton ≫ f.hom
-  invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
+  toFun f := list.singleton ≫ f.hom
+  invFun f := Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul
   left_inv f := by sorry
   right_inv f := by sorry
 
@@ -142,7 +142,8 @@ end list
 def monToListAlgebraFunctor : Mon_ C ⥤ (list.monad C).Algebra := Monad.comparison _
 
 /-- The equivalence between the category of algebras for the `list` monad and the category of monoids in `C`. -/
-instance monToListAlgebraFunctorIsEquivalence [ListArithmetic C] : (monToListAlgebraFunctor C).IsEquivalence := by
+instance monToListAlgebraFunctorIsEquivalence [ListArithmetic C] :
+    (monToListAlgebraFunctor C).IsEquivalence := by
   refine MonadicRightAdjoint.eqv
 
 namespace list
