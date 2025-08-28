@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Monoidal.Braided.Basic
 import Mathlib.CategoryTheory.Monoidal.CoherenceLemmas
 import Mathlib.CategoryTheory.Monoidal.Discrete
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
+import Mathlib.CategoryTheory.Monoidal.Mon_
 
 /-!
 # The category of monoids in a monoidal category.
@@ -49,6 +50,14 @@ namespace AddMon_Class
 @[inherit_doc] scoped notation "η["M"]" => AddMon_Class.zero (X := M)
 
 attribute [reassoc (attr := simp)] zero_add add_zero add_assoc
+
+/-- Transfers an instance of `Mon_Class` to `AddMon_Class` so that we can define `toSemiring`. -/
+instance fromMon_Class {X : C} [Mon_Class X] : AddMon_Class X where
+  zero := Mon_Class.one
+  add := Mon_Class.mul
+  zero_add := Mon_Class.one_mul X
+  add_zero := Mon_Class.mul_one X
+  add_assoc := Mon_Class.mul_assoc X
 
 @[simps]
 instance : AddMon_Class (𝟙_ C) where
