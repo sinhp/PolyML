@@ -258,22 +258,23 @@ theorem aggregator_join {M : Mon_ C} :
     simp only
 
 /-- Theorem: Aggregator is functorial. -/
-theorem aggregator_map {M : Mon_ C} {f : M ⟶ M'} :
-  list.map f.hom ≫ aggregator M' = aggregator M ≫ f.hom := by
-    dsimp [aggregator]
-    have := ((freeMonForgetAdjunction C)).counit.naturality (X:=M) (Y:=M') f
-    dsimp [freeMon] at *
-    dsimp [freeMon, homEquiv, lift,foldr,map, plist.map, plist.rec, Act.forget] at *
-    dsimp [Adjunction.homEquiv] at *
-    have h_nat_hom := congr_arg (fun f => f.hom) this
-    simp at h_nat_hom
-    rw [← h_nat_hom]
-    simp only [assoc]
+theorem aggregator_map {M' : Mon_ C} {f : M ⟶ M'} :
+    map f.hom ≫ aggregator M' = aggregator M ≫ f.hom := by
+  dsimp [aggregator]
+  have := ((freeMonForgetAdjunction C)).counit.naturality (X:=M) (Y:=M') f
+  dsimp [freeMon] at *
+  dsimp [freeMon, homEquiv, lift,foldr,map, plist.map, plist.rec, Act.forget] at *
+  dsimp [Adjunction.homEquiv] at *
+  have h_nat_hom := congr_arg (fun f => f.hom) this
+  simp at h_nat_hom
+  rw [← h_nat_hom]
+  simp only [assoc]
 
 /-- Theorem: Aggregator is functorial. -/
-theorem aggregator_map' {M : Mon_ C} {f : M.X ⟶ M'.X} :
-  list.map f ≫ aggregator M' = aggregator M ≫ f := by
-    sorry
+theorem aggregator_map' {M' : Mon_ C} {f : M.X ⟶ M'.X} :
+    map f ≫ aggregator M' = aggregator M ≫ f := by
+  sorry
+
 
 end aggregator
 
