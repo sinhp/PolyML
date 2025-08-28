@@ -211,7 +211,6 @@ def join : bag (bag A) ⟶ bag A := (monad C).μ.app A
 
 namespace Algebra
 
-
 /-- A commutative monoid structure on gives rise to an algebra for the `bag` monad. -/
 @[simps!]
 def ofCommMon (M : CommMon_ C) : (monad C).Algebra := commMonToBagAlgebraFunctor _ |>.obj M
@@ -246,7 +245,7 @@ instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
     simp only [IsCommMon.mul_comm_assoc, forget₂Mon_obj_mul, Category.assoc]
     exact Eq.symm (whisker_exchange_assoc singleton singleton (μ ≫ α.a))
 
-def commMonOf (α : Algebra (monad C)) : CommMon_ C where
+def commMon (α : (monad C).Algebra) : CommMon_ C where
   X := α.A
 
 noncomputable def commMonToBagAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ CommMon_ C :=
@@ -255,7 +254,7 @@ noncomputable def commMonToBagAlgebraFunctorIsEquivalence' : (monad C).Algebra �
 -- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
 def equivalenceMon : (monad C).Algebra ≌ CommMon_ C where
   functor := {
-    obj α := ⟨α.A⟩
+    obj := commMon
     map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
     map_id := sorry
     map_comp := sorry
@@ -264,7 +263,6 @@ def equivalenceMon : (monad C).Algebra ≌ CommMon_ C where
   unitIso := sorry
   counitIso := sorry
   functor_unitIso_comp := sorry
-
 
 end Algebra
 

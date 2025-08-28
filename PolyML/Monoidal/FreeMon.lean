@@ -186,13 +186,16 @@ instance monClass (α : (monad C).Algebra) : Mon_Class α.A where
   mul_one := sorry
   mul_assoc := sorry
 
+def mon (α : (monad C).Algebra) : Mon_ C where
+  X := α.A
+
 noncomputable def monToListAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ Mon_ C :=
   (monToListAlgebraFunctor C).asEquivalence.symm
 
 -- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
 def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
   functor := {
-    obj α := ⟨α.A⟩
+    obj := mon
     map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
     map_id := sorry
     map_comp := sorry
