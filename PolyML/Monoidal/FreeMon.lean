@@ -87,7 +87,7 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := fun f => sorry
+  left_inv := fun f => by sorry
   right_inv := fun f => by sorry
 
 variable (C)
@@ -258,15 +258,37 @@ theorem aggregator_mul : μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M
   exact lift_mul
 
 theorem aggregator_singleton : list.singleton ≫ aggregator M = 𝟙 M.X := by
-  sorry
+  dsimp [aggregator]
+  have := ofMon_a_eq (C:=C) (M:=M)
+  dsimp [ofMon,monToListAlgebraFunctor] at this
+  rw [this]
+  dsimp [list.singleton, lift, foldr]
+  rw [assoc, assoc, cons]
+  rw [plist.cons_rec, list.nil]
+  simp only [id_whiskerRight, id_comp, plist.whiskerLeft_nil_whiskerLeft_rec_assoc,
+    Mon_Class.mul_one, Iso.inv_hom_id]
 
 theorem aggregator_join {M : Mon_ C} :
   list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
-  sorry
+    dsimp [list.join, aggregator]
+    have := (Algebra.ofMon M).assoc
+    dsimp [ofMon,monToListAlgebraFunctor] at *
+    rw [this]; clear this
+    refine _ ≫= ?_
+    simp only
 
 /-- Theorem: Aggregator is functorial. -/
-theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
-  list.map f ≫ aggregator M' = aggregator M ≫ f := sorry
+theorem aggregator_map {M : Mon_ C} {f : M ⟶ M'} :
+  list.map f.hom ≫ aggregator M' = aggregator M ≫ f.hom := by
+    dsimp [aggregator]
+    have := ((freeMonForgetAdjunction C)).counit.naturality (X:=M) (Y:=M') f
+    dsimp [freeMon] at *
+    dsimp [homEquiv, lift,foldr,map, plist.map, plist.rec, Act.forget] at *
+    dsimp [Adjunction.homEquiv] at *
+    have h_nat_hom := congr_arg (fun f => f.hom) this
+    simp at  h_nat_hom
+    rw [← h_nat_hom]
+    simp_all only [assoc]
 
 end aggregator
 
