@@ -95,36 +95,23 @@ def freeMonForgetAdjunction : freeMon C ⊣ Mon_.forget C :=
     homEquiv (X : C) (Y : Mon_ C) := homEquiv X Y
     homEquiv_naturality_left_symm := by
      intros X X' M g h
-     simp only [Mon_.forget_obj]
-     dsimp [homEquiv, Mon_.Hom.mk', freeMon, Mon_.Hom.mk']
+     dsimp [homEquiv]
      congr
-     simp only
-     dsimp [list.lift]
-     dsimp [list.foldr]
+     dsimp [list.lift, list.foldr]
      rw [← plist.rec_uniq]
      · dsimp [list.map, plist.map]
        rw [← Category.assoc]
        simp only [plist.nil_rec]
      · dsimp [list.map, plist.map]
-       rw [← Category.assoc]
-       rw [plist.cons_rec]
-       rw [Category.assoc]
-       simp only [ Category.assoc]
-       rw [plist.cons_rec]
+       rw [← Category.assoc, plist.cons_rec, Category.assoc]
+       rw [Category.assoc, plist.cons_rec]
        simp only [MonoidalCategory.whiskerLeft_comp, Category.assoc]
        refine X ◁ plist.rec plist.nil (g ▷ plist X' (𝟙_ C) ≫ plist.cons) ≫= ?_
        simp only [comp_whiskerRight, assoc]
-       have :  g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η (h ▷ M.X ≫
-        (μ :  M.X ⊗ M.X ⟶ M.X)) ≫ h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)=
-       (g ▷ plist X' (𝟙_ C) ≫ X' ◁ plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)))
-         ≫ (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)) := by {simp only [Mon_.forget_obj, assoc]}
-       rw [this]; clear this
-       have :  X ◁ plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)) ≫
-         g ▷ M.X ≫ h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X) =
-       (X ◁ plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)) ≫
-        g ▷ M.X) ≫ (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)) := by {
-          simp only [Mon_.forget_obj, assoc]}
-       rw [this]; clear this
+       rw [Eq.symm (assoc (g ▷ plist X' (𝟙_ C))
+          (X' ◁ plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X))) (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)))]
+       rw [Eq.symm (assoc (X ◁ plist.rec η
+          (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X))) (g ▷ M.X) (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)))]
        refine ?_ =≫ h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X)
        exact Eq.symm (whisker_exchange g (plist.rec η (h ▷ M.X ≫ (μ : M.X ⊗ M.X ⟶ M.X))))
     homEquiv_naturality_right f g := by
@@ -257,11 +244,10 @@ theorem aggregator_mul : μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M
 theorem aggregator_singleton : list.singleton ≫ aggregator M = 𝟙 M.X := by
   dsimp [aggregator]
   have := ofMon_a_eq (C:=C) (M:=M)
-  dsimp [ofMon,monToListAlgebraFunctor] at this
+  dsimp [ofMon, monToListAlgebraFunctor] at this
   rw [this]
   dsimp [list.singleton, lift, foldr]
-  rw [assoc, assoc, cons]
-  rw [plist.cons_rec, list.nil]
+  rw [assoc, assoc, cons, plist.cons_rec, list.nil]
   simp only [id_whiskerRight, id_comp, plist.whiskerLeft_nil_whiskerLeft_rec_assoc,
     Mon_Class.mul_one, Iso.inv_hom_id]
 
@@ -269,7 +255,7 @@ theorem aggregator_join {M : Mon_ C} :
   list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by
     dsimp [list.join, aggregator]
     have := (Algebra.ofMon M).assoc
-    dsimp [ofMon,monToListAlgebraFunctor] at *
+    dsimp [ofMon, monToListAlgebraFunctor] at *
     rw [this]; clear this
     refine _ ≫= ?_
     simp only
@@ -280,17 +266,17 @@ theorem aggregator_map {M : Mon_ C} {f : M ⟶ M'} :
     dsimp [aggregator]
     have := ((freeMonForgetAdjunction C)).counit.naturality (X:=M) (Y:=M') f
     dsimp [freeMon] at *
-    dsimp [homEquiv, lift,foldr,map, plist.map, plist.rec, Act.forget] at *
+    dsimp [freeMon, homEquiv, lift,foldr,map, plist.map, plist.rec, Act.forget] at *
     dsimp [Adjunction.homEquiv] at *
     have h_nat_hom := congr_arg (fun f => f.hom) this
-    simp at  h_nat_hom
+    simp at h_nat_hom
     rw [← h_nat_hom]
-    simp_all only [assoc]
+    simp only [assoc]
 
 /-- Theorem: Aggregator is functorial. -/
 theorem aggregator_map' {M : Mon_ C} {f : M.X ⟶ M'.X} :
   list.map f ≫ aggregator M' = aggregator M ≫ f := by
-  sorry
+    sorry
 
 end aggregator
 
