@@ -172,7 +172,7 @@ namespace Algebra
 open Category
 
 @[simps!]
-def ofMon (M : Mon_ C) : Monad.Algebra (monad C) := monToListAlgebraFunctor _ |>.obj M
+def ofMon (M : Mon_ C) : (monad C).Algebra := monToListAlgebraFunctor _ |>.obj M
 
 @[simp]
 theorem ofMon_a_eq {M : Mon_ C} : (ofMon M).a = list.lift (𝟙 M.X) := by
