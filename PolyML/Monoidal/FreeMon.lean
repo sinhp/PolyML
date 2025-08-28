@@ -84,8 +84,8 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := fun f => sorry
-  right_inv := fun f => by sorry
+  left_inv f := by sorry
+  right_inv f := by sorry
 
 variable (C)
 
@@ -193,13 +193,7 @@ theorem ofMon_a_eq {M : Mon_ C} : (ofMon M).a = list.lift (𝟙 M.X) := by
 instance monClass (α : (monad C).Algebra) : Mon_Class α.A where
   one := nil ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ append ≫ α.a
-  one_mul := by {
-    have := α.unit
-    dsimp [append]
-    rw [tensorHom_def]
-    dsimp [singleton]
-    sorry
-  }
+  one_mul := sorry
   mul_one := sorry
   mul_assoc := sorry
 
