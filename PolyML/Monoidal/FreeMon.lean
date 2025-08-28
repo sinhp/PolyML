@@ -183,7 +183,7 @@ open Category
 
 /-- A monoid structure on `A` gives rise to an algebra for the `list` monad. -/
 @[simps!]
-def ofMon (M : Mon_ C) : Monad.Algebra (monad C) := monToListAlgebraFunctor _ |>.obj M
+def ofMon (M : Mon_ C) : (monad C).Algebra := monToListAlgebraFunctor _ |>.obj M
 
 @[simp]
 theorem ofMon_a_eq {M : Mon_ C} : (ofMon M).a = list.lift (𝟙 M.X) := by
@@ -197,13 +197,16 @@ instance monClass (α : (monad C).Algebra) : Mon_Class α.A where
   mul_one := sorry
   mul_assoc := sorry
 
+def mon (α : (monad C).Algebra) : Mon_ C where
+  X := α.A
+
 noncomputable def monToListAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ Mon_ C :=
   (monToListAlgebraFunctor C).asEquivalence.symm
 
 -- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
 def equivalenceMon : (monad C).Algebra ≌ Mon_ C where
   functor := {
-    obj α := ⟨α.A⟩
+    obj := mon
     map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
     map_id X := rfl
     map_comp := by

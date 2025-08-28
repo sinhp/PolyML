@@ -3,20 +3,28 @@ Copyright (c) 2025 Sina Hazratpour. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
-
-import PolyML.ForMathlib.Monad.Distrib
-import PolyML.ForMathlib.Monoidal.AddMon_
 import Mathlib.CategoryTheory.Monoidal.Comon_
 import Mathlib.CategoryTheory.Distributive.Monoidal
+import PolyML.ForMathlib.Monad.Distrib
+import PolyML.ForMathlib.Monoidal.AddCommMon_
+
+/-!
+# Internal Semiring Objects and The Equivalence with Algebras of the Lifted Bag Monad
+-/
 
 
 universe v₁ v₂ u₁ u₂
 
 namespace CategoryTheory
 
-open Category MonoidalCategory Comon_Class Monad
+open Category MonoidalCategory Comon_Class Monad DistribLaw
 
 variable {C : Type u₁} [Category.{v₁} C] [MonoidalCategory C] [BraidedCategory C]
+
+/-- Syntactic transfer of a commutative monoid to an additive commutative monoid. -/
+def AddCommMon_.fromCommMon_ (M : CommMon_ C) : AddCommMon_ C where
+  X := M.X
+  mon := @AddMon_Class.fromMon_Class _ _ _ _ M.mon
 
 class Distrib_Class (X : C) [Comon_Class X] extends Mon_Class X, AddMon_Class X where
   left_distrib : Δ ▷ (X ⊗ X) ≫ tensorμ .. ≫ (mul ⊗ₘ mul) ≫ add = X ◁ add ≫ mul
@@ -62,6 +70,8 @@ instance : Semiring_Class (𝟙_ C) where
 
 end Semiring_Class
 
+section IsSemiring_Hom
+
 open scoped Semiring_Class
 
 variable {M N O : C} [Semiring_Class M] [Semiring_Class N] [Semiring_Class O]
@@ -73,8 +83,9 @@ instance : IsSemiring_Hom (𝟙 M) where
 
 instance (f : M ⟶ N) (g : N ⟶ O) [IsSemiring_Hom f] [IsSemiring_Hom g] : IsSemiring_Hom (f ≫ g) where
 
-instance {M N : C} [Semiring_Class M] [Semiring_Class N] (f : M ≅ N) [IsSemiring_Hom f.hom] :
-   IsSemiring_Hom f.inv where
+instance (f : M ≅ N) [IsSemiring_Hom f.hom] : IsSemiring_Hom f.inv where
+
+end IsSemiring_Hom
 
 variable (C) in
 /-- A semiring object internal to a monoidal category.
@@ -102,65 +113,94 @@ instance : Inhabited (Semiring_ C) :=
 structure Hom (M N : Semiring_ C) where
   /-- The underlying morphism -/
   hom : M.X ⟶ N.X
-  [isSemiring_Hom : IsSemiring_Hom hom]
+  [is_semiring_Hom : IsSemiring_Hom hom]
+
+attribute [instance] Hom.is_semiring_Hom
+
+/-- The identity morphism on a monoid object. -/
+@[simps]
+def id (M : Semiring_ C) : Hom M M := ⟨𝟙 M.X⟩
+
+instance homInhabited (M : Semiring_ C) : Inhabited (Hom M M) :=
+  ⟨id M⟩
+
+/-- Composition of morphisms of monoid objects. -/
+@[simps]
+def comp {M N O : Semiring_ C} (f : Hom M N) (g : Hom N O) : Hom M O where
+  hom := f.hom ≫ g.hom
+  is_semiring_Hom := instIsSemiring_HomComp f.hom g.hom
 
 instance : Category (Semiring_ C) where
   Hom M N := Hom M N
-  id := sorry
-  comp f g := sorry
-
+  id := id
+  comp := comp
 
 end Semiring_
 
-def liftingMonadAlgebraEquivalenceSemiring [ListArithmetic C] [WithBags C] :
-    (LiftingMonad.monad (list.monad C) (bag.monad C)).Algebra ≌ Semiring_ C where
-  functor := sorry
+namespace AlgebraOfLiftingBagtoListAlgebraMonad
+
+open Lift
+
+variable [ListArithmetic C] [WithBags C] (α : Lift.monad (list.monad C) (bag.monad C) |>.Algebra)
+
+/-- The list algebra coming from the algebra of the bag monad lifted to the category of algebras of
+the list monad. -/
+def listAlgebra : (list.monad C).Algebra := fstAlg α
+
+/-- The bag algebra coming from the algebra of the bag monad lifted to the the category of algebras of
+the list monad. -/
+def bagAlgebra : (bag.monad C).Algebra := sndAlg α
+
+/-- The monoid object associated to a list algebra. -/
+def mon : Mon_ C := list.Algebra.mon (listAlgebra α)
+
+instance monClass : Mon_Class α.A.A := list.Algebra.monClass (listAlgebra α)
+
+/-- The commutative monoid object associated to a bag algebra. -/
+def commMon : CommMon_ C := bag.Algebra.commMon (bagAlgebra α)
+
+/-- The additive commutative monoid object associated to a bag algebra.
+This is a syntactic copy of `commMon`. -/
+def addCommMon : AddCommMon_ C := AddCommMon_.fromCommMon_ (commMon α)
+
+instance addMonClass : AddMon_Class α.A.A := (addCommMon α).toAddMon_ |>.mon
+
+instance : IsAddCommMon α.A.A := addCommMon α |>.comm
+
+/-- The internal semiring object associated to an algebra of the lifted bag monad to the category
+of algebras of the list monad. -/
+def toSemiring [SemiCartesianMonoidalCategory C] : Semiring_ C where
+  X := α.A.A
+  semiring :=
+    { toComon_Class := sorry
+      toDistrib_Class := sorry
+      zero_mul := by
+        sorry
+      mul_zero := by
+        sorry }
+
+/-- The equivalence of category of algebras of the lifted bag monad and the category of semiring objects. -/
+def liftListBagAlgebraSemiringEquivalence [SemiCartesianMonoidalCategory C] :
+    (Lift.monad (list.monad C) (bag.monad C)).Algebra ≌ Semiring_ C where
+  functor := {
+    obj α := toSemiring α
+    map {α β} f := {
+      hom := sorry
+      is_semiring_Hom := sorry
+    }
+    map_id X := by
+      sorry
+    map_comp := by
+      sorry
+  }
   inverse := sorry
-  unitIso := sorry
-  counitIso := sorry
-  functor_unitIso_comp := sorry
+  unitIso := by
+    sorry
+  counitIso := by
+    sorry
+  functor_unitIso_comp := by
+    sorry
+
+end AlgebraOfLiftingBagtoListAlgebraMonad
 
 end CategoryTheory
-
-
--- def Semiring_ :=
--- #check AddCommMonoid
--- #check IsCommMon
-
-
-
--- #check Mon_Class
-
-
-
--- open Distrib Monad
-
-
-
--- namespace Semiring_
-
--- variable {C} (α : Semiring_ C)
-
--- def X : C := α.A.A
-
--- instance mon_Class : Mon_Class α.X where
---   one := by
---     dsimp [X]
---     dsimp [Semiring_] at α
---     sorry
---   mul := by
---     dsimp [X];
---     sorry
---   one_mul := sorry
---   mul_one := sorry
---   mul_assoc := sorry
-
--- def mon : Mon_ C where
---   X := α.X
-
--- attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
--- instance commMon : CommMon_ C where
---   X := α.X
---   mon := sorry
---   comm := sorry

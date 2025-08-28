@@ -27,6 +27,9 @@ structure AddCommMon_ where
   [mon : AddMon_Class X]
   [comm : IsAddCommMon X]
 
+/-- Syntactic transfer of instances of `IsCommMon` to `IsAddCommMon`. -/
+instance IsAddCommMon.fromIsCommMon {X : C} [Mon_Class X] [IsCommMon X] : IsAddCommMon X where
+  add_comm := IsCommMon.mul_comm X
 
 attribute [instance] AddCommMon_.mon AddCommMon_.comm
 
@@ -193,31 +196,31 @@ theorem comp_mapAddCommMon_mul (A : AddCommMon_ C) :
 
 /-- The identity functor is also the identity on commutative monoid objects. -/
 @[simps!]
-noncomputable def mapCommMonIdIso : mapAddCommMon (𝟭 C) ≅ 𝟭 (AddCommMon_ C) :=
+noncomputable def mapAddCommMonIdIso : mapAddCommMon (𝟭 C) ≅ 𝟭 (AddCommMon_ C) :=
   NatIso.ofComponents fun X ↦ AddCommMon_.mkIso (.refl _)
 
 /-- The composition functor is also the composition on commutative monoid objects. -/
 @[simps!]
-noncomputable def mapCommMonCompIso : (F ⋙ G).mapAddCommMon ≅ F.mapAddCommMon ⋙ G.mapAddCommMon :=
+noncomputable def mapAddCommMonCompIso : (F ⋙ G).mapAddCommMon ≅ F.mapAddCommMon ⋙ G.mapAddCommMon :=
   NatIso.ofComponents fun X ↦ AddCommMon_.mkIso (.refl _)
 
 variable (C D) in
 /-- `mapCommMon` is functorial in the lax braided functor. -/
 @[simps]
-def mapCommMonFunctor : LaxBraidedFunctor C D ⥤ AddCommMon_ C ⥤ AddCommMon_ D where
+def mapAddCommMonFunctor : LaxBraidedFunctor C D ⥤ AddCommMon_ C ⥤ AddCommMon_ D where
   obj F := F.mapAddCommMon
   map α := { app A := .mk' (α.hom.app A.X) }
   map_comp _ _ := rfl
 
 /-- Natural transformations between functors lift to monoid objects. -/
 @[simps!]
-noncomputable def mapCommMonNatTrans (f : F ⟶ F') [NatTrans.IsMonoidal f] :
+noncomputable def mapAddCommMonNatTrans (f : F ⟶ F') [NatTrans.IsMonoidal f] :
     F.mapAddCommMon ⟶ F'.mapAddCommMon where
   app X := .mk' (f.app _)
 
 /-- Natural isomorphisms between functors lift to monoid objects. -/
 @[simps!]
-noncomputable def mapCommMonNatIso (e : F ≅ F') [NatTrans.IsMonoidal e.hom] :
+noncomputable def mapAddCommMonNatIso (e : F ≅ F') [NatTrans.IsMonoidal e.hom] :
     F.mapAddCommMon ≅ F'.mapAddCommMon :=
   NatIso.ofComponents fun X ↦ AddCommMon_.mkIso (e.app _)
 
@@ -230,9 +233,9 @@ variable {F : C ⥤ D} {G : D ⥤ C} (a : F ⊣ G) [F.Braided] [G.LaxBraided] [a
 
 /-- An adjunction of braided functors lifts to an adjunction of their lifts to commutative monoid
 objects. -/
-@[simps] noncomputable def mapCommMon : F.mapAddCommMon ⊣ G.mapAddCommMon where
-  unit := mapCommMonIdIso.inv ≫ mapCommMonNatTrans a.unit ≫ mapCommMonCompIso.hom
-  counit := mapCommMonCompIso.inv ≫ mapCommMonNatTrans a.counit ≫ mapCommMonIdIso.hom
+@[simps] noncomputable def mapAddCommMon : F.mapAddCommMon ⊣ G.mapAddCommMon where
+  unit := mapAddCommMonIdIso.inv ≫ mapAddCommMonNatTrans a.unit ≫ mapAddCommMonCompIso.hom
+  counit := mapAddCommMonCompIso.inv ≫ mapAddCommMonNatTrans a.counit ≫ mapAddCommMonIdIso.hom
 
 end Adjunction
 
@@ -240,12 +243,12 @@ namespace Equivalence
 
 /-- An equivalence of categories lifts to an equivalence of their commutative monoid objects. -/
 @[simps]
-noncomputable def mapCommMon (e : C ≌ D) [e.functor.Braided] [e.inverse.Braided] [e.IsMonoidal] :
+noncomputable def mapAddCommMon (e : C ≌ D) [e.functor.Braided] [e.inverse.Braided] [e.IsMonoidal] :
     AddCommMon_ C ≌ AddCommMon_ D where
   functor := e.functor.mapAddCommMon
   inverse := e.inverse.mapAddCommMon
-  unitIso := mapCommMonIdIso.symm ≪≫ mapCommMonNatIso e.unitIso ≪≫ mapCommMonCompIso
-  counitIso := mapCommMonCompIso.symm ≪≫ mapCommMonNatIso e.counitIso ≪≫ mapCommMonIdIso
+  unitIso := mapAddCommMonIdIso.symm ≪≫ mapAddCommMonNatIso e.unitIso ≪≫ mapAddCommMonCompIso
+  counitIso := mapAddCommMonCompIso.symm ≪≫ mapAddCommMonNatIso e.counitIso ≪≫ mapAddCommMonIdIso
 
 end CategoryTheory.Equivalence
 
@@ -258,9 +261,9 @@ namespace EquivLaxBraidedFunctorPUnit
 variable (C) in
 /-- Implementation of `AddCommMon_.equivLaxBraidedFunctorPUnit`. -/
 @[simps]
-def laxBraidedToCommMon : LaxBraidedFunctor (Discrete PUnit.{u + 1}) C ⥤ AddCommMon_ C where
+def laxBraidedToAddCommMon : LaxBraidedFunctor (Discrete PUnit.{u + 1}) C ⥤ AddCommMon_ C where
   obj F := (F.mapAddCommMon : AddCommMon_ _ ⥤ AddCommMon_ C).obj (trivial (Discrete PUnit.{u+1}))
-  map α := ((Functor.mapCommMonFunctor (Discrete PUnit) C).map α).app _
+  map α := ((Functor.mapAddCommMonFunctor (Discrete PUnit) C).map α).app _
 
 /-- Implementation of `AddCommMon_.equivLaxBraidedFunctorPUnit`. -/
 @[simps!]
@@ -286,7 +289,7 @@ instance (A : AddCommMon_ C) : (commMonToLaxBraidedObj A).LaxBraided where
 variable (C)
 /-- Implementation of `AddCommMon_.equivLaxBraidedFunctorPUnit`. -/
 @[simps]
-def commMonToLaxBraided : AddCommMon_ C ⥤ LaxBraidedFunctor (Discrete PUnit.{u + 1}) C where
+def addCommMonToLaxBraided : AddCommMon_ C ⥤ LaxBraidedFunctor (Discrete PUnit.{u + 1}) C where
   obj A := LaxBraidedFunctor.of (commMonToLaxBraidedObj A)
   map f :=
     { hom := { app := fun _ => f.hom }
@@ -296,24 +299,24 @@ def commMonToLaxBraided : AddCommMon_ C ⥤ LaxBraidedFunctor (Discrete PUnit.{u
 @[simps!]
 def unitIso :
     𝟭 (LaxBraidedFunctor (Discrete PUnit.{u + 1}) C) ≅
-        laxBraidedToCommMon C ⋙ commMonToLaxBraided C :=
+        laxBraidedToAddCommMon C ⋙ addCommMonToLaxBraided C :=
   NatIso.ofComponents
     (fun F ↦ LaxBraidedFunctor.isoOfComponents (fun _ ↦ F.mapIso (eqToIso (by ext))))
     (fun f ↦ by ext ⟨⟨⟩⟩; dsimp; simp)
 
 @[simp]
 theorem counitIso_aux_one (A : AddCommMon_ C) :
-    η[((commMonToLaxBraided C ⋙ laxBraidedToCommMon C).obj A).X] = η[A.X] ≫ 𝟙 _ :=
+    η[((addCommMonToLaxBraided C ⋙ laxBraidedToAddCommMon C).obj A).X] = η[A.X] ≫ 𝟙 _ :=
   rfl
 
 @[simp]
 theorem counitIso_aux_mul (A : AddCommMon_ C) :
-    μ[((commMonToLaxBraided C ⋙ laxBraidedToCommMon C).obj A).X] = μ[A.X] ≫ 𝟙 _ :=
+    μ[((addCommMonToLaxBraided C ⋙ laxBraidedToAddCommMon C).obj A).X] = μ[A.X] ≫ 𝟙 _ :=
   rfl
 
 /-- Implementation of `AddCommMon_.equivLaxBraidedFunctorPUnit`. -/
 @[simps!]
-def counitIso : commMonToLaxBraided C ⋙ laxBraidedToCommMon C ≅ 𝟭 (AddCommMon_ C) :=
+def counitIso : addCommMonToLaxBraided C ⋙ laxBraidedToAddCommMon C ≅ 𝟭 (AddCommMon_ C) :=
   NatIso.ofComponents (fun F ↦ mkIso (Iso.refl _))
 
 end EquivLaxBraidedFunctorPUnit
@@ -325,8 +328,8 @@ braided monoidal category to `C`.
 -/
 @[simps]
 def equivLaxBraidedFunctorPUnit : LaxBraidedFunctor (Discrete PUnit.{u + 1}) C ≌ AddCommMon_ C where
-  functor := laxBraidedToCommMon C
-  inverse := commMonToLaxBraided C
+  functor := laxBraidedToAddCommMon C
+  inverse := addCommMonToLaxBraided C
   unitIso := unitIso C
   counitIso := counitIso C
 

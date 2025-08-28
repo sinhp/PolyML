@@ -8,3 +8,4 @@ import PolyML.Cartesian.NNO
 import PolyML.Monoidal.FreeMon
 import PolyML.Monoidal.FreeCommMon
 import PolyML.Monoidal.BagInType
+import PolyML.ForMathlib.Monoidal.Semiring

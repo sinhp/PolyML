@@ -27,18 +27,21 @@ namespace MonoidalCategory
 --   | 0, _ => 𝟙_ C
 --   | n + 1, A =>  iteratedTensor n A ⊗ A
 
+
+-- def powNat (e : C ≌ C) : ℕ → (C ≌ C)
+--   | 0 => Equivalence.refl
+--   | 1 => e
+--   | n + 2 => e.trans (powNat e (n + 1))
+
 @[expose]
 def iteratedTensor : Nat → C → C
-  | 0, A => A
-  | n + 1, A =>  A ⊗ iteratedTensor n A
+  | 0, A => 𝟙_ C
+  | 1 , A => A
+  | n + 2, A =>  A ⊗ iteratedTensor (n + 1) A
 
-def pow : ℕ → C → C := fun n  A => if n = 0 then 𝟙_ C else iteratedTensor (n - 1) A
+def pow : ℕ → C → C := iteratedTensor
 
 scoped notation  A "^[" n "]" => pow n A
-
--- theorem pow_zero (A : C) : A ^ 0 = 𝟙_ C := rfl
-
--- def powZeroIso (A : C) : A ^ 0 ≅ 𝟙_ C := Iso.refl _
 
 def powZeroIso (A : C) : A^[0] ≅ 𝟙_ C := Iso.refl _
 
@@ -47,9 +50,8 @@ def powSuccEq (A : C) (n : ℕ) (h : 0 < n) : A ^[(n + 1)] = A ⊗ A ^[n] := by
   cases n with
   | zero => aesop
   | succ =>
-  simp_all only [Nat.zero_lt_succ, Nat.add_eq_zero, Nat.succ_ne_self, and_false, ↓reduceIte, Nat.add_one_sub_one]
+  simp_all only [Nat.zero_lt_succ]
   rfl
-  --rw [Nat.sub_succ, if_pos (Nat.succ_ne_zero _), iteratedTensor]
 
 def powSuccIso' (A : C) (n : ℕ) (h : 0 < n := by aesop) : A ^[(n + 1)] ≅ A ⊗ A ^[n] :=
   eqToIso <| powSuccEq A n h
