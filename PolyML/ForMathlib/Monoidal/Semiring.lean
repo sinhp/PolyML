@@ -124,11 +124,10 @@ instance : Category (Semiring_ C) where
   id := id
   comp := comp
 
-
 end Semiring_
 
 def liftingMonadAlgebraEquivalenceSemiring [ListArithmetic C] [WithBags C] :
-    (LiftingMonad.monad (list.monad C) (bag.monad C)).Algebra ≌ Semiring_ C where
+    (Lift.monad (list.monad C) (bag.monad C)).Algebra ≌ Semiring_ C where
   functor := sorry
   inverse := sorry
   unitIso := sorry
