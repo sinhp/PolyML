@@ -3,7 +3,6 @@ Copyright (c) 2025 Sina Hazratpour. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
-
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monad.Algebra
 import PolyML.ForMathlib.Monoidal.Cartesian.Basic
@@ -11,7 +10,9 @@ import Mathlib.CategoryTheory.Monoidal.End
 import PolyML.Monoidal.FreeCommMon
 import PolyML.Monoidal.BagInType
 
-/-
+/-!
+# Distributive Laws and Lifting of Monads
+
 There is no reason any two monads `S` and `T` on the same category can be composed to give
 a new monad. The obstacle is forming the multiplication; though we can construct
 `TTSS ⥤ TS` and `SSTT ⥤ ST`, we cannot construct a natural isomorphism `TSTS ⥤ TS` in general.
@@ -34,11 +35,12 @@ The notion of distributive law was first introduced by Beck in 1969, and it is a
 Jon Beck, Distributive Laws, in: Seminar on Triples and Categorical Homology Theory, ETH 1966/67, Lecture Notes in Mathemativs, Springer (1969), Reprints in Theory and Applications of Categories 18 (2008) 1-303.
 -/
 
+
 universe v₁ v₂ u₁ u₂
 
 namespace CategoryTheory
 
-open Category MonoidalCategory Endofunctor Functor Recursive
+open Category MonoidalCategory Endofunctor Functor
 
 variable {C : Type u₁} [Category.{v₁} C]
 
@@ -83,20 +85,20 @@ theorem mul_right_components {X : C} :
 
 end DistribLaw
 
-class Lift (S T : Monad C) extends Monad (S.Algebra) where
+class Lifting (S T : Monad C) extends Monad (S.Algebra) where
   w : toFunctor ⋙ S.forget = S.forget ⋙ T.1
   respect_unit : whiskerRight η S.forget ≫ eqToHom w = whiskerLeft S.forget T.η
   respect_mul : whiskerRight μ S.forget ≫ eqToHom w = eqToHom
     (by rw [Functor.assoc, w, ← Functor.assoc, w, Functor.assoc]) ≫ whiskerLeft S.forget T.μ
 
-namespace LiftingMonad
+namespace Lift
 
 open DistribLaw
 
 variable {S : Monad C} (T : Monad C) [DistribLaw S T]
 
 /- If `S` distributes over `T`, `T` maps algebras of `S` to algebras of `S`. -/
-def map (α : S.Algebra) : S.Algebra where
+def obj (α : S.Algebra) : S.Algebra where
   A := T.obj α.A
   a := DistribLaw.δ.app α.A ≫ T.map α.a
   unit := by simp only [unit_right_components_assoc, ← map_comp, α.unit, map_id]
@@ -110,20 +112,20 @@ def map (α : S.Algebra) : S.Algebra where
     exact _root_.id (Eq.symm (distrib_naturality (S:=S) (T:=T) (f:= α.a)))
 
 @[reassoc (attr := simp)]
-theorem map_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
-    (map T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
+theorem obj_str {T : Monad C} [DistribLaw S T] {α : S.Algebra} :
+    (obj T α).a = DistribLaw.δ.app α.A ≫ T.map α.a := by
   rfl
 
 /-- If `S` distributes over `T`, the monad `T` lifts to an endofucntor on the category of algebras of `S`. -/
 @[simps]
 def endoFunctor : S.Algebra ⥤ S.Algebra where
-  obj := map T
+  obj := obj T
   map {α β} g := {
     f := T.map g.f
     h := by
-      rw [map_str]
+      rw [obj_str]
       rw [reassoc_of% (distrib_naturality g.f), ← map_comp, g.h, map_comp, ← Category.assoc]
-      simp only [map_str]
+      simp only [obj_str]
   }
 
 variable (S)
@@ -136,7 +138,7 @@ def monad : Monad S.Algebra where
     naturality α β f := by ext; apply Monad.unit_naturality}
   μ := {
     app X := ⟨T.μ.app X.A , by {
-      simp only [comp_obj, endoFunctor_obj, map_str, endofunctorMonoidalCategory_tensorObj_obj,
+      simp only [comp_obj, endoFunctor_obj, obj_str, endofunctorMonoidalCategory_tensorObj_obj,
         map_comp, Category.assoc]
       rw [← Category.assoc, ← mul_left_components]
       rw [Monad.mu_naturality (T:=T) (f:=X.a), ← Category.assoc, ← Category.assoc]
@@ -173,10 +175,10 @@ def distrib (α : (monad S T).Algebra) :
     δ.app (fstAlg α |>.A) ≫ T.map (fstAlg α).a ≫ (sndAlg α).a = S.map (sndAlg α).a ≫ (fstAlg α).a := by
   dsimp [fstAlg]
   unfold monad at *
-  simp only [Functor.id_obj, comp_obj, Lean.Elab.WF.paramLet, endoFunctor_obj, Hom.h, map_str,
+  simp only [Functor.id_obj, comp_obj, Lean.Elab.WF.paramLet, endoFunctor_obj, Hom.h, obj_str,
     endofunctorMonoidalCategory_tensorObj_obj, Category.assoc] at *
 
-instance lift {T : Monad C} [DistribLaw S T] : Lift S T where
+instance lifting {T : Monad C} [DistribLaw S T] : Lifting S T where
   toMonad := monad S T
   w := rfl
   respect_unit := by
@@ -184,7 +186,7 @@ instance lift {T : Monad C} [DistribLaw S T] : Lift S T where
   respect_mul := by
     simp only [eqToHom_refl, comp_id, id_comp]; ext α; rfl
 
-end LiftingMonad
+end Lift
 
 open DistribLaw
 
@@ -200,7 +202,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
   μ := by
     let w := S.μ ⊗ₘ T.μ
     exact (S.1 ◁ δ ▷ T.1) ≫ w
-  assoc X := by {
+  assoc X := by
     dsimp
     have := T.μ.naturality
     simp only [comp_obj, Functor.comp_map] at this
@@ -222,9 +224,8 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
       ((S.map (T.map (δ.app (S.obj X))) ≫
       S.map (T.map (T.map (S.μ.app X)))) ≫
       ( S.map (T.μ.app (S.obj X)) ≫ δ.app (S.obj X))) ≫
-    T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X):= by {
+    T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X):= by
       simp only [endofunctorMonoidalCategory_tensorObj_obj, Category.assoc]
-    }
     rw [this]
     clear this
     rw [← hdl ((S.obj X))]
@@ -235,24 +236,21 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
       T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)))
         = S.map (T.map (δ.app (S.obj X))) ≫ (S.map (T.map (T.map (S.μ.app X))) ≫
       δ.app (T.obj (S.obj X))) ≫
-        (T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X))) := by {
+        (T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X))) := by
           simp only [endofunctorMonoidalCategory_tensorObj_obj,
           mul_left_components, comp_obj, Category.assoc]
-        }
     rw [this]
     clear this
     have hd := distrib_naturality (S:=S) (T:=T) (f := (T.map (S.μ.app X)))
     simp only [comp_obj, endofunctorMonoidalCategory_tensorObj_obj] at hd
     rw [hd]
     clear hd
-    --this includes T comp
     have : (δ.app (T.obj (S.obj (S.obj X))) ≫ T.map (S.map (T.map (S.μ.app X)))) ≫
           T.map (δ.app (S.obj X)) ≫ T.μ.app (S.obj (S.obj X)) =
       δ.app (T.obj (S.obj (S.obj X))) ≫ (T.map (S.map (T.map (S.μ.app X)) ≫
-          (δ.app (S.obj X)))) ≫ T.μ.app (S.obj (S.obj X)) := by {
+          (δ.app (S.obj X)))) ≫ T.μ.app (S.obj (S.obj X)) := by
             simp only [endofunctorMonoidalCategory_tensorObj_obj,
             Category.assoc, map_comp]
-          }
     rw [this]
     clear this
     have hd2 := distrib_naturality (S:=S) (T:=T) (f := ((S.μ.app X)))
@@ -260,7 +258,6 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     rw [hd2]
     clear hd2
     have hdr (X : C) := mul_right_components (S := S) (T := T) (X := X)
-    -- T comp also, second part
     have :
     (T.map (δ.app (S.obj (T.obj (S.obj X)))) ≫
       T.μ.app (S.obj (S.obj (T.obj (S.obj X)))) ≫
@@ -292,7 +289,6 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [endofunctorMonoidalCategory_tensorObj_obj] at hd1
     rw [hd1]
     clear hd1
-    -- T.comp_map applied here too
     have : ((T.map (δ.app (S.obj (T.obj (S.obj X))) ≫
     T.map (S.map (δ.app (S.obj X)))) ≫
         (T.map (T.map (δ.app (S.obj (S.obj X)))) ≫
@@ -319,10 +315,9 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     (T.map (δ.app (S.obj (S.obj X))) ≫ T.map (T.map (S.map (S.μ.app X)))) ≫
           T.map (T.map (S.μ.app X)) ≫ T.μ.app (S.obj X) =
           T.map (δ.app (S.obj (S.obj X))) ≫ (T.map (T.map ((S.map (S.μ.app X)) ≫
-          (S.μ.app X)))) ≫ T.μ.app (S.obj X) := by {
+          (S.μ.app X)))) ≫ T.μ.app (S.obj X) := by
             simp only [endofunctorMonoidalCategory_tensorObj_obj,
             Category.assoc, map_comp]
-          }
     rw [this]
     clear this
     rw [Monad.assoc]
@@ -333,16 +328,14 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     T.μ.app (T.obj (S.obj X)) ≫ T.μ.app (S.obj X)=
      (T.map (T.map (T.map (S.μ.app X))) ≫
       T.μ.app (T.obj (S.obj X))) ≫ T.μ.app (S.obj X) := by
-        {simp only [comp_obj, Category.assoc]}
+        simp only [comp_obj, Category.assoc]
     rw [this]
     have := T.μ.naturality
     simp only [comp_obj, Functor.comp_map] at this
     rw [this]
     simp only [endofunctorMonoidalCategory_tensorObj_obj,Category.assoc]
     simp only [comp_obj]
-  }
-
-  left_unit X := by {
+  left_unit X := by
     simp only [comp_obj, Functor.id_obj, unit_exchange, NatTrans.comp_app,
       endofunctorMonoidalCategory_whiskerRight_app,
       endofunctorMonoidalCategory_tensorObj_obj,
@@ -359,9 +352,7 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     rw [← hleftunit, ← Category.assoc, ← T.unit_naturality, ← Category.assoc]
     simp only [Category.assoc, left_unit, Functor.id_obj, comp_id,
        ← map_comp, map_id, hleftunit]
-  }
-
-  right_unit X := by {
+  right_unit X := by
     dsimp
     simp only [map_comp]
     have hdistrib_unit_left :=
@@ -373,11 +364,14 @@ def comp (S T : Monad C) [DistribLaw S T] : Monad C where
     simp only [right_unit_assoc]
     rw [← map_comp]
     simp only [right_unit, Functor.id_obj, map_id]
-  }
 
 theorem comp_unit {S T : Monad C} [DistribLaw S T] :
     (comp S T).η = T.η ≫ (S.η ▷ T.1) := by
   simp only [comp_η, unit_exchange]
+
+-- theorem comp_mul {S T : Monad C} [DistribLaw S T] :
+--     (comp S T).μ = (S.1 ◁ δ ▷ T.1) ≫ (S.μ ⊗ₘ T.μ) := by
+--   rfl
 
 theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
     (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
