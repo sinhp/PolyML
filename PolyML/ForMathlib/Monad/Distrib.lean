@@ -178,7 +178,7 @@ def distrib (α : (monad S T).Algebra) :
   simp only [Functor.id_obj, comp_obj, Lean.Elab.WF.paramLet, endoFunctor_obj, Hom.h, obj_str,
     endofunctorMonoidalCategory_tensorObj_obj, Category.assoc] at *
 
-instance lifting {T : Monad C} [DistribLaw S T] : Lifting S T where
+instance lifting (T : Monad C) [DistribLaw S T] : Lifting S T where
   toMonad := monad S T
   w := rfl
   respect_unit := by
@@ -376,9 +376,6 @@ theorem comp_unit {S T : Monad C} [DistribLaw S T] :
 theorem comp_toFunctor {S T : Monad C} [DistribLaw S T] :
     (comp S T).toFunctor = S.toFunctor ⋙ T.toFunctor := rfl
 
--- #check Mon_
--- #check Semiring
-
 variable (C) [MonoidalCategory C] [ListArithmetic C] [BraidedCategory C] [WithBags C]
 
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
@@ -400,6 +397,9 @@ instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
     sorry
   }
   mul_right := sorry
+
+instance liftingBagtoListAlgebra : Lifting (list.monad C) (bag.monad C) :=
+  Lift.lifting (bag.monad C)
 
 end Monad
 
