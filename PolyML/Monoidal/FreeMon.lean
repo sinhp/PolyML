@@ -69,9 +69,6 @@ theorem lift_one_whiskerRight {M : Mon_ C} {f : X ⟶ M.X} {Y : C} :
 
 theorem lift_mul {X : C} {M : Mon_ C} {f : X ⟶ M.X} :
     μ ≫ list.lift f = (list.lift f ⊗ₘ list.lift f) ≫ μ := by
-  rw [tensorHom_def_assoc]
-  dsimp [Mon_Class.mul]
-  dsimp [append]
   sorry
 
 /-- The underlying functor of the list monad. -/
@@ -87,7 +84,7 @@ theorem functor_map {A B : C} (f : A ⟶ B) : functor.map f = list.map f := by
 def homEquiv (X : C) (M : Mon_ C) : ((freeMon C).obj X ⟶ M) ≃ (X ⟶ (Mon_.forget C).obj M) where
   toFun := fun f => list.singleton ≫ f.hom
   invFun := fun f => (Mon_.Hom.mk' (list.lift f) list.lift_one list.lift_mul)
-  left_inv := fun f => by sorry
+  left_inv := fun f => sorry
   right_inv := fun f => by sorry
 
 variable (C)
@@ -289,6 +286,11 @@ theorem aggregator_map {M : Mon_ C} {f : M ⟶ M'} :
     simp at  h_nat_hom
     rw [← h_nat_hom]
     simp_all only [assoc]
+
+/-- Theorem: Aggregator is functorial. -/
+theorem aggregator_map' {M : Mon_ C} {f : M.X ⟶ M'.X} :
+  list.map f ≫ aggregator M' = aggregator M ≫ f := by
+  sorry
 
 end aggregator
 
