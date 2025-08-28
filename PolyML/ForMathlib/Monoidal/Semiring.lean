@@ -102,12 +102,27 @@ instance : Inhabited (Semiring_ C) :=
 structure Hom (M N : Semiring_ C) where
   /-- The underlying morphism -/
   hom : M.X ⟶ N.X
-  [isSemiring_Hom : IsSemiring_Hom hom]
+  [is_semiring_Hom : IsSemiring_Hom hom]
+
+attribute [instance] Hom.is_semiring_Hom
+
+/-- The identity morphism on a monoid object. -/
+@[simps]
+def id (M : Semiring_ C) : Hom M M := ⟨𝟙 M.X⟩
+
+instance homInhabited (M : Semiring_ C) : Inhabited (Hom M M) :=
+  ⟨id M⟩
+
+/-- Composition of morphisms of monoid objects. -/
+@[simps]
+def comp {M N O : Semiring_ C} (f : Hom M N) (g : Hom N O) : Hom M O where
+  hom := f.hom ≫ g.hom
+  is_semiring_Hom := instIsSemiring_HomComp f.hom g.hom
 
 instance : Category (Semiring_ C) where
   Hom M N := Hom M N
-  id := sorry
-  comp f g := sorry
+  id := id
+  comp := comp
 
 
 end Semiring_
