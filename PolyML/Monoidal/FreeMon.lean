@@ -259,7 +259,7 @@ theorem aggregator_join {M : Mon_ C} :
     simp only
 
 /-- Theorem: Aggregator is functorial. -/
-theorem aggregator_map {M' : Mon_ C} {f : M ⟶ M'} :
+theorem aggregator_map' {M' : Mon_ C} {f : M ⟶ M'} :
     map f.hom ≫ aggregator M' = aggregator M ≫ f.hom := by
   dsimp [aggregator]
   have := ((freeMonForgetAdjunction C)).counit.naturality (X:=M) (Y:=M') f
@@ -272,7 +272,7 @@ theorem aggregator_map {M' : Mon_ C} {f : M ⟶ M'} :
   simp only [assoc]
 
 /-- Theorem: Aggregator is functorial. -/
-theorem aggregator_map' {M' : Mon_ C} {f : M.X ⟶ M'.X} :
+theorem aggregator_map {M' : Mon_ C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
   sorry
 
