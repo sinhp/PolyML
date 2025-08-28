@@ -162,7 +162,7 @@ def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) 
 
 theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
     (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) = Multiset.sum (M:= α) := by
-  simp [bag.aggregator, bag.algebra.ofCommMon_a]
+  simp [bag.aggregator, bag.Algebra.ofCommMon_a]
   ext m
   simp only [types_comp_apply]
   dsimp [Multiset.sum]

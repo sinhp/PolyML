@@ -93,18 +93,15 @@ theorem braiding_snoc_eq_cons : (β_ A (bag A)).hom ≫ snoc = cons := by
 def lift {M : CommMon_ C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
   bagMon.lift f |> (CommMon_.forget C).map
 
-theorem lift_one {M : CommMon_ C} {f : A ⟶ M.X} :
-    η ≫ lift f = η := by
+theorem lift_one {M : CommMon_ C} {f : A ⟶ M.X} : η ≫ lift f = η := by
   dsimp [lift]
   simp only [IsMon_Hom.one_hom]
 
-theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :
-    μ ≫ lift f = (lift f ⊗ₘ lift f) ≫ μ := by
+theorem lift_mul {M : CommMon_ C} {f : A ⟶ M.X} :  μ ≫ lift f = (lift f ⊗ₘ lift f) ≫ μ := by
   dsimp [lift]
   simp only [IsMon_Hom.mul_hom]
 
-theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} :
-  singleton ≫ lift f = f := by
+theorem lift_singleton {M : CommMon_ C} {f : A ⟶ M.X} : singleton ≫ lift f = f := by
   dsimp [singleton, lift, bagMon.lift, freeCommMon.lift]
   exact (WithBags.adj.homEquiv A M).right_inv f
 
@@ -176,7 +173,7 @@ theorem monad_obj : (monad C).obj A = bag A := rfl
 
 def join : bag (bag A) ⟶ bag A := (monad C).μ.app A
 
-namespace algebra
+namespace Algebra
 
 /-- A commutative monoid structure on `A` gives rise to an algebra for the `bag` monad. -/
 @[simps!]
@@ -220,43 +217,47 @@ instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
 def commMonOf (α : Algebra (monad C)) : CommMon_ C where
   X := α.A
 
-end algebra
+end Algebra
 
-open algebra
+open Algebra
 
 def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X := (ofCommMon M).a
 
-theorem aggregator_eq_lift {M : CommMon_ C} : aggregator M = lift (𝟙 M.X) := by
+section aggregator
+
+variable {M : CommMon_ C}
+
+theorem aggregator_eq_lift : aggregator M = lift (𝟙 M.X) := by
   dsimp [aggregator, ofCommMon, lift]
 
-theorem aggregator_one {M : CommMon_ C} : η ≫ aggregator M = η := by
+theorem aggregator_one : η ≫ aggregator M = η := by
   dsimp [aggregator, ofCommMon, lift]
   simp only [IsMon_Hom.one_hom]
 
-theorem aggregator_mul {M : CommMon_ C} :
+theorem aggregator_mul :
     μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := by
   dsimp [aggregator, ofCommMon,lift]
   simp only [IsMon_Hom.mul_hom]
 
-theorem aggregator_singleton {M : CommMon_ C} : singleton ≫ aggregator M = 𝟙 M.X := by
+theorem aggregator_singleton : singleton ≫ aggregator M = 𝟙 M.X := by
   dsimp [aggregator, ofCommMon]
   rw [lift_singleton]
 
-theorem aggregator_join {M : CommMon_ C} :
-    join ≫ aggregator M = (map <| aggregator M) ≫ aggregator M := by
+theorem aggregator_join : join ≫ aggregator M = (map <| aggregator M) ≫ aggregator M := by
   dsimp [join, aggregator, ofCommMon]
   have hassoc := (ofCommMon M).assoc
   dsimp [ofCommMon] at *
   rw [hassoc]
   rfl
 
-theorem aggregator_map {M : CommMon_ C} {f : M.X ⟶ M'.X} :
-    map f ≫ aggregator M' = aggregator M ≫ f := by
+theorem aggregator_map {M' : CommMon_ C} {f : M.X ⟶ M'.X} : map f ≫ aggregator M' = aggregator M ≫ f := by
   sorry
 
-theorem aggregator_ofList [ListArithmetic C] {M : CommMon_ C} :
+theorem aggregator_ofList [ListArithmetic C] {M' : CommMon_ C} :
     ofList ≫ bag.aggregator M = M.toMon_.aggregator := by
   sorry
+
+end aggregator
 
 end bag
 
