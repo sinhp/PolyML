@@ -51,8 +51,8 @@ instance (priority := 100) Distrib_Class.rightDistribClass (X : C) [Comon_Class 
 namespace Distrib_Class
 
 instance : Distrib_Class (𝟙_ C) where
-  left_distrib := sorry
-  right_distrib := sorry
+  left_distrib := by sorry
+  right_distrib := by sorry
 
 end Distrib_Class
 
@@ -65,8 +65,8 @@ namespace Semiring_Class
 
 @[simps]
 instance : Semiring_Class (𝟙_ C) where
-  zero_mul := by sorry
-  mul_zero := by sorry
+  zero_mul := by simp
+  mul_zero := by simp [unitors_equal]
 
 end Semiring_Class
 
