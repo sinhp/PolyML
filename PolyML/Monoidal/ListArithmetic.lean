@@ -715,9 +715,45 @@ instance : Recursive (Type u) where
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
-  cmpInv A P Y := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+  cmpInv A P Y := fun ⟨⟨l, p⟩, y⟩ => ⟨l, ⟨p, y⟩⟩
+  hom_inv_id := by
+    intro A P Y
+    -- We first prove a helper lemma about the computational behavior of `plist.cmp` in `Type`.
+    have cmp_computes : ∀ (l : List A) (p : P) (y : Y),
+        plist.cmp A P Y (l, (p, y)) = ((l, p), y) := by
+      -- We prove this by induction on the list `l`.
+      intro l; revert l; intro l p y; revert p y
+      induction l with
+      | nil =>
+        intro p y
+        rfl
+      | cons a as ih =>
+        intro p y
+        let d : A × (List A × (P × Y)) := (a, (as, (p, y)))
+        have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str d := rfl
+        conv_lhs => rw [cons_eq]; rfl
+        sorry
+    funext ⟨l, p, y⟩
+    simp only [types_comp_apply, types_id_apply]
+    rw [cmp_computes]
+  inv_hom_id := by
+    intro A P Y
+    have cmp_computes : ∀ (l : List A) (p : P) (y : Y),
+        plist.cmp A P Y (l, (p, y)) = ((l, p), y) := by
+      intro l; revert l; intro l p y; revert p y
+      induction l with
+      | nil =>
+        intro p y
+        rfl
+      | cons a as ih =>
+        intro p y
+        have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str (a, (as, (p, y))) := rfl
+        conv_lhs => rw [cons_eq]
+        simp only [List.freeActionFunctor_obj_a, List.freeActionFunctor_obj_str]
+        sorry
+    funext ⟨⟨l, p⟩, y⟩
+    simp only [types_comp_apply, types_id_apply]
+    exact cmp_computes l p y
 
 end ListArithmetic
 
