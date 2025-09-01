@@ -51,8 +51,12 @@ instance (priority := 100) Distrib_Class.rightDistribClass (X : C) [Comon_Class 
 namespace Distrib_Class
 
 instance : Distrib_Class (𝟙_ C) where
-  left_distrib := by sorry
-  right_distrib := by sorry
+  left_distrib := by
+    dsimp
+    sorry
+  right_distrib := by
+    dsimp
+    sorry
 
 end Distrib_Class
 
