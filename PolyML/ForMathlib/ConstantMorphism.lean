@@ -5,7 +5,13 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
+<<<<<<< HEAD
 import Mathlib.CategoryTheory.MorphismProperty.Composition
+=======
+import Mathlib.CategoryTheory.Monoidal.Category
+
+import Mathlib
+>>>>>>> cad65ee334ef6f4a30bead63426f428c66300d37
 
 universe u v
 
