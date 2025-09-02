@@ -718,7 +718,8 @@ instance : ListArithmetic (Type u) where
   cmpInv A P Y := fun ⟨⟨l, p⟩, y⟩ => ⟨l, ⟨p, y⟩⟩
   hom_inv_id := by
     intro A P Y
-    -- We first prove a helper lemma about the computational behavior of `plist.cmp` in `Type`.
+    --ext pl
+    --simp only [types_comp_apply, types_id_apply]
     have cmp_computes : ∀ (l : List A) (p : P) (y : Y),
         plist.cmp A P Y (l, (p, y)) = ((l, p), y) := by
       -- We prove this by induction on the list `l`.
@@ -732,6 +733,9 @@ instance : ListArithmetic (Type u) where
         let d : A × (List A × (P × Y)) := (a, (as, (p, y)))
         have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str d := rfl
         conv_lhs => rw [cons_eq]; rfl
+        simp only [List.freeActionFunctor_obj_str, Prod.mk.injEq, List.cons.injEq] at *
+        obtain ⟨⟨h1,h2⟩, h3⟩ := cons_eq
+        rw [h1, h2, ← h3]
         sorry
     funext ⟨l, p, y⟩
     simp only [types_comp_apply, types_id_apply]
