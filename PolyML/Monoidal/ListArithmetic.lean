@@ -718,11 +718,8 @@ instance : ListArithmetic (Type u) where
   cmpInv A P Y := fun ⟨⟨l, p⟩, y⟩ => ⟨l, ⟨p, y⟩⟩
   hom_inv_id := by
     intro A P Y
-    --ext pl
-    --simp only [types_comp_apply, types_id_apply]
     have cmp_computes : ∀ (l : List A) (p : P) (y : Y),
         plist.cmp A P Y (l, (p, y)) = ((l, p), y) := by
-      -- We prove this by induction on the list `l`.
       intro l; revert l; intro l p y; revert p y
       induction l with
       | nil =>
