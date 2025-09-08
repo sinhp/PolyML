@@ -728,12 +728,15 @@ instance : ListArithmetic (Type u) where
       | cons a as ih =>
         intro p y
         let d : A × (List A × (P × Y)) := (a, (as, (p, y)))
+        have : (plist.cons ≫ plist.cmp A P Y) d =
+         (A ◁ plist.cmp A P Y ≫ (α_ A (plist A P) Y).inv ≫ plist.cons ▷ Y) d := rfl
+        simp only [types_comp_apply, whiskerLeft_apply, whiskerRight_apply,
+          associator_inv_apply_2] at this
         have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str d := rfl
-        conv_lhs => rw [cons_eq]; rfl
-        simp only [List.freeActionFunctor_obj_str, Prod.mk.injEq, List.cons.injEq] at *
-        obtain ⟨⟨h1,h2⟩, h3⟩ := cons_eq
-        rw [h1, h2, ← h3]
-        sorry
+        dsimp [plist.cons] at this
+        rw [cons_eq]
+        simp_all only [associator_inv_apply, List.freeActionFunctor_obj_str, d]
+        exact this
     funext ⟨l, p, y⟩
     simp only [types_comp_apply, types_id_apply]
     rw [cmp_computes]
@@ -748,10 +751,16 @@ instance : ListArithmetic (Type u) where
         rfl
       | cons a as ih =>
         intro p y
-        have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str (a, (as, (p, y))) := rfl
-        conv_lhs => rw [cons_eq]
-        simp only [List.freeActionFunctor_obj_a, List.freeActionFunctor_obj_str]
-        sorry
+        let d : A × (List A × (P × Y)) := (a, (as, (p, y)))
+        have : (plist.cons ≫ plist.cmp A P Y) d =
+         (A ◁ plist.cmp A P Y ≫ (α_ A (plist A P) Y).inv ≫ plist.cons ▷ Y) d := rfl
+        simp only [types_comp_apply, whiskerLeft_apply, whiskerRight_apply,
+          associator_inv_apply_2] at this
+        have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str d := rfl
+        dsimp [plist.cons] at this
+        rw [cons_eq]
+        simp_all only [associator_inv_apply, List.freeActionFunctor_obj_str, d]
+        exact this
     funext ⟨⟨l, p⟩, y⟩
     simp only [types_comp_apply, types_id_apply]
     exact cmp_computes l p y
