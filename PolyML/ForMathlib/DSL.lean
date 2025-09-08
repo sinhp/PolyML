@@ -24,14 +24,9 @@ after the current program step is evaluated
 -/
 def ListDSL.eval' {P A B : C} (prog : ListDSL P A) (k : list A ⟶ B) : P ⟶ B :=
   match prog with
-  -- Base cases: compose the initial morphism with the accumulated continuation.
   | .ofMorph f => f ≫ k
   | .singleton f => f ≫ list.singleton ≫ k
-  -- Recursive step: Instead of evaluating `inner_prog` and then composing, we
-  -- compose `list.map f` into the continuation and pass it down.
-  -- The recursive call to `eval'` is now the final operation (a tail call).
   | .map f inner_prog => inner_prog.eval' (list.map f ≫ k)
-  -- Same for flatten.
   | .flatten inner_prog => inner_prog.eval' (list.flatten ≫ k)
 
 /--
