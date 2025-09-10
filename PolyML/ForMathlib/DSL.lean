@@ -9,7 +9,8 @@ namespace CategoryTheory
 
 open Category Opposite MonoidalCategory Limits list NNO
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [BraidedCategory C] [ListArithmetic C] [WithBags C]
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+  [BraidedCategory C] [ListArithmetic C] [WithBags C]
 
 
 /-an interpreter-/
