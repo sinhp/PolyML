@@ -715,9 +715,55 @@ instance : Recursive (Type u) where
 
 /-- The category of types is list-arithmetic. -/
 instance : ListArithmetic (Type u) where
-  cmpInv A P Y := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+  cmpInv A P Y := fun ⟨⟨l, p⟩, y⟩ => ⟨l, ⟨p, y⟩⟩
+  hom_inv_id := by
+    intro A P Y
+    have cmp_computes : ∀ (l : List A) (p : P) (y : Y),
+        plist.cmp A P Y (l, (p, y)) = ((l, p), y) := by
+      intro l; revert l; intro l p y; revert p y
+      induction l with
+      | nil =>
+        intro p y
+        rfl
+      | cons a as ih =>
+        intro p y
+        let d : A × (List A × (P × Y)) := (a, (as, (p, y)))
+        have : (plist.cons ≫ plist.cmp A P Y) d =
+         (A ◁ plist.cmp A P Y ≫ (α_ A (plist A P) Y).inv ≫ plist.cons ▷ Y) d := rfl
+        simp only [types_comp_apply, whiskerLeft_apply, whiskerRight_apply,
+          associator_inv_apply_2] at this
+        have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str d := rfl
+        dsimp [plist.cons] at this
+        rw [cons_eq]
+        simp_all only [associator_inv_apply, List.freeActionFunctor_obj_str, d]
+        exact this
+    funext ⟨l, p, y⟩
+    simp only [types_comp_apply, types_id_apply]
+    rw [cmp_computes]
+  inv_hom_id := by
+    intro A P Y
+    have cmp_computes : ∀ (l : List A) (p : P) (y : Y),
+        plist.cmp A P Y (l, (p, y)) = ((l, p), y) := by
+      intro l; revert l; intro l p y; revert p y
+      induction l with
+      | nil =>
+        intro p y
+        rfl
+      | cons a as ih =>
+        intro p y
+        let d : A × (List A × (P × Y)) := (a, (as, (p, y)))
+        have : (plist.cons ≫ plist.cmp A P Y) d =
+         (A ◁ plist.cmp A P Y ≫ (α_ A (plist A P) Y).inv ≫ plist.cons ▷ Y) d := rfl
+        simp only [types_comp_apply, whiskerLeft_apply, whiskerRight_apply,
+          associator_inv_apply_2] at this
+        have cons_eq : (a :: as, (p, y)) = ((List.freeActionFunctor A).obj (P × Y)).str d := rfl
+        dsimp [plist.cons] at this
+        rw [cons_eq]
+        simp_all only [associator_inv_apply, List.freeActionFunctor_obj_str, d]
+        exact this
+    funext ⟨⟨l, p⟩, y⟩
+    simp only [types_comp_apply, types_id_apply]
+    exact cmp_computes l p y
 
 end ListArithmetic
 
