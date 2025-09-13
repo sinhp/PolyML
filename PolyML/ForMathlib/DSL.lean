@@ -38,7 +38,6 @@ computation" to perform yet.
 def ListDSL.eval {P A : C} (prog : ListDSL P A) : (P ⟶ list A) :=
   prog.eval' (𝟙 (list A))
 
-
 /-!
 A program can either just produce a list, or it can produce a list
 and then perform a frequency count on it, resulting in a `bag`.
@@ -99,7 +98,7 @@ abbrev Author_c := String
 abbrev Book_c   := String
 abbrev Title_c  := String
 
-def concrete_authors : List Author_c := ["A", "B"]
+def concrete_authors : List Author_c := ["A", "B", "B"]
 
 def concrete_get_books : Author_c → List Book_c
   | "A" => ["Category Theory in Lean", "Metaprogramming Fun"]
@@ -107,7 +106,6 @@ def concrete_get_books : Author_c → List Book_c
   | _          => []
 
 def concrete_get_title (book : Book_c) : Title_c := book
-
 
 def get_authors_morph : 𝟙_ C_concrete ⟶ list Author_c := fun _ => (concrete_authors, PUnit.unit)
 def get_books_morph : Author_c ⟶ list Book_c := fun author => (concrete_get_books author, PUnit.unit)
@@ -122,6 +120,45 @@ def concrete_titles_prog : ListDSL (𝟙_ C_concrete) Title_c :=
 def concrete_titles_morphism := (concrete_titles_prog).eval
 
 #eval (concrete_titles_morphism PUnit.unit)
+
+-- We switch to a concrete category to run the algorithm
+section ConcreteEvalNumbers
+
+-- Let our category `C` be the category of types, `Type`.
+abbrev C_concrete₁ := Type
+
+instance : WithBags C_concrete₁ := sorry
+
+-- Define a concrete type for our elements.
+abbrev Element_c := Nat
+
+-- Add a Repr instance for bag Element_c to enable #eval
+instance : Repr (bag Element_c) := by {
+  unfold Element_c
+
+}
+
+def my_concrete_list₁ : List Element_c := [2, 3, 4, 5, 2, 1, 2]
+
+def get_list_morph : (𝟙_ C_concrete₁) ⟶ list Element_c :=
+  fun _ => (my_concrete_list₁, PUnit.unit)
+
+def list_prog : ListDSL (𝟙_ C_concrete) Element_c :=
+  .ofMorph get_list_morph
+
+def frequency_count_program₁ : Algorithm (𝟙_ C_concrete) Element_c (bag Element_c) :=
+  .freqCount list_prog
+
+def frequency_count_executable_morphism₁ : (𝟙_ C_concrete) ⟶ bag Element_c :=
+  frequency_count_program₁.eval
+
+-- Step 5: Run the resulting function and see the output.
+-- We call the function with the only possible value for `PUnit`, which is `()`.
+#eval frequency_count_executable_morphism₁ PUnit.unit
+
+end ConcreteEvalNumbers
+
+
 
 end ConcreteEval
 
