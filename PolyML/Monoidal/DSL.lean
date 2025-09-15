@@ -2,6 +2,7 @@ import PolyML.Monoidal.ListArithmetic
 import PolyML.Monoidal.NNO
 import PolyML.Monoidal.FreeMon
 import PolyML.Monoidal.FreeCommMon
+import PolyML.Monoidal.BagInType
 
 universe u v
 
@@ -127,15 +128,24 @@ section ConcreteEvalNumbers
 -- Let our category `C` be the category of types, `Type`.
 abbrev C_concrete₁ := Type
 
-instance : WithBags C_concrete₁ := sorry
+noncomputable instance : WithBags C_concrete₁ := bagType.withBags
 
 -- Define a concrete type for our elements.
 abbrev Element_c := Nat
 
+-- Add a ToString instance for bag Element_c first
+instance : ToString (bag Element_c) := by {
+  unfold Element_c
+  sorry
+  --exact ⟨fun _ => "bag"⟩
+}
+
 -- Add a Repr instance for bag Element_c to enable #eval
 instance : Repr (bag Element_c) := by {
   unfold Element_c
-
+  refine {
+  reprPrec := fun b prec => Std.Format.text (toString b)
+  }
 }
 
 def my_concrete_list₁ : List Element_c := [2, 3, 4, 5, 2, 1, 2]
@@ -149,12 +159,12 @@ def list_prog : ListDSL (𝟙_ C_concrete) Element_c :=
 def frequency_count_program₁ : Algorithm (𝟙_ C_concrete) Element_c (bag Element_c) :=
   .freqCount list_prog
 
-def frequency_count_executable_morphism₁ : (𝟙_ C_concrete) ⟶ bag Element_c :=
+noncomputable def frequency_count_executable_morphism₁ : (𝟙_ C_concrete) ⟶ bag Element_c :=
   frequency_count_program₁.eval
 
 -- Step 5: Run the resulting function and see the output.
 -- We call the function with the only possible value for `PUnit`, which is `()`.
-#eval frequency_count_executable_morphism₁ PUnit.unit
+--#eval frequency_count_executable_morphism₁ PUnit.unit
 
 end ConcreteEvalNumbers
 
