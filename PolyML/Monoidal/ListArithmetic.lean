@@ -968,6 +968,9 @@ open SemiCartesianMonoidalCategory
 noncomputable def list.tail {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
   list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (snd A (list A)))
 
+noncomputable def list.head {A : C} : list A ⟶ 𝟙_ C ⨿ A :=
+  list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (fst A (list A)))
+
 theorem list.nil_tail {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
   dsimp [tail,Semirecursive.split]
   rw [← assoc]

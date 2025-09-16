@@ -1,5 +1,3 @@
-import PolyML.Monoidal.DSL
-
 /-
 Copyright (c) 2024 Michail Karatarakis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -8,6 +6,9 @@ Authors: Michail Karatarakis
 import Mathlib.Combinatorics.Digraph.Basic
 import Mathlib.Data.Matrix.Basic
 import Mathlib.Data.Vector.Basic
+
+import PolyML.Monoidal.DSL
+import PolyML.Monoidal.BagInType
 
 open Mathlib Finset
 
@@ -48,9 +49,9 @@ structure NeuralNetwork (R U : Type) [Zero R] extends Digraph U where
    (σ : (u : U) → Vector R (κ1 u)) (θ : (u : U) → Vector R (κ2 u)) (current_neuron_activations : U → R),
   (∀ u_idx : U, pact (current_neuron_activations u_idx)) → -- Precondition on all current activations
   (∀ u_target : U, pact (fact u_target (current_neuron_activations u_target) -- Pass current_act of target neuron
-                               (fnet u_target (w u_target) (fun v => fout v (current_neuron_activations v)) (σ u_target))
+                               (fnet u_target (w u_target)
+                               (fun v => fout v (current_neuron_activations v)) (σ u_target))
                                (θ u_target))))
-
 
 variable {R U : Type} [Zero R]
 
@@ -116,7 +117,6 @@ def isStable : Prop :=  ∀ (u : U), (s.Up wσθ u).act u = s.act u
 end State
 end NeuralNetwork
 
-
 -- We assume the category has products, which is standard for modeling this kind of computation.
 -- This lets us pair the "state" and the "list" to feed into the fold operation.
 universe u v
@@ -127,70 +127,15 @@ open Category Opposite MonoidalCategory Limits list NNO
 -- FIX 3 (Root Cause): Ensure all necessary typeclass instances are declared.
 -- The `unknown constant 'list.head'` error happens if `[ListArithmetic C]` is missing.
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
-  [BraidedCategory C] [HasFiniteProducts C] [WithBags C] [ListArithmetic C]
+  [BraidedCategory C] [WithBags C] [ListArithmetic C]
 
 -- Re-open the Neural Network namespace to access its types
 open NeuralNetwork
 
 -- Assume the necessary types from the NN definition exist as objects in our category C
-variable {R U : Type} [Zero R] (NN : NeuralNetwork R U)
 variable (State_as_obj U_as_obj : C)
-
-
--- We assume the category has products, which is standard for modeling this kind of computation.
--- This lets us pair the "state" and the "list" to feed into the fold operation.
-
--- We assume the category has products, which is standard for modeling this kind of computation.
--- This lets us pair the "state" and the "list" to feed into the fold operation.
-
-namespace CategoryTheory
-open Category Opposite MonoidalCategory Limits list NNO
-
--- Ensure all necessary typeclass instances are declared.
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
-  [BraidedCategory C] [HasFiniteProducts C] [WithBags C] [ListArithmetic C]
-
--- Re-open the Neural Network namespace to access its types
-open NeuralNetwork
-
--- Assume the necessary types from the NN definition exist as objects in our category C
-variable {R U : Type} [Zero R] (NN : NeuralNetwork R U)
-variable (State_as_obj U_as_obj : C)
-
--- FIX 1: Define `foldl` using the MONOIDAL product `⊗` to match the error.
-class ListArithmetic₁ (C : Type u) [Category.{v} C] [MonoidalCategory C] [ Recursive C]:=
-  (foldl {A Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y)
-  (head {A : C} : list A ⟶ A)
-
-variable [ListArithmetic₁ C]
 
 namespace Bridge
-
-inductive ListDSL (P : C) : C → Type _ where
-  | ofMorph (f : P ⟶ list A) : ListDSL P A
-  | singleton (f : P ⟶ A) : ListDSL P A
-  | map (f : A ⟶ B) (prog : ListDSL P A) : ListDSL P B
-  | flatten (prog : ListDSL P (list A)) : ListDSL P A
-  -- FIX 2: The step function `f` must also use the monoidal product `⊗`.
-  | fold {A B : C} (f : A ⊗ B ⟶ A) (initial : 𝟙_ C ⟶ A) (prog : ListDSL P B) : ListDSL P A
-
-mutual
-  def ListDSL.eval' {P A B : C} (prog : ListDSL P A) (k : list A ⟶ B) : P ⟶ B :=
-    match prog with
-    | .ofMorph f => f ≫ k
-    | .singleton f => f ≫ list.singleton ≫ k
-    | .map f inner_prog => inner_prog.eval' (list.map f ≫ k)
-    | .flatten inner_prog => inner_prog.eval' (list.flatten ≫ k)
-    | .fold f initial inner_prog =>
-        -- This logic is now correct because the type of `f` matches
-        -- what `list.foldl` expects.
-        let folder_morph  := ListArithmetic₁.foldl f initial
-        let list_prog_eval := inner_prog.eval
-        list_prog_eval ≫ folder_morph ≫ list.singleton ≫ k
-
-  def ListDSL.eval {P A : C} (prog : ListDSL P A) : (P ⟶ list A) :=
-    prog.eval' (𝟙 (list A))
-end
 
 -- The `update_morph` variable is declared here, in the context.
 variable (update_morph : State_as_obj ⊗ U_as_obj ⟶ State_as_obj)
@@ -205,10 +150,13 @@ def workPhase_executable_morphism
   let neuron_list_prog : ListDSL (𝟙_ C) U_as_obj :=
     .ofMorph uOrder_morph
   let prog : ListDSL (𝟙_ C) State_as_obj :=
-    .fold update_morph initial_state_morph neuron_list_prog
+    .foldl update_morph initial_state_morph neuron_list_prog
 
   -- Evaluate the program and extract the head element
-  prog.eval ≫ ListArithmetic₁.head
+  prog.eval ≫ (by {
+    sorry
+    --exact list.head (C:=C)
+  })
 
 
 open Mathlib Finset
@@ -267,7 +215,7 @@ instance : Repr (NeuralNetwork.State test) where
 /--
 `test.extu` is the initial state for the `test` neural network with activations `[1, 0, 0]`.
 -/
-def test.extu : test.State := {act := ![1,0,0], hp := fun u => trivial}
+def test.extu : test.State := {act := ![1,0,0], hp := fun _ => trivial}
 
 lemma zero_if_not_mem_Ui : ∀ u : Fin 3,
   ¬ u ∈ ({0,1} : Finset (Fin 3)) → test.extu.act u = 0 := by decide
@@ -284,36 +232,24 @@ lemma test.onlyUi : test.extu.onlyUi := by {
 
 /-The workphase for the asynchronous update of the sequence of neurons u3 , u2 , u1 , u3 , u2 , u1 , u3. -/
 #eval NeuralNetwork.State.workPhase wθ test.extu test.onlyUi [2,1,0,2,1,0,2]
+
 /-!
-### 4. Executing `workPhase` via the DSL
-This is the bridge that runs the concrete example using the abstract interpreter.
+ Executing workPhase
 -/
--- Define the concrete functions (morphisms) for our specific test case.
 def update_func : test.State × Fin 3 → test.State :=
   fun (s, u) => s.Up wθ u
 
 def initial_state_func : PUnit → test.State :=
   fun _ => test.extu
 
--- FIX: Define the `uOrder_morph` helper function before it is called.
 -- This function takes a list and returns the corresponding morphism `PUnit → List (Fin 3)`.
-def uOrder_morph (order : List (Fin 3)) : PUnit → List (Fin 3) :=
-  fun _ => order
-
--- The function calls are now correct because `uOrder_morph` is a known identifier.
--- Let's run the examples!
-
--- First, provide an instance of ListArithmetic₁ for Type u
-instance : ListArithmetic₁ (Type u) := sorry
+def uOrder_morph (order : List (Fin 3)) : 𝟙_ Type ⟶ list (Fin 3) :=
+  fun _ => ⟨order, PUnit.unit⟩
 
 -- Example 1 - fix the argument order
-#eval (workPhase_executable_morphism (C:=Type) (uOrder_morph [2,0,1,2,0,1,2]) initial_state_func) PUnit.unit
-
--- Example 2 - fix the argument order
-#eval (workPhase_executable_morphism (uOrder_morph [2,1,0,2,1,0,2]) initial_state_func) PUnit.unit
-
--- For comparison, here is the original direct call.
-#eval NeuralNetwork.State.workPhase wθ test.extu test.onlyUi [2,1,0,2,1,0,2]
+#eval (workPhase_executable_morphism (C:=Type)
+  (State_as_obj := test.State) (U_as_obj:=Fin 3) (update_morph:=update_func)
+    (uOrder_morph [2,0,1,2,0,1,2]) initial_state_func) PUnit.unit
 
 end Bridge
 end CategoryTheory
