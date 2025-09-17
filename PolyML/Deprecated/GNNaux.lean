@@ -93,3 +93,62 @@ def Arg_rcv : Matrix (Fin n × Fin n) (Fin k) R := fun u => replicateFin k (u.2.
 
 -- Example with Arg_rcv
 def example_Arg_rcv : Matrix (Fin 3 × Fin 3) (Fin 2) ℕ := Arg_rcv
+
+
+
+-- Example graph: no edges (empty adjacency)
+def trivialDigraph : Digraph Nodes where
+  Adj _ _ := False
+
+-- FIX: Provide a direct, COMPUTABLE proof that the relation is decidable.
+-- instance : DecidableRel trivialDigraph.Adj :=
+--   fun _ _ => isFalse (by exact fun a ↦ a)
+-- -- We'll work with 3 nodes for this example.
+-- def N : ℕ := 3
+
+-- /-- An adjacency relation for a 3-node line graph: 0 → 1 → 2. -/
+-- def lineGraphAdj : Nodes → Nodes → Prop :=
+--   fun u v => (u.1 = 0 ∧ v.1 = 1) ∨ (u.1 = 1 ∧ v.1 = 2)
+
+-- -- We also need a *computable* way to decide this relation.
+-- -- Lean can figure this out automatically.
+-- -- A new 3x2 feature matrix for our 3 nodes.
+-- def X_3_nodes : Matrix Nodes (Fin K) ℕ :=
+--   fun i j => (i.val + 1) * (j.val + 1) -- e.g., [[1,2], [2,4], [3,6]]
+
+-- def myGNN_Params' : GNN_Parameters ℕ Nodes K M where
+--   X := X_3_nodes
+-- -- Bundle the graph and features into a single GraphData object.
+-- def lineGraphData : GraphData Nodes (R:=ℕ) K where
+--   graph := { Adj := lineGraphAdj }
+--   X := X_3_nodes
+
+-- #eval gnnForwardPass myGNN_Arch myGNN_Params' lineGraphData
+
+def N : ℕ := 3
+abbrev Node := Fin N
+
+-- An adjacency matrix for the graph 0 → 1 → 2
+def lineGraphMatrix : Matrix Node Node ℕ := sorry
+
+-- This matrix looks like:
+-- [[0, 1, 0],
+--  [0, 0, 1],
+--  [0, 0, 0]]
+
+/-- Creates an adjacency relation from a matrix. An edge exists if the entry is non-zero. -/
+def adjRelFromMatrix (A : Matrix Node Node ℕ) : Node → Node → Prop :=
+  fun u v => A u v ≠ 0
+
+#check Matrix.IsAdjMatrix
+
+--(σ : Equiv.Perm U) (X : Matrix U (Fin k) R)
+
+--variable (G : Digraph U) [DecidableEq R] [DecidableRel G.Adj] [Fintype U] [DecidableEq U]
+
+--/--the 1-hop neighborhood including the node itself-/
+--def Neigh (u : U) : Finset U := {v | G.Adj v u ∨ G.Adj u v}.toFinset ∪ {u}
+
+--def XN (u : U) [Fintype (Fin k → R)] : Multiset (Fin k → R) := (Neigh G u).val.map (X ·)
+
+--def Digraph.pred (u : U) : Finset U := {v | G.Adj v u}.toFinset

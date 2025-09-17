@@ -124,12 +124,9 @@ universe u v
 namespace CategoryTheory
 open Category Opposite MonoidalCategory Limits list NNO
 
--- FIX 3 (Root Cause): Ensure all necessary typeclass instances are declared.
--- The `unknown constant 'list.head'` error happens if `[ListArithmetic C]` is missing.
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
   [BraidedCategory C] [WithBags C] [ListArithmetic C]
 
--- Re-open the Neural Network namespace to access its types
 open NeuralNetwork
 
 -- Assume the necessary types from the NN definition exist as objects in our category C
@@ -184,7 +181,7 @@ def test : NeuralNetwork ℚ (Fin 3) where
      revert x
      decide
   Uh := ∅
-  hUi := Ne.symm (Set.ne_insert_of_not_mem {1} fun a ↦ a)
+  hUi := Ne.symm (Set.ne_insert_of_notMem {1} fun a ↦ a)
   hUo := Set.singleton_ne_empty 2
   hhio := by
     simp only [Fin.isValue, Set.union_singleton, Set.empty_inter]
