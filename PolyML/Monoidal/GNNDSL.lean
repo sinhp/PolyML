@@ -1,17 +1,19 @@
-import Mathlib.Combinatorics.SimpleGraph.AdjMatrix
-import Mathlib.Combinatorics.Digraph.Basic
-import Mathlib.Data.Matrix.PEquiv
-import Mathlib.Combinatorics.Digraph.Basic
+import Mathlib.Combinatorics.SimpleGraph.Basic
 import Mathlib.Data.Matrix.Defs
 import PolyML.Monoidal.DSL
+
+/-! # Pseudocode implementation the GNN in Diagram
+In this file, we implement in Lean the pseudocode for the GNN corresponding to Diagram 7 page 12 in
+  `Graph Neural Networks are Dynamic Programmers`.
+TODO: Formalize the correspondence with polynomial spans.
+TODO: Include edge and graph features (currently omitted for simplicity).
+ -/
 
 set_option linter.unusedVariables false
 
 open Mathlib Finset
 
 universe u v
-
-variable {R U : Type*}
 
 variable {R U : Type*} [Fintype U] [DecidableEq U]  {n m k : ℕ} [Semiring R]
 
@@ -24,7 +26,7 @@ structure GNN_Parameters (R U : Type*) (k m : ℕ) where
 structure GNN_Architecture (R U : Type*) (k m : ℕ) where
   /-- The message function ψ : ℝᵏ × ℝᵏ → ℝᵐ -/
   ψ (params : GNN_Parameters R U k m) (sender_features : Fin k → R) (receiver_features : Fin k → R) : Fin m → R
-  /-- The aggregation function ⊕, which must be permutation-invariant. -/
+  /-- The aggregation function ⊕, which must be permutation-invariant (TODO) -/
   aggregate : Multiset (Fin m → R) → (Fin m → R)
   /-- The update function φ : ℝᵐ → ℝᵐ -/
   φ (params : GNN_Parameters R U k m) (aggregated_message : Fin m → R) : Fin m → R
@@ -33,7 +35,7 @@ structure GNN_Architecture (R U : Type*) (k m : ℕ) where
 A structure to hold the input data for a single GNN forward pass.
 -/
 structure GraphData (U : Type*) (R: Type*) [Zero R] [One R] [DecidableEq R] (k : ℕ) where
-  /-- The graph topology (who is connected to whom). -/
+  /-- The graph topology. -/
   AdjMatrix : Matrix U U R
   --h : AdjMatrix.IsAdjMatrix
   -- graph : SimpleGraph U := by {
@@ -49,32 +51,25 @@ def Simple.pred (g: SimpleGraph U) (u : U) [Fintype U]
 Takes a GraphData object and a node `u`, and returns the Finset of
 nodes `v` that have an edge TO `u`.
 -/
-def getPredecessorsFromMatrix [DecidableEq R]
-   (data : GraphData U R k) (u : U) : Finset U :=
-  Finset.univ.filter (fun v =>
-    data.AdjMatrix v u ≠ 0)
+def getPredecessorsFromMatrix [DecidableEq R] (data : GraphData U R k) (u : U) : Finset U :=
+  Finset.univ.filter (fun v => data.AdjMatrix v u ≠ 0)
 
 /--
-Performs one forward pass of a GNN layer using neighbor-only message passing.
+Performs one forward pass of a GNN layer using neighbor-only message passing
+  to compute the new feature matrix H.
 -/
-def gnnForwardPass [DecidableEq R]
-    (arch : GNN_Architecture R U k m)
-    (params : GNN_Parameters R U k m)
-    (data : GraphData (R:=R) U k)  :
-    Matrix U (Fin m) R :=
-
-  -- The function still computes the new feature matrix H.
-  fun u => -- For each node `u`...
+def gnnForwardPass [DecidableEq R] (arch : GNN_Architecture R U k m)
+    (params : GNN_Parameters R U k m) (data : GraphData (R:=R) U k)  :
+  Matrix U (Fin m) R := fun u =>
 
     -- Compute all possible messages (this can be seen as a pre-computation).
     let msgs : Matrix U U (Fin m → R) :=
       fun sender receiver => arch.ψ params (data.X sender) (data.X receiver)
 
-    -- Gather incoming messages from NEIGHBORS ONLY.
-    -- MODIFIED: Get the set of predecessors for node `u` from the adjacency matrix.
+    -- Get the set of predecessors for node `u` from the adjacency matrix.
     let predecessors := getPredecessorsFromMatrix data u
 
-    -- MODIFIED: Map over the predecessors, not all nodes.
+    -- Map over the predecessors, not all nodes.
     let incoming_messages : Multiset (Fin m → R) :=
       predecessors.val.map (fun v => msgs v u)
 
@@ -138,12 +133,11 @@ def compute_update_for_one_node [DecidableEq R]
   let aggregated_message := arch.aggregate incoming_messages
   arch.φ params aggregated_message
 
--- Let's redefine the DSL and eval here to be self-contained.
 namespace GNN_DSL
 
 abbrev C_concrete := Type
 
-def listOfNodes : List Nodes := [0, 1,4,5]  -- Use valid Nodes indices
+def listOfNodes : List Nodes := [0, 1, 4, 5]  -- nodes indices
 
 open CategoryTheory
 
@@ -151,7 +145,6 @@ open Category Opposite MonoidalCategory Limits list NNO
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
   [BraidedCategory C] [ListArithmetic C] [WithBags C]
--- === The fixed gnnForwardPass_via_DSL function ===
 
 /--
 This function builds a ListDSL program to perform the GNN forward pass
@@ -164,28 +157,23 @@ def gnnForwardPass_via_DSL {R U : Type} {k m : ℕ} [Fintype U]
     -- The output is a list of the new feature vectors
     List (Fin m → R) :=
 
-  -- 1. Create a morphism that produces a list of all nodes.
+  -- Create a morphism that produces a list of all nodes.
   let all_nodes_morph : 𝟙_ C_concrete ⟶ list U :=
     fun _ => ⟨listOfNodes, PUnit.unit⟩
 
-  -- 2. Build the ListDSL program.
+  -- Build the ListDSL program.
   let nodes_prog : ListDSL (𝟙_ C_concrete) U := .ofMorph all_nodes_morph
   let compute_update_fn : U → (Fin m → R) :=
     compute_update_for_one_node arch params data
   let new_features_prog : ListDSL (𝟙_ C_concrete) (Fin m → R) :=
     nodes_prog.map (compute_update_for_one_node arch params data)
 
-  -- 3. Run the program using the real interpreter.
+  -- Run the program using the real interpreter.
   (new_features_prog.eval PUnit.unit).1
 
--- === A full, runnable example to test the fix ===
-
--- Add Repr instances for printing
 instance {n} [Repr α] : Repr (Fin n → α) where reprPrec f _ := repr (List.ofFn f)
 
--- Add Repr instance for List (Fin M → ℕ)
 instance : Repr (List (Fin M → ℕ)) where
   reprPrec l _ := repr l
 
--- #eval the final result using the DSL-based function
 #eval gnnForwardPass_via_DSL myGNN_Arch myGNN_Params exampleGraphData listOfNodes
