@@ -7,13 +7,18 @@ import Mathlib.CategoryTheory.Limits.Shapes.Products
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Monoidal.OfHasFiniteProducts
 
+/-!
+# Cartesian monoidal structure on the category of quivers
+
+This file constructs the Cartesian (product) monoidal structure on the category of
+quivers. Concretely, we equip the category whose objects are quivers and whose
+morphisms are quiver morphisms with a symmetric monoidal structure where the
+monoidal product is given by the pointwise product of vertex-sets and of arrow-sets.
+-/
+
 universe v u
 
 namespace CategoryTheory.Quiv
-
--- We will construct the Cartesian monoidal structure on the category of quivers.
-
--- ## 1. Terminal Object ##
 
 -- We equip PUnit with the quiver structure where there is one morphism.
 instance : Quiver PUnit where
@@ -36,9 +41,6 @@ def terminalIsTerminal : Limits.IsTerminal terminalObj where
     · exact fun X ↦ rfl
 
 instance : Limits.HasTerminal Quiv.{v, u} := sorry
-
----
--- ## 2. Binary Products ##
 
 -- We equip the product type `Q₁ × Q₂` with a quiver structure.
 instance prodQuiver (Q₁ Q₂ : Quiv) : Quiver (Q₁ × Q₂) where
@@ -71,7 +73,6 @@ def prodIsLimit (Q₁ Q₂ : Quiv) : Limits.IsLimit (Limits.BinaryFan.mk (fst Q�
     simp only [Limits.BinaryFan.mk_pt, Functor.const_obj_obj, Limits.pair_obj_left,
       Limits.BinaryFan.π_app_left, Limits.pair_obj_right, Limits.BinaryFan.π_app_right]
     sorry
-  -- We must show this lifting is unique.
   uniq s m h := by {
     simp only [Limits.BinaryFan.mk_pt, Functor.const_obj_obj, Limits.pair_obj_left,
       Limits.BinaryFan.π_app_left, Limits.pair_obj_right, Limits.BinaryFan.π_app_right]
@@ -83,12 +84,7 @@ instance (Q₁ Q₂ : Quiv.{v, u}) : Limits.HasBinaryProduct Q₁ Q₂ :=
 
 -- Since `Quiv` has a terminal object and binary products, it has all finite products.
 instance : Limits.HasFiniteProducts Quiv.{v, u} := by {
-  sorry
-}
-
----
-
--- ## 3. The Monoidal Category Instance ##
+  sorry}
 
 /-- We construct the monoidal category instance for `Quiv` using the fact that it
     has finite products. The tensor product is the categorical product, and the

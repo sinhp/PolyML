@@ -2,11 +2,10 @@ import Mathlib.Combinatorics.SimpleGraph.Basic
 import Mathlib.Data.Matrix.Defs
 import PolyML.Monoidal.DSL
 
-/-! # Pseudocode implementation the GNN in Diagram
+/-! # Pseudocode implementation of GNN
 In this file, we implement in Lean the pseudocode for the GNN corresponding to Diagram 7 page 12 in
   `Graph Neural Networks are Dynamic Programmers`.
 TODO: Formalize the correspondence with polynomial spans.
-TODO: Include edge and graph features (currently omitted for simplicity).
  -/
 
 set_option linter.unusedVariables false
@@ -25,7 +24,8 @@ structure GNN_Parameters (R U : Type*) (k m : ℕ) where
 /-- The fixed computational architecture of the GNN. -/
 structure GNN_Architecture (R U : Type*) (k m : ℕ) where
   /-- The message function ψ : ℝᵏ × ℝᵏ → ℝᵐ -/
-  ψ (params : GNN_Parameters R U k m) (sender_features : Fin k → R) (receiver_features : Fin k → R) : Fin m → R
+  ψ (params : GNN_Parameters R U k m) (sender_features : Fin k → R)
+      (receiver_features : Fin k → R) : Fin m → R
   /-- The aggregation function ⊕, which must be permutation-invariant (TODO) -/
   aggregate : Multiset (Fin m → R) → (Fin m → R)
   /-- The update function φ : ℝᵐ → ℝᵐ -/
