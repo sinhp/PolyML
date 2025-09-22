@@ -167,8 +167,8 @@ def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
 def sndAlg (α : (monad S T).Algebra) : T.Algebra where
   A := α.A.A
   a := α.a.f
-  unit := sorry
-  assoc := sorry
+  unit := congr_arg (fun f => f.f) α.unit
+  assoc := congr_arg (fun f => f.f) α.assoc
 
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :
