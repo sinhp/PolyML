@@ -3,7 +3,8 @@ import Mathlib.Data.Matrix.Defs
 import PolyML.Monoidal.DSL
 
 /-! # Pseudocode implementation of GNN
-In this file, we implement in Lean the pseudocode for the GNN corresponding to Diagram 7 page 12 in
+In this file, we implement in Lean the pseudocode
+  for the GNN corresponding to Diagram 7 page 12 in
   `Graph Neural Networks are Dynamic Programmers`.
 TODO: Formalize the correspondence with polynomial spans.
  -/

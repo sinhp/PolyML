@@ -7,6 +7,7 @@ In this file, we implement in Lean the pseudocode for the GNN corresponding to t
 Diagram 7 page 12 in
   `Graph Neural Networks are Dynamic Programmers`.
 
+TODO: Implement it using the DSL.
 TODO: Formalize the correspondence with polynomial spans.
  -/
 
@@ -80,7 +81,6 @@ instance {n n' m : ℕ} [Repr α] : Repr (Matrix (Fin n × Fin n') (Fin m) α) w
       pure (i, j)
     let list_of_rows := all_row_indices.map (fun i => List.ofFn (m i))
     repr list_of_rows
-
 
 --Example
 abbrev Nodes := Fin 2
