@@ -73,7 +73,8 @@ theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
+    succ ≫ uprimrecAux init step = uprimrecAux init step ≫
+      (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
   rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
   simp only [comp_lift, assoc]
@@ -98,7 +99,7 @@ theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
   prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ' P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
-    ( lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
+    (lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
 
 /-- The full primitive recursion schema. -/
 def primrec {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ B :=
