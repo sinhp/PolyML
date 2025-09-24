@@ -167,8 +167,14 @@ theorem flatten_cons {A : C} :
 theorem join_cons {A : C} :
   list.cons ≫ list.join = list A ◁ list.join (A:=A) ≫ list.append := sorry
 
-theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := sorry
-
+theorem join_eq_flatten {A : C} : list.join (A := A) = list.flatten := by {
+  dsimp [flatten,rec]
+  apply plist.rec_uniq
+  · rw [← join_nil, nil]
+  · have := join_cons (A:=A)
+    dsimp [cons] at this
+    exact this
+}
 namespace algebra
 
 open Category
@@ -240,8 +246,14 @@ theorem aggregator_singleton {M : Mon_ C} :
     Category.assoc, Iso.inv_hom_id, comp_id]
 
 theorem aggregator_join {M : Mon_ C} :
-  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by sorry
-
+  list.join ≫ aggregator M = (list.map <| aggregator M) ≫ aggregator M := by {
+    dsimp [list.join, aggregator]
+    have := (list.algebra.ofMon M).assoc
+    dsimp [ofMon] at *
+    rw [this]; clear this
+    refine _ ≫= ?_
+    simp only
+  }
 /-- Theorem: Aggregator is functorial. -/
 theorem aggregator_map {M : Mon_ C} {f : M.X ⟶ M'.X} :
   list.map f ≫ aggregator M' = aggregator M ≫ f := by sorry
