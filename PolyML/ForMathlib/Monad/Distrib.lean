@@ -167,8 +167,8 @@ def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
 def sndAlg (α : (monad S T).Algebra) : T.Algebra where
   A := α.A.A
   a := α.a.f
-  unit := sorry
-  assoc := sorry
+  unit := congr_arg (fun f => f.f) α.unit
+  assoc := congr_arg (fun f => f.f) α.assoc
 
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :
@@ -381,22 +381,25 @@ variable (C) [MonoidalCategory C] [ListArithmetic C] [BraidedCategory C] [WithBa
 instance distribLawListBag : DistribLaw (list.monad C) (bag.monad C) where
   δ := {
     app X := list.lift <| bag.map list.singleton
-    naturality X Y f := by {
+    naturality X Y f := by
       dsimp
       sorry
-    }
   }
-  unit_left := by {
+  unit_left := by
     ext X
     dsimp
     sorry
-  }
-  unit_right := sorry
-  mul_left := by {
+  unit_right := by
+    ext x
+    dsimp
+    sorry
+  mul_left := by
     ext X
     sorry
-  }
-  mul_right := sorry
+  mul_right := by
+    ext x
+    dsimp
+    sorry
 
 instance liftingBagtoListAlgebra : Lifting (list.monad C) (bag.monad C) :=
   Lift.lifting (bag.monad C)
