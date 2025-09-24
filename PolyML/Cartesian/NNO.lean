@@ -30,13 +30,17 @@ def mul' : (N : C) ⊗ N ⟶ N :=
 
 theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
   simp [mul', ← assoc, zero_prec]
+  simp [mul', ← assoc, zero_prec]
 
 -- SH: can the rhs be a simpler term involving `mul'`?
 theorem succ_mul' :
     succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
   simp [mul', ← assoc, succ_prec]
+  simp [mul', ← assoc, succ_prec]
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
+  simp [one, succ_mul', assoc, assoc,succ_mul']
+  rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
   simp [one, succ_mul', assoc, assoc,succ_mul']
   rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
 
@@ -49,9 +53,9 @@ section PR
 
 open MorphismProperty CartesianMonoidalCategory
 
-def fst_eq_prec {A : C} : fst N A = prec (constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) A zero) succ := by
+def fst_eq_prec {A : C} : fst N A = prec (SemiCartesianMonoidalCategory.constMorphism A zero) succ := by
   apply prec_uniq
-  · dsimp [constMorphismFrom, constMorphismFrom]
+  · dsimp [SemiCartesianMonoidalCategory.constMorphism, constMorphism]
     simp only [whiskerRight_fst]
     rw [← assoc]
     refine ?_ =≫ _
@@ -68,7 +72,7 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
   simp only [uprimrecAux]
-  rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prec]
+  rw [← assoc, rightUnitor_inv_naturality, assoc,zero_prec]
   simp only [Iso.hom_inv_id_assoc]
   refine ?_ =≫ (zero ⊗ₘ init)
   aesop
@@ -78,11 +82,11 @@ theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   simp only [uprimrecAux]
   rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
   simp only [comp_lift, assoc]
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
-  simp only [uprimrecAux]
-  rw [fst_eq_prec]
   sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
@@ -90,6 +94,9 @@ def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
+  dsimp [uprimrec]
+  simp only [← assoc, uprimrecAux_zero]
+  simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
   dsimp [uprimrec]
   simp only [← assoc, uprimrecAux_zero]
   simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
@@ -118,20 +125,14 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
-  simp only [pred, uprimrec, uprimrecAux]
-  simp [← assoc]
-  rw [rightUnitor_inv_naturality]
-  simp only [assoc]
-  rw [Eq.symm (assoc (zero ▷ 𝟙_ C)
-    (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
-  rw [zero_prec]
-  simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
-  unfold CartesianMonoidalCategory.toUnit
-  simp only [IsTerminal.from_self, id_comp]
+  dsimp [pred]
+  rw [uprimrec_zero]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
-  simp only [pred, uprimrec, uprimrecAux]
+  simp only [pred]
+  rw [uprimrec_succ]
+  simp only [whiskerLeft_fst]
   sorry
 
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
