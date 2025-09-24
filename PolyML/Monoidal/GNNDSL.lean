@@ -48,10 +48,7 @@ def Simple.pred (g: SimpleGraph U) (u : U) [Fintype U]
       [DecidableEq U] [DecidablePred fun v ↦ g.Adj v u] :
    Finset U := Finset.univ.filter (fun v => g.Adj v u)
 
-/--
-Takes a GraphData object and a node `u`, and returns the Finset of
-nodes `v` that have an edge TO `u`.
--/
+
 def getPredecessorsFromMatrix [DecidableEq R] (data : GraphData U R k) (u : U) : Finset U :=
   Finset.univ.filter (fun v => data.AdjMatrix v u ≠ 0)
 
