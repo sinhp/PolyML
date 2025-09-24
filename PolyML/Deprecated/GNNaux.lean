@@ -100,7 +100,6 @@ def example_Arg_rcv : Matrix (Fin 3 × Fin 3) (Fin 2) ℕ := Arg_rcv
 def trivialDigraph : Digraph Nodes where
   Adj _ _ := False
 
--- FIX: Provide a direct, COMPUTABLE proof that the relation is decidable.
 -- instance : DecidableRel trivialDigraph.Adj :=
 --   fun _ _ => isFalse (by exact fun a ↦ a)
 -- -- We'll work with 3 nodes for this example.
@@ -111,8 +110,6 @@ def trivialDigraph : Digraph Nodes where
 --   fun u v => (u.1 = 0 ∧ v.1 = 1) ∨ (u.1 = 1 ∧ v.1 = 2)
 
 -- -- We also need a *computable* way to decide this relation.
--- -- Lean can figure this out automatically.
--- -- A new 3x2 feature matrix for our 3 nodes.
 -- def X_3_nodes : Matrix Nodes (Fin K) ℕ :=
 --   fun i j => (i.val + 1) * (j.val + 1) -- e.g., [[1,2], [2,4], [3,6]]
 
