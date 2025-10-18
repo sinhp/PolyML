@@ -7,7 +7,6 @@ Authors: Sina Hazratpour
 import Mathlib.Algebra.Ring.Defs
 import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Data.FinEnum
-import PolyML.Cartesian.BagInType
 
 
 variable {E B : Type*} (p : E → B)
