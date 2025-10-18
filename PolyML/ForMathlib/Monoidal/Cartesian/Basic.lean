@@ -91,11 +91,18 @@ abbrev tensorHom (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) : tensorObj ℬ X₁ X�
   (BinaryFan.IsLimit.lift' (ℬ Y₁ Y₂).isLimit ((ℬ X₁ X₂).cone.π.app ⟨.left⟩ ≫ f)
       (((ℬ X₁ X₂).cone.π.app ⟨.right⟩ : (ℬ X₁ X₂).cone.pt ⟶ X₂) ≫ g)).val
 
-lemma tensor_id (X Y : C) : tensorHom ℬ (𝟙 X) (𝟙 Y) = 𝟙 (tensorObj ℬ X Y) :=
+-- lemma tensor_id (X Y : C) : tensorHom ℬ (𝟙 X) (𝟙 Y) = 𝟙 (tensorObj ℬ X Y) :=
+--   (ℬ _ _).isLimit.hom_ext <| by rintro ⟨_ | _⟩ <;> simp [tensorHom]
+
+lemma id_tensorHom_id (X Y : C) : tensorHom ℬ (𝟙 X) (𝟙 Y) = 𝟙 (tensorObj ℬ X Y) :=
   (ℬ _ _).isLimit.hom_ext <| by rintro ⟨_ | _⟩ <;> simp [tensorHom]
 
-lemma tensor_comp (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
-    tensorHom ℬ (f₁ ≫ g₁) (f₂ ≫ g₂) = tensorHom ℬ f₁ f₂ ≫ tensorHom ℬ g₁ g₂ :=
+-- lemma tensor_comp (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
+--     tensorHom ℬ (f₁ ≫ g₁) (f₂ ≫ g₂) = tensorHom ℬ f₁ f₂ ≫ tensorHom ℬ g₁ g₂ :=
+--   (ℬ _ _).isLimit.hom_ext <| by rintro ⟨_ | _⟩ <;> simp [tensorHom]
+
+lemma tensorHom_comp_tensorHom (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
+    tensorHom ℬ f₁ f₂ ≫ tensorHom ℬ g₁ g₂ = tensorHom ℬ (f₁ ≫ g₁) (f₂ ≫ g₂) :=
   (ℬ _ _).isLimit.hom_ext <| by rintro ⟨_ | _⟩ <;> simp [tensorHom]
 
 lemma pentagon (W X Y Z : C) :
@@ -159,8 +166,8 @@ abbrev ofChosenFiniteProducts : CartesianMonoidalCategory C :=
   }
   {
   toMonoidalCategory := .ofTensorHom
-    (tensor_id := tensor_id ℬ)
-    (tensor_comp := tensor_comp ℬ)
+    (id_tensorHom_id := id_tensorHom_id ℬ)
+    (tensorHom_comp_tensorHom := tensorHom_comp_tensorHom ℬ)
     (pentagon := pentagon ℬ)
     (triangle := triangle 𝒯 ℬ)
     (leftUnitor_naturality := leftUnitor_naturality 𝒯 ℬ)
@@ -181,7 +188,6 @@ abbrev ofChosenFiniteProducts : CartesianMonoidalCategory C :=
   snd_def X Y := (((ℬ 𝒯.cone.pt Y).isLimit.fac
     (BinaryFan.mk _ _) ⟨.right⟩).trans (Category.comp_id _)).symm
   }
-
 omit 𝒯 in
 /-- Construct an instance of `CartesianMonoidalCategory C` given the existence of finite products
 in `C`. -/
@@ -966,3 +972,5 @@ instance IsMonoidal.of_cartesianMonoidalCategory (α : F ⟶ G) : IsMonoidal α 
 end NatTrans
 
 end CategoryTheory
+
+#min_imports

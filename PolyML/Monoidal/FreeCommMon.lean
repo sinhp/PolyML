@@ -25,33 +25,33 @@ Therefore a bag structure on `A` is equivalent to the data of an aggregator.
 namespace CategoryTheory
 
 open Category CategoryTheory ListArithmetic Functor MonoidalCategory
-  Mon_Class CommMon_ Monad
+  MonObj CommMon Monad
 
 universe v u
 
 variable (C : Type u) [Category.{v} C] [MonoidalCategory C] [BraidedCategory C]
 
 class WithBags where
-  functor : C ⥤ CommMon_ C
-  adj : functor ⊣ CommMon_.forget C
+  functor : C ⥤ CommMon C
+  adj : functor ⊣ CommMon.forget C
 
 variable {C} [WithBags C]
 
 open WithBags
 
 /-- The common monoid structure on `bag A` is given by the free commutative monoid functor. -/
-def freeCommMon (A : C) : CommMon_ C := WithBags.functor.obj A
+def freeCommMon (A : C) : CommMon C := WithBags.functor.obj A
 
-def freeCommMon.lift {A : C} {M : CommMon_ C} (f : A ⟶ M.X) : freeCommMon A ⟶ M :=
+def freeCommMon.lift {A : C} {M : CommMon C} (f : A ⟶ M.X) : freeCommMon A ⟶ M :=
   adj.homEquiv A M |>.invFun f
 
 /-- The monoid structure on `bag A`. -/
-def bagMon (A : C) : Mon_ C := freeCommMon A |>.toMon_
+def bagMon (A : C) : Mon C := freeCommMon A |>.toMon
 
-def bagMon.lift {A : C} {M : CommMon_ C} (f : A ⟶ M.X) : bagMon A ⟶ M.toMon_ :=
-  (freeCommMon.lift f) |> (CommMon_.forget₂Mon_ C).map
+def bagMon.lift {A : C} {M : CommMon C} (f : A ⟶ M.X) : bagMon A ⟶ M.toMon :=
+  (freeCommMon.lift f) |> (CommMon.forget₂Mon C).map
 
-theorem bagMon.lift_eq_counit_app {M : CommMon_ C} :
+theorem bagMon.lift_eq_counit_app {M : CommMon C} :
     (bagMon.lift (𝟙 M.X)).hom = (adj.counit.app M).hom := by
   sorry
 
@@ -63,11 +63,11 @@ namespace bag
 variable {A : C}
 
 def endofunctor : C ⥤ C :=
-  WithBags.functor ⋙ CommMon_.forget C
+  WithBags.functor ⋙ CommMon.forget C
 
-instance monClass : Mon_Class (bag A) := bagMon A |> Mon_.mon
+instance monClass : MonObj (bag A) := bagMon A |> Mon.mon
 
-instance isCommMon : IsCommMon (bag A) := freeCommMon A |> CommMon_.comm
+instance isCommMonObj : IsCommMonObj (bag A) := freeCommMon A |> CommMon.comm
 
 def nil : 𝟙_C ⟶ bag A := η
 
@@ -77,7 +77,7 @@ def append : bag A ⊗ bag A ⟶ bag A := μ
 @[reassoc (attr := simp)]
 theorem braiding_append : (β_ (bag A) (bag A)).hom ≫ append = append := by
   dsimp [bag, append]
-  simp only [IsCommMon.mul_comm, forget₂Mon_obj_mul]
+  simp only [IsCommMonObj.mul_comm, forget₂Mon_obj_mul]
 
 def singleton : A ⟶ bag A := adj.unit.app A
 
@@ -93,22 +93,22 @@ theorem braiding_snoc_eq_cons : (β_ A (bag A)).hom ≫ snoc = cons := by
 
 /-- Given a commutative monoid object `M` in `C`, this lifts
 `f : A ⟶ M.X` to a morphism from `bag A` to `M.X`. -/
-def lift {M : CommMon_ C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
-  bagMon.lift f |> (CommMon_.forget C).map
+def lift {M : CommMon C} (f : A ⟶ M.X) : bag A ⟶ M.X :=
+  bagMon.lift f |> (CommMon.forget C).map
 
-theorem lift_eq_counit_app {M : CommMon_ C} :
+theorem lift_eq_counit_app {M : CommMon C} :
     lift (𝟙 M.X) = (adj.counit.app M).hom := by
   simp [lift, bagMon.lift_eq_counit_app]
 
-theorem one_lift {M : CommMon_ C} {f : A ⟶ M.X} : η ≫ lift f = η := by
+theorem one_lift {M : CommMon C} {f : A ⟶ M.X} : η ≫ lift f = η := by
   dsimp [lift]
-  simp only [IsMon_Hom.one_hom]
+  simp only [IsMonHom.one_hom]
 
-theorem mul_lift {M : CommMon_ C} {f : A ⟶ M.X} :  μ ≫ lift f = (lift f ⊗ₘ lift f) ≫ μ := by
+theorem mul_lift {M : CommMon C} {f : A ⟶ M.X} :  μ ≫ lift f = (lift f ⊗ₘ lift f) ≫ μ := by
   dsimp [lift]
-  simp only [IsMon_Hom.mul_hom]
+  simp only [IsMonHom.mul_hom]
 
-theorem singleton_lift {M : CommMon_ C} {f : A ⟶ M.X} : singleton ≫ lift f = f := by
+theorem singleton_lift {M : CommMon C} {f : A ⟶ M.X} : singleton ≫ lift f = f := by
   dsimp [singleton, lift, bagMon.lift, freeCommMon.lift]
   exact (adj.homEquiv A M).right_inv f
 
@@ -118,19 +118,19 @@ def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
 theorem map_eq_lift {B : C} (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
   sorry
 
-theorem map_lift_eq_lift_comp {M : CommMon_ C} {B : C} (f : A ⟶ B) (g : B ⟶ M.X) :
+theorem map_lift_eq_lift_comp {M : CommMon C} {B : C} (f : A ⟶ B) (g : B ⟶ M.X) :
     map f ≫ lift g = lift (f ≫ g) := by
   dsimp [lift]
   have := Adjunction.homEquiv_naturality_left_symm (C:=C) (adj) (Y:=M) (X:=B) (X':=A) f g
   dsimp [bagMon.lift, freeCommMon.lift, Adjunction.homEquiv, map, endofunctor]
-  simp_all only [map_comp, comp', Category.assoc, Mon_.comp_hom', toMon__X]
+  simp_all only [map_comp, comp', Category.assoc, Mon.comp_hom', toMon_X]
 
 @[simp]
 theorem nil_map {B : C} {f : A ⟶ B} :
     η ≫ map f = η := by
   rw [map_eq_lift]
   dsimp [lift]
-  simp only [IsMon_Hom.one_hom, forget₂Mon_obj_one]
+  simp only [IsMonHom.one_hom, forget₂Mon_obj_one]
 
 @[simp]
 theorem singleton_naturality {B : C} {f : A ⟶ B} :
@@ -176,17 +176,17 @@ section Monadicity
 
 open Monad Limits
 
-instance hasReflexiveCoequalizersOfMon : HasReflexiveCoequalizers (CommMon_ C) where
+instance hasReflexiveCoequalizersOfMon : HasReflexiveCoequalizers (CommMon C) where
   has_coeq {A B} (f g) := by sorry
 
 instance preservesColimitOfIsReflexivePairOfMonForget :
-    PreservesColimitOfIsReflexivePair (CommMon_.forget C) where
+    PreservesColimitOfIsReflexivePair (CommMon.forget C) where
   out {A B} (f g) r := by sorry
 
-instance :  (CommMon_.forget C).ReflectsIsomorphisms where
+instance :  (CommMon.forget C).ReflectsIsomorphisms where
   reflects {A B} f is_iso := by sorry
 
-instance monadicRightAdjointOfMonForget : MonadicRightAdjoint (CommMon_.forget C) :=
+instance monadicRightAdjointOfMonForget : MonadicRightAdjoint (CommMon.forget C) :=
   monadicOfHasPreservesReflexiveCoequalizersOfReflectsIsomorphisms <| WithBags.adj
 
 end Monadicity
@@ -197,7 +197,7 @@ variable (C)
 
 def monad : Monad C := adj |> Adjunction.toMonad
 
-def commMonToBagAlgebraFunctor : CommMon_ C ⥤ (bag.monad C).Algebra := Monad.comparison _
+def commMonToBagAlgebraFunctor : CommMon C ⥤ (bag.monad C).Algebra := Monad.comparison _
 
 /-- The equivalence between the category of algebras for the `list` monad and the category of monoids in `C`. -/
 instance commMonToBagAlgebraFunctorIsEquivalence : (commMonToBagAlgebraFunctor C).IsEquivalence := by
@@ -213,10 +213,10 @@ namespace Algebra
 
 /-- A commutative monoid structure on gives rise to an algebra for the `bag` monad. -/
 @[simps!]
-def ofCommMon (M : CommMon_ C) : (monad C).Algebra := commMonToBagAlgebraFunctor _ |>.obj M
+def ofCommMon (M : CommMon C) : (monad C).Algebra := commMonToBagAlgebraFunctor _ |>.obj M
 
 @[simp]
-theorem ofMon_a_eq {M : CommMon_ C} : (ofCommMon M).a = bag.lift (𝟙 M.X) := by
+theorem ofMon_a_eq {M : CommMon C} : (ofCommMon M).a = bag.lift (𝟙 M.X) := by
   dsimp [ofCommMon, commMonToBagAlgebraFunctor, Monad.comparison]
   have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
      (adj) (A:=M.X) (B:=M) (f:= (bagMon.lift (𝟙 M.X))) (𝟙 M.X)
@@ -228,34 +228,34 @@ theorem ofMon_a_eq {M : CommMon_ C} : (ofCommMon M).a = bag.lift (𝟙 M.X) := b
   simpa using singleton_lift
 
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
-instance monClassOf (α : Algebra (monad C)) : Mon_Class (α.A) where
+instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
   one := nil ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
   one_mul := sorry
   mul_one := sorry
   mul_assoc := sorry
 
-instance isCommMon {α : Algebra (monad C)} : IsCommMon (α.A) where
+instance isCommMonObj {α : Algebra (monad C)} : IsCommMonObj (α.A) where
   mul_comm := by
-    dsimp [Mon_Class.mul]
+    dsimp [MonObj.mul]
     rw [tensorHom_def', ← Category.assoc]
     rw [← BraidedCategory.braiding_naturality_left_assoc]
     rw [← BraidedCategory.braiding_naturality_right]
     rw [Category.assoc, Category.assoc]
-    simp only [IsCommMon.mul_comm_assoc, forget₂Mon_obj_mul, Category.assoc]
+    simp only [IsCommMonObj.mul_comm_assoc, forget₂Mon_obj_mul, Category.assoc]
     exact Eq.symm (whisker_exchange_assoc singleton singleton (μ ≫ α.a))
 
-def commMon (α : (monad C).Algebra) : CommMon_ C where
+def commMon (α : (monad C).Algebra) : CommMon C where
   X := α.A
 
-noncomputable def commMonToBagAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ CommMon_ C :=
+noncomputable def commMonToBagAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ CommMon C :=
   (commMonToBagAlgebraFunctor C).asEquivalence.symm
 
 -- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
-def equivalenceMon : (monad C).Algebra ≌ CommMon_ C where
+def equivalenceMon : (monad C).Algebra ≌ CommMon C where
   functor := {
     obj := commMon
-    map {α α'} f := Mon_.Hom.mk' f.1 (by sorry) (by sorry)
+    map {α α'} f := Mon.Hom.mk' f.1 (by sorry) (by sorry)
     map_id := sorry
     map_comp := sorry
   }
@@ -268,11 +268,11 @@ end Algebra
 
 open Algebra
 
-def aggregator (M : CommMon_ C) : bag M.X ⟶ M.X := (ofCommMon M).a
+def aggregator (M : CommMon C) : bag M.X ⟶ M.X := (ofCommMon M).a
 
 section aggregator
 
-variable {M : CommMon_ C}
+variable {M : CommMon C}
 
 theorem aggregator_eq_lift : aggregator M = lift (𝟙 M.X) := by
   dsimp [aggregator, ofCommMon, lift]
@@ -282,12 +282,12 @@ theorem aggregator_eq_lift : aggregator M = lift (𝟙 M.X) := by
 theorem aggregator_one : η ≫ aggregator M = η := by
   dsimp [aggregator, ofCommMon, lift]
   simp only [commMonToBagAlgebraFunctor, comparison]
-  simp [IsMon_Hom.one_hom]
+  simp [IsMonHom.one_hom]
 
 theorem aggregator_mul :
     μ ≫ aggregator M = (aggregator M ⊗ₘ aggregator M) ≫ μ := by
   dsimp [aggregator]
-  simp only [IsMon_Hom.mul_hom]
+  simp only [IsMonHom.mul_hom]
 
 theorem aggregator_singleton : singleton ≫ aggregator M = 𝟙 M.X := by
   dsimp [aggregator, ofCommMon, commMonToBagAlgebraFunctor]
@@ -298,12 +298,12 @@ theorem aggregator_join : join ≫ aggregator M = (map <| aggregator M) ≫ aggr
   simp [commMonToBagAlgebraFunctor, comparison]
   simpa using (ofCommMon M).assoc
 
-theorem aggregator_map {M' : CommMon_ C} {f : M.X ⟶ M'.X} :
+theorem aggregator_map {M' : CommMon C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
   sorry
 
-theorem aggregator_ofList [ListArithmetic C] {M' : CommMon_ C} :
-    ofList ≫ bag.aggregator M = M.toMon_.aggregator := by
+theorem aggregator_ofList [ListArithmetic C] {M' : CommMon C} :
+    ofList ≫ bag.aggregator M = M.toMon.aggregator := by
   sorry
 
 end aggregator

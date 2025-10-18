@@ -19,7 +19,7 @@ noncomputable section
 
 namespace CategoryTheory
 
-open Category CategoryTheory MonoidalCategory Mon_Class CommMon_ Monad Finsupp Multiset
+open Category CategoryTheory MonoidalCategory MonObj CommMon Monad Finsupp Multiset
 
 universe v u
 
@@ -37,10 +37,10 @@ universe v u
 
 -- attribute [local instance] CommMonTypeEquivalenceCommMon.commMonCommMonoid
 
--- instance addMonoidOfMonClass (α : Type u) [Mon_Class α] : Monoid α :=
+-- instance addMonoidOfMonClass (α : Type u) [MonObj α] : Monoid α :=
 --   MonTypeEquivalenceMon.monMonoid α
 
--- instance monAddMonoid (α : Type u) [Mon_Class α] : AddMonoid α where
+-- instance monAddMonoid (α : Type u) [MonObj α] : AddMonoid α where
 --   add x y := μ[α] (x, y)
 --   zero := η[α] PUnit.unit
 --   zero_add x := congr_fun (one_mul α) (PUnit.unit, x)
@@ -50,7 +50,7 @@ universe v u
 --   nsmul_zero := sorry
 --   nsmul_succ x n := sorry
 
--- instance monAddCommMonoid (α : Type u) [Mon_Class α] [IsCommMon α] : AddCommMonoid α :=
+-- instance monAddCommMonoid (α : Type u) [MonObj α] [IsCommMon α] : AddCommMonoid α :=
 --   { monAddMonoid α with
 --     add_comm := fun x y => congr_fun (IsCommMon.mul_comm α) (y, x) }
 
@@ -114,7 +114,7 @@ def adjunction : functor ⊣ forget AddCommMonCat := Adjunction.mkOfHomEquiv {
 }
 
 theorem CommMon_forget_aux :
-    CommMon_.forget (Type u) =
+    CommMon.forget (Type u) =
     (CommMonTypeEquivalenceCommMon.functor ⋙ AddCommMonCat.equivalence.inverse) ⋙ (forget AddCommMonCat) := by
   rfl
 
@@ -133,7 +133,7 @@ def equivMultiset (α : Type u) : bag α ≃ Multiset α := by
   have := Classical.decEq α
   exact Multiset.toFinsupp.toEquiv.symm
 
-instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
+instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : MonObj α where
   one := fun _ => 0
   mul := Add.add.uncurry
   one_mul := by
@@ -150,15 +150,15 @@ instance monClassOfAddMonoid (α : Type u) [AddMonoid α] : Mon_Class α where
       associator_hom_apply_1]
     apply AddSemigroup.add_assoc
 
-instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMon α where
+instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMonObj α where
   mul_comm := by
     ext f
     simp only [types_comp_apply]
-    dsimp [Mon_Class.mul]
+    dsimp [MonObj.mul]
     unfold Function.uncurry
     apply AddCommMonoid.add_comm
 
-def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon_ (Type u) := ⟨α⟩
+def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon (Type u) := ⟨α⟩
 
 theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
     (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) = Multiset.sum (M:= α) := by

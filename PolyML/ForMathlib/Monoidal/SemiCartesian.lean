@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
 import Mathlib.CategoryTheory.Monoidal.Category
 import PolyML.ForMathlib.ConstantMorphism
 -- import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
@@ -43,3 +42,5 @@ theorem const_self_eq_toUnit_self (X Y : C) (y : 𝟙_ C ⟶ Y) : constMorphism 
 end SemiCartesianMonoidalCategory
 
 end CategoryTheory
+
+#min_imports

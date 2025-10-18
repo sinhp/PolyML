@@ -1084,7 +1084,7 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 
-instance list.mon_class (A : C) : Mon_Class (list A) where
+instance list.monObj (A : C) : MonObj (list A) where
   one := list.nil
   mul := list.append
   one_mul := list.whiskerRight_nil_append
@@ -1094,8 +1094,9 @@ instance list.mon_class (A : C) : Mon_Class (list A) where
 /--
 The monoid structure on the list object in a list-arithmetic category.
 -/
-instance List.monoid (A : C) : Mon_ C where
+instance List.mon (A : C) : Mon C where
   X := list A
+
 
 /-
 Extra challenge:
