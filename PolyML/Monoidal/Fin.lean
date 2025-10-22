@@ -50,9 +50,16 @@ The left hand side vertical morphism is a monomorphism.
 -/
 noncomputable def fin (n : 𝟙_ C ⟶ N) := pullback n (add ≫ succ)
 
-def isInitialFinZero : IsInitial (fin zero : C) := by sorry
+lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:= C) n (add ≫ succ) ≫ fst N N) := by
+  intro n
+  refine mono_comp' ?_ ?_
+  · sorry--apply pullback.snd_of_mono
 
-def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C := sorry
+noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
+  sorry
+
+noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
+  IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
 
 /-- fin (n + 1) ≅ fin n + 1 -/
 def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
@@ -60,6 +67,13 @@ def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) �
 
 /-- fin 1 ≅ 1 -/
 def isTerminalFinOne : IsTerminal (fin one : C) := by sorry
+
+/-- fin 1 ≅ 1 -/
+noncomputable def isTerminalFinOne' : IsTerminal (fin one : C) := by
+  apply IsTerminal.ofIso terminalIsTerminal
+  unfold fin one
+  apply IsPullback.isoPullback (C:= C)
+  sorry
 
 def pairing (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ (m ⊗ₘ n)
