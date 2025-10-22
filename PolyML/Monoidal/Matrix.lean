@@ -52,7 +52,6 @@ def tensorUnit : Vect k := ⟨k⟩
 def Vect.ofLinearEquiv {V W : Vect k} (e : V.carrier ≃ₗ[k] W.carrier) : V ≅ W where
   hom := e.toLinearMap
   inv := e.symm.toLinearMap
-  -- The fix is to explicitly apply `LinearMap.ext` instead of using the `ext` tactic.
   hom_inv_id := by
     apply LinearMap.ext
     intro x
@@ -65,29 +64,22 @@ def Vect.ofLinearEquiv {V W : Vect k} (e : V.carrier ≃ₗ[k] W.carrier) : V �
     simp only [LinearEquiv.coe_coe, LinearEquiv.apply_symm_apply]
 
 noncomputable instance : MonoidalCategory (Vect k) where
+  tensorHom := tensorHom
   tensorObj := tensorObj
-  tensorHom {U V W X} f g := TensorProduct.map f g
+  tensorHom_def := sorry
   tensorUnit := tensorUnit
-  tensor_id := by
-    intros X1 X2
-    exact TensorProduct.map_id
-  tensor_comp := by
-    intros
-    exact TensorProduct.map_comp _ _ _ _
-  associator U V W :=
-    Vect.ofLinearEquiv (TensorProduct.assoc k U.carrier V.carrier W.carrier)
-  leftUnitor V :=
-    Vect.ofLinearEquiv (TensorProduct.lid k V.carrier)
-  rightUnitor V :=
-    Vect.ofLinearEquiv (TensorProduct.rid k V.carrier)
-
-  -- Once the instance is well-formed, `aesop_cat` can solve all coherence laws.
-  pentagon _ _ _ _ := by aesop_cat
-  triangle _ _ := by aesop_cat
-  leftUnitor_naturality := by aesop_cat
-  rightUnitor_naturality := by aesop_cat
+  associator U V W := Vect.ofLinearEquiv (TensorProduct.assoc k U.carrier V.carrier W.carrier)
+  leftUnitor V := Vect.ofLinearEquiv (TensorProduct.lid k V.carrier)
+  rightUnitor V := Vect.ofLinearEquiv (TensorProduct.rid k V.carrier)
+  whiskerLeft X _ _ f := tensorHom (𝟙 X) f
+  whiskerRight f X := tensorHom f (𝟙 X)
+  pentagon _ _ _ _ := by sorry
+  triangle _ _ := by sorry
+  leftUnitor_naturality := by sorry
+  rightUnitor_naturality := by sorry
   associator_naturality := by sorry
-  whiskerLeft := sorry
-  whiskerRight := sorry
+  whiskerLeft_id := by sorry
+  id_whiskerRight := by sorry
+
 
 end CategoryTheory

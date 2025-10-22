@@ -6,6 +6,7 @@ import PolyML.Monoidal.DSL
 In this file, we implement in Lean the pseudocode
 for the GNN corresponding to Diagram 7 page 12 in
   `Graph Neural Networks are Dynamic Programmers`.
+
 TODO: Formalize the correspondence with polynomial spans.
  -/
 
@@ -149,7 +150,7 @@ This function builds a ListDSL program to perform the GNN forward pass
 and then evaluates it.
 -/
 def gnnForwardPass_via_DSL {R U : Type} {k m : ℕ} [Fintype U]
- [  DecidableEq R][DecidableEq U] [Semiring R]
+ [DecidableEq R][DecidableEq U] [Semiring R]
     (arch : GNN_Architecture R U k m) (params : GNN_Parameters R U k m)
     (data : GraphData U R k) (listOfNodes : List U) :
     -- The output is a list of the new feature vectors
