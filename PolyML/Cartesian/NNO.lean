@@ -7,6 +7,7 @@ Authors: Sina Hazratpour
 import PolyML.Monoidal.NNO
 import PolyML.ForMathlib.Monad.Distrib
 import PolyML.ForMathlib.ConstantMorphism
+-- import PolyML.ForMathlib.Monoidal.CoCartesian.Basic
 
 /-!
 # The Natural Numbers Object in Monoidal Categories
@@ -159,18 +160,52 @@ theorem eqZero'_toBool_eq_toBool [HasBinaryCoproducts C] : eqZero' ≫ toBool C 
 /-- Testing for equality of two natural numbers.-/
 def eq'Aux : (N : C) ⊗ N ⟶ N :=  lift (sub' ≫ eqZero') (twist₁ N ≫ sub' ≫ eqZero') ≫ min'
 
+-- instance : CoCartesianMonoidalCategory C := sorry
+
+
+-- SC
+--   / \
+-- C   CC
+-- |
+-- C + CC
+-- issue: we now have two different monoidal strutures on C: one from cartesian monoidal and the other one
+-- from co-cartesian monoidal. Lean is confused which one applies to `N`. IT should be the first one
+-- and the second one should give computable coproducts.
+-- this needs thinking.
 noncomputable
 def eq' [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := eq'Aux ≫ toBool C
 
 noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
   (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub') ≫ eq'
 
-noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := sorry
+/-- `lt m n` iff `le (succ m) n` .-/
+noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
+  (succ ▷ N) ≫ le
+
+theorem zero_lt [HasBinaryCoproducts C] : zero ▷ (N : C) ≫ lt = fst _ _ ≫ true := by
+  sorry
 
 theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
   sorry
 
+
+
 end operations
+
+
+/-- The diagram `T_C ⟶ T_C ⨿ N ⟵  T_C ⨿ N`  defines an nno. -/
+
+
+def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
+  cocone := sorry
+  isColimit := sorry
+
+
+/-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
+def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
+  exists_colimit := sorry
+
+
 
 end NNO
 

@@ -968,6 +968,9 @@ open SemiCartesianMonoidalCategory
 noncomputable def list.tail {A : C} : list A ⟶ 𝟙_ C ⨿ list A :=
   list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (snd A (list A)))
 
+noncomputable def list.head {A : C} : list A ⟶ 𝟙_ C ⨿ A :=
+  list.semirecursive.split (A:= A) (L:= list A) ≫ (coprod.map (𝟙 _) (fst A (list A)))
+
 theorem list.nil_tail {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := by
   dsimp [tail,Semirecursive.split]
   rw [← assoc]
@@ -1084,7 +1087,7 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [ListArithmetic C]
 
 open Recursive ListArithmetic
 
-instance list.mon_class (A : C) : Mon_Class (list A) where
+instance list.monObj (A : C) : MonObj (list A) where
   one := list.nil
   mul := list.append
   one_mul := list.whiskerRight_nil_append
@@ -1094,8 +1097,9 @@ instance list.mon_class (A : C) : Mon_Class (list A) where
 /--
 The monoid structure on the list object in a list-arithmetic category.
 -/
-instance List.monoid (A : C) : Mon_ C where
+instance List.mon (A : C) : Mon C where
   X := list A
+
 
 /-
 Extra challenge:

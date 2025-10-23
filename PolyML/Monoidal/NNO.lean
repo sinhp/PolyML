@@ -286,7 +286,7 @@ def duplicate : (N : C) ⟶ N ⊗ N :=
 abbrev delete : N ⟶ 𝟙_ C := toUnit
 
 /-- The comonoid structure on the natural number object. -/
-instance comonClass : Comon_Class (N : C) where
+instance comonClass : ComonObj (N : C) where
   counit := delete
   comul := duplicate
   counit_comul := by
@@ -420,14 +420,19 @@ theorem add_assoc :
     rw [assoc, succ_iter]
 
 /-- The monoid structure on the natural number object. -/
-instance monClass [BraidedCategory C] : Mon_Class (N : C) where
+instance monObj [BraidedCategory C] : MonObj (N : C) where
   one := zero
   mul := add
   one_mul := zero_add
   mul_one := add_zero
   mul_assoc := add_assoc
 
-instance [BraidedCategory C] : IsCommMon (N : C) where
+instance NNO.mon [BraidedCategory C] : Mon C where
+  X := N
+  mon := by infer_instance
+
+
+instance [BraidedCategory C] : IsCommMonObj (N : C) where
   mul_comm := add_comm
 
 def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
@@ -526,10 +531,16 @@ theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
   sorry
 
+instance isMonHomLen [BraidedCategory C] : IsMonHom (list.len (A:= A)) where
+  one_hom := nil_len_zero
+  mul_hom := append_len_add
+
+#check Mon.Hom
 /-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
 def list.lenMonHom [BraidedCategory C] {A : C} :
-    Mon_.mk (list A) ⟶ Mon_.mk N :=
-  Mon_.Hom.mk' (list.len (A:= A)) list.nil_len_zero list.append_len_add
+    Mon.Hom (List.mon A) (NNO.mon) where
+  hom := list.len
+  isMonHom_hom := by infer_instance
 
 end length
 
