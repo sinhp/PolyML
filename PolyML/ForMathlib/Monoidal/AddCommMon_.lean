@@ -28,8 +28,8 @@ structure AddCommMon_ where
   [comm : IsAddCommMon X]
 
 /-- Syntactic transfer of instances of `IsCommMon` to `IsAddCommMon`. -/
-instance IsAddCommMon.fromIsCommMon {X : C} [Mon_Class X] [IsCommMon X] : IsAddCommMon X where
-  add_comm := IsCommMon.mul_comm X
+instance IsAddCommMon.fromIsCommMon {X : C} [MonObj X] [IsCommMonObj X] : IsAddCommMon X where
+  add_comm := IsCommMonObj.mul_comm X
 
 attribute [instance] AddCommMon_.mon AddCommMon_.comm
 

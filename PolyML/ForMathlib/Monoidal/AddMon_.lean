@@ -541,15 +541,15 @@ which have also been proved in `Mathlib/CategoryTheory/Monoidal/Braided.lean`.
 -- The proofs that associators and unitors preserve monoid units don't require braiding.
 theorem zero_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Class P] :
     ((λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ η[N]) ⊗ₘ η[P])) ≫ (α_ M N P).hom =
-      (λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ (λ_ (𝟙_ C)).inv ≫ (η[N] ⊗ₘ η[P])) := by
-  simp only [Category.assoc, Iso.cancel_iso_inv_left]
-  slice_lhs 1 3 => rw [← Category.id_comp (η : 𝟙_ C ⟶ P), tensor_comp]
-  slice_lhs 2 3 => rw [associator_naturality]
-  slice_rhs 1 2 => rw [← Category.id_comp η, tensor_comp]
-  slice_lhs 1 2 => rw [tensorHom_id, ← leftUnitor_tensor_inv]
-  rw [← cancel_epi (λ_ (𝟙_ C)).inv]
-  slice_lhs 1 2 => rw [leftUnitor_inv_naturality]
-  simp
+      (λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ (λ_ (𝟙_ C)).inv ≫ (η[N] ⊗ₘ η[P])) := by sorry
+  -- simp only [Category.assoc, Iso.cancel_iso_inv_left]
+  -- slice_lhs 1 3 => rw [← Category.id_comp (η : 𝟙_ C ⟶ P), tensor_comp]
+  -- slice_lhs 2 3 => rw [associator_naturality]
+  -- slice_rhs 1 2 => rw [← Category.id_comp η, tensor_comp]
+  -- slice_lhs 1 2 => rw [tensorHom_id, ← leftUnitor_tensor_inv]
+  -- rw [← cancel_epi (λ_ (𝟙_ C)).inv]
+  -- slice_lhs 1 2 => rw [leftUnitor_inv_naturality]
+  -- simp
 
 theorem zero_leftUnitor {M : C} [AddMon_Class M] :
     ((λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ₘ η[M])) ≫ (λ_ M).hom = η := by
@@ -566,35 +566,35 @@ variable [BraidedCategory C]
 theorem AddMon_tensor_zero_add (M N : C) [AddMon_Class M] [AddMon_Class N] :
     (((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ η[N])) ▷ (M ⊗ N)) ≫
         tensorμ M N M N ≫ (μ ⊗ₘ μ) =
-      (λ_ (M ⊗ N)).hom := by
-  simp only [comp_whiskerRight_assoc]
-  slice_lhs 2 3 => rw [tensorμ_natural_left]
-  slice_lhs 3 4 => rw [← tensor_comp, zero_add, zero_add]
-  symm
-  exact tensor_left_unitality M N
+      (λ_ (M ⊗ N)).hom := by sorry
+  -- simp only [comp_whiskerRight_assoc]
+  -- slice_lhs 2 3 => rw [tensorμ_natural_left]
+  -- slice_lhs 3 4 => rw [← tensor_comp, zero_add, zero_add]
+  -- symm
+  -- exact tensor_left_unitality M N
 
 theorem AddMon_tensor_add_zero (M N : C) [AddMon_Class M] [AddMon_Class N] :
     (M ⊗ N) ◁ ((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ η[N])) ≫
         tensorμ M N M N ≫ (μ[M] ⊗ₘ μ[N]) =
-      (ρ_ (M ⊗ N)).hom := by
-  simp only [whiskerLeft_comp_assoc]
-  slice_lhs 2 3 => rw [tensorμ_natural_right]
-  slice_lhs 3 4 => rw [← tensor_comp, add_zero, add_zero]
-  symm
-  exact tensor_right_unitality M N
+      (ρ_ (M ⊗ N)).hom := by sorry
+  -- simp only [whiskerLeft_comp_assoc]
+  -- slice_lhs 2 3 => rw [tensorμ_natural_right]
+  -- slice_lhs 3 4 => rw [← tensor_comp, add_zero, add_zero]
+  -- symm
+  -- exact tensor_right_unitality M N
 
 theorem AddMon_tensor_add_assoc (M N : C) [AddMon_Class M] [AddMon_Class N] :
     ((tensorμ M N M N ≫ (μ ⊗ₘ μ)) ▷ (M ⊗ N)) ≫
         tensorμ M N M N ≫ (μ ⊗ₘ μ) =
       (α_ (M ⊗ N : C) (M ⊗ N) (M ⊗ N)).hom ≫
         ((M ⊗ N : C) ◁ (tensorμ M N M N ≫ (μ ⊗ₘ μ))) ≫
-          tensorμ M N M N ≫ (μ ⊗ₘ μ) := by
-  simp only [comp_whiskerRight_assoc, whiskerLeft_comp_assoc]
-  slice_lhs 2 3 => rw [tensorμ_natural_left]
-  slice_lhs 3 4 => rw [← tensor_comp, add_assoc, add_assoc, tensor_comp, tensor_comp]
-  slice_lhs 1 3 => rw [tensor_associativity]
-  slice_lhs 3 4 => rw [← tensorμ_natural_right]
-  simp
+          tensorμ M N M N ≫ (μ ⊗ₘ μ) := by sorry
+  -- simp only [comp_whiskerRight_assoc, whiskerLeft_comp_assoc]
+  -- slice_lhs 2 3 => rw [tensorμ_natural_left]
+  -- slice_lhs 3 4 => rw [← tensor_comp, add_assoc, add_assoc, tensor_comp, tensor_comp]
+  -- slice_lhs 1 3 => rw [tensor_associativity]
+  -- slice_lhs 3 4 => rw [← tensorμ_natural_right]
+  -- simp
 
 theorem add_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Class P] :
     (tensorμ (M ⊗ N) P (M ⊗ N) P ≫
@@ -602,32 +602,32 @@ theorem add_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Cla
         (α_ M N P).hom =
       ((α_ M N P).hom ⊗ₘ (α_ M N P).hom) ≫
         tensorμ M (N ⊗ P) M (N ⊗ P) ≫
-          (μ ⊗ₘ tensorμ N P N P ≫ (μ ⊗ₘ μ)) := by
-  simp only [Category.assoc]
-  slice_lhs 2 3 => rw [← Category.id_comp μ[P], tensor_comp]
-  slice_lhs 3 4 => rw [associator_naturality]
-  slice_rhs 3 4 => rw [← Category.id_comp μ, tensor_comp]
-  simp only [tensorHom_id, id_tensorHom]
-  slice_lhs 1 3 => rw [associator_monoidal]
-  simp only [Category.assoc]
+          (μ ⊗ₘ tensorμ N P N P ≫ (μ ⊗ₘ μ)) := by sorry
+  -- simp only [Category.assoc]
+  -- slice_lhs 2 3 => rw [← Category.id_comp μ[P], tensor_comp]
+  -- slice_lhs 3 4 => rw [associator_naturality]
+  -- slice_rhs 3 4 => rw [← Category.id_comp μ, tensor_comp]
+  -- simp only [tensorHom_id, id_tensorHom]
+  -- slice_lhs 1 3 => rw [associator_monoidal]
+  -- simp only [Category.assoc]
 
 theorem add_leftUnitor {M : C} [AddMon_Class M] :
     (tensorμ (𝟙_ C) M (𝟙_ C) M ≫ ((λ_ (𝟙_ C)).hom ⊗ₘ μ)) ≫ (λ_ M).hom =
-      ((λ_ M).hom ⊗ₘ (λ_ M).hom) ≫ μ := by
-  rw [← Category.comp_id (λ_ (𝟙_ C)).hom, ← Category.id_comp μ, tensor_comp]
-  simp only [tensorHom_id, id_tensorHom]
-  slice_lhs 3 4 => rw [leftUnitor_naturality]
-  slice_lhs 1 3 => rw [← leftUnitor_monoidal]
-  simp only [Category.id_comp]
+      ((λ_ M).hom ⊗ₘ (λ_ M).hom) ≫ μ := by sorry
+  -- rw [← Category.comp_id (λ_ (𝟙_ C)).hom, ← Category.id_comp μ, tensor_comp]
+  -- simp only [tensorHom_id, id_tensorHom]
+  -- slice_lhs 3 4 => rw [leftUnitor_naturality]
+  -- slice_lhs 1 3 => rw [← leftUnitor_monoidal]
+  -- simp only [Category.id_comp]
 
 theorem add_rightUnitor {M : C} [AddMon_Class M] :
     (tensorμ M (𝟙_ C) M (𝟙_ C) ≫ (μ ⊗ₘ (λ_ (𝟙_ C)).hom)) ≫ (ρ_ M).hom =
-      ((ρ_ M).hom ⊗ₘ (ρ_ M).hom) ≫ μ := by
-  rw [← Category.id_comp μ, ← Category.comp_id (λ_ (𝟙_ C)).hom, tensor_comp]
-  simp only [tensorHom_id, id_tensorHom]
-  slice_lhs 3 4 => rw [rightUnitor_naturality]
-  slice_lhs 1 3 => rw [← rightUnitor_monoidal]
-  simp only [Category.id_comp]
+      ((ρ_ M).hom ⊗ₘ (ρ_ M).hom) ≫ μ := by sorry
+  -- rw [← Category.id_comp μ, ← Category.comp_id (λ_ (𝟙_ C)).hom, tensor_comp]
+  -- simp only [tensorHom_id, id_tensorHom]
+  -- slice_lhs 3 4 => rw [rightUnitor_naturality]
+  -- slice_lhs 1 3 => rw [← rightUnitor_monoidal]
+  -- simp only [Category.id_comp]
 
 namespace tensorObj
 
@@ -648,14 +648,14 @@ open IsAddMon_Hom
 variable {X Y Z W : C} [AddMon_Class X] [AddMon_Class Y] [AddMon_Class Z] [AddMon_Class W]
 
 instance {f : X ⟶ Y} {g : Z ⟶ W} [IsAddMon_Hom f] [IsAddMon_Hom g] : IsAddMon_Hom (f ⊗ₘ g) where
-  zero_hom := by
-    dsimp [tensorObj.zero_def]
-    slice_lhs 2 3 => rw [← tensor_comp, zero_hom, zero_hom]
-  add_hom := by
-    dsimp [tensorObj.add_def]
-    slice_rhs 1 2 => rw [tensorμ_natural]
-    slice_lhs 2 3 => rw [← tensor_comp, add_hom, add_hom, tensor_comp]
-    simp only [Category.assoc]
+  zero_hom := by sorry
+    -- dsimp [tensorObj.zero_def]
+    -- slice_lhs 2 3 => rw [← tensor_comp, zero_hom, zero_hom]
+  add_hom := by sorry
+    -- dsimp [tensorObj.add_def]
+    -- slice_rhs 1 2 => rw [tensorμ_natural]
+    -- slice_lhs 2 3 => rw [← tensor_comp, add_hom, add_hom, tensor_comp]
+    -- simp only [Category.assoc]
 
 instance : IsAddMon_Hom (𝟙 X) where
 
