@@ -54,6 +54,7 @@ lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:= C) n (add ≫ succ
   intro n
   refine mono_comp' ?_ ?_
   · sorry--apply pullback.snd_of_mono
+  · sorry
 
 noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
   sorry
@@ -73,6 +74,8 @@ noncomputable def isTerminalFinOne' : IsTerminal (fin one : C) := by
   apply IsTerminal.ofIso terminalIsTerminal
   unfold fin one
   apply IsPullback.isoPullback (C:= C)
+  sorry
+  sorry
   sorry
 
 def pairing (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=

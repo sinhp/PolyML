@@ -8,7 +8,6 @@ import Mathlib.Algebra.Ring.Defs
 import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Data.FinEnum
 
-
 variable {E B : Type*} (p : E → B)
 
 local notation "𝔼" => fun (b : B) => p ⁻¹' (Set.singleton b : Set B)

@@ -52,12 +52,12 @@ namespace AddMon_Class
 attribute [reassoc (attr := simp)] zero_add add_zero add_assoc
 
 /-- Transfers an instance of `Mon_Class` to `AddMon_Class` so that we can define `toSemiring`. -/
-instance fromMon_Class {X : C} [Mon_Class X] : AddMon_Class X where
-  zero := Mon_Class.one
-  add := Mon_Class.mul
-  zero_add := Mon_Class.one_mul X
-  add_zero := Mon_Class.mul_one X
-  add_assoc := Mon_Class.mul_assoc X
+instance fromMon_Class {X : C} [MonObj X] : AddMon_Class X where
+  zero := MonObj.one
+  add := MonObj.mul
+  zero_add := MonObj.one_mul X
+  add_zero := MonObj.mul_one X
+  add_assoc := MonObj.mul_assoc X
 
 @[simps]
 instance : AddMon_Class (𝟙_ C) where
