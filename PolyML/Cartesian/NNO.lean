@@ -193,9 +193,9 @@ def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
 
 /-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
 def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
-  exists_colimit := sorry
-
-
+  exists_colimit := by
+    constructor
+    exact colimitCocone X h
 
 end NNO
 

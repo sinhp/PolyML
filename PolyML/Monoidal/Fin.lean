@@ -7,6 +7,7 @@ Authors: Sina Hazratpour
 import PolyML.Monoidal.NNO
 import PolyML.Cartesian.NNO
 import PolyML.ForMathlib.Monoidal.Cartesian.Closed
+import Mathlib.CategoryTheory.Limits.Shapes.DisjointCoproduct
 
 
 /-
@@ -50,32 +51,55 @@ The left hand side vertical morphism is a monomorphism.
 -/
 noncomputable def fin (n : 𝟙_ C ⟶ N) := pullback n (add ≫ succ)
 
-lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:= C) n (add ≫ succ) ≫ fst N N) := by
+#check NNO.BinaryCoproduct
+
+lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:=C) n (add ≫ succ)) := by
   intro n
-  refine mono_comp' ?_ ?_
-  · sorry--apply pullback.snd_of_mono
-  · sorry
+  constructor
+  aesop_cat
+
+--#check isInitialOfPullbackOfCoproduct
+
+-- instance :  BinaryCoproductDisjoint (𝟙_ C) (N ⊗ N)
+--  := by {
+--   have := NNO.BinaryCoproduct (C:= C)
+--   unfold BinaryCoproduct at this
+--   unfold HasBinaryCoproduct at this
+--   sorry
+
+--  }
 
 noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
+  unfold fin
+  letI :  BinaryCoproductDisjoint (𝟙_ C) (N ⊗ N) := sorry
+  apply CategoryTheory.Limits.IsInitial.ofBinaryCoproductDisjointOfIsColimit
+    (C:=C) (f:=zero) (g:= add ≫ succ)
+  have := NNO.BinaryCoproduct (C:= C)
   sorry
 
 noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
   IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
 
+lemma s_is_mono : Mono NNO.succ (C:=C) := by {
+  sorry
+}
+
 /-- fin (n + 1) ≅ fin n + 1 -/
 def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
-  sorry
+  unfold fin
+  have : (N ⨿ 𝟙_ C) ⊗ N ≅ (N ⊗ N) ⨿ N := by {
+    apply NNO.BinaryCoproduct
+
+  }
 
 /-- fin 1 ≅ 1 -/
-def isTerminalFinOne : IsTerminal (fin one : C) := by sorry
+def isTerminalFinOne : IsTerminal (fin one : C) := by
+  sorry
 
 /-- fin 1 ≅ 1 -/
 noncomputable def isTerminalFinOne' : IsTerminal (fin one : C) := by
   apply IsTerminal.ofIso terminalIsTerminal
-  unfold fin one
-  apply IsPullback.isoPullback (C:= C)
-  sorry
-  sorry
+  unfold one
   sorry
 
 def pairing (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
@@ -84,6 +108,8 @@ def pairing (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
 /-- fin (m + n ) ≅ fin m + fin n -/
 def finSumIso [HasBinaryCoproducts C] (m n : 𝟙_ C ⟶ N) :
     fin (pairing m n ≫ NNO.add) ≅ fin m ⨿ fin n := by
+  unfold fin
+  unfold pairing
   sorry
 
 /-- fin (m . n) ≅ fin m ⊗ fin n -/
