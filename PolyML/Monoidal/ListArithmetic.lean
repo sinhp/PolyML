@@ -6,7 +6,7 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Adjunction.Mates
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monoidal.Mon_
-import PolyML.ForMathlib.Monoidal.Types.Basic
+import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 /-!
 # List Arithmetic Categories

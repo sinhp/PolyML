@@ -6,7 +6,7 @@ Authors: Sina Hazratpour
 
 import Mathlib.CategoryTheory.Limits.Shapes.IsTerminal
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
-import PolyML.ForMathlib.Monoidal.SemiCartesian
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import PolyML.ForMathlib.ConstantMorphism
 import Mathlib.CategoryTheory.Distributive.Monoidal
 
