@@ -6,7 +6,7 @@ Authors: Sina Hazratpour
 
 import PolyML.Monoidal.NNO
 import PolyML.Cartesian.NNO
-import PolyML.ForMathlib.Monoidal.Cartesian.Closed
+import Mathlib.CategoryTheory.Closed.Cartesian
 
 
 /-
