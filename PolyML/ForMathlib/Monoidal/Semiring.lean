@@ -17,67 +17,73 @@ universe v₁ v₂ u₁ u₂
 
 namespace CategoryTheory
 
-open Category MonoidalCategory Comon_Class Monad DistribLaw
+open Category MonoidalCategory ComonObj Monad DistribLaw
 
 variable {C : Type u₁} [Category.{v₁} C] [MonoidalCategory C] [BraidedCategory C]
 
-/-- Syntactic transfer of a commutative monoid to an additive commutative monoid. -/
-def AddCommMon_.fromCommMon_ (M : CommMon_ C) : AddCommMon_ C where
-  X := M.X
-  mon := @AddMon_Class.fromMon_Class _ _ _ _ M.mon
+attribute [local instance] AddMonObj.fromMonObj
 
-class Distrib_Class (X : C) [Comon_Class X] extends Mon_Class X, AddMon_Class X where
+attribute [local instance] IsAddCommMon.fromIsCommMon
+
+/-- Syntactic transfer of a commutative monoid to an additive commutative monoid. -/
+def AddCommMon.fromCommMon (M : CommMon C) : AddCommMon C where
+  X := M.X
+  mon := @AddMonObj.fromMonObj _ _ _ _ M.mon
+
+class DistribObj (X : C) [ComonObj X] extends MonObj X, AddMonObj X where
   left_distrib : Δ ▷ (X ⊗ X) ≫ tensorμ .. ≫ (mul ⊗ₘ mul) ≫ add = X ◁ add ≫ mul
   right_distrib : (X ⊗ X) ◁ Δ ≫ tensorμ .. ≫ (mul ⊗ₘ mul) ≫ add = add ▷ X ≫ mul
 
-class LeftDistrib_Class (X : C) [Comon_Class X] extends Mon_Class X, AddMon_Class X where
+class LeftDistribObj (X : C) [ComonObj X] extends MonObj X, AddMonObj X where
   left_distrib : Δ ▷ (X ⊗ X) ≫ tensorμ .. ≫ (mul ⊗ₘ mul) ≫ add = X ◁ add ≫ mul
 
-class RightDistrib_Class (X : C) [Comon_Class X] extends Mon_Class X, AddMon_Class X where
+class RightDistribObj (X : C) [ComonObj X] extends MonObj X, AddMonObj X where
   right_distrib : (X ⊗ X) ◁ Δ ≫ tensorμ .. ≫ (mul ⊗ₘ mul) ≫ add = add ▷ X ≫ mul
 
 alias mul_add := left_distrib
 
 alias add_mul := right_distrib
 
-instance (priority := 100) Distrib_Class.leftDistribClass (X : C) [Comon_Class X] [Distrib_Class X] :
-    LeftDistrib_Class X :=
-  ⟨Distrib_Class.left_distrib⟩
+instance (priority := 100) DistribObj.leftDistribClass (X : C) [ComonObj X] [DistribObj X] :
+    LeftDistribObj X :=
+  ⟨DistribObj.left_distrib⟩
 
-instance (priority := 100) Distrib_Class.rightDistribClass (X : C) [Comon_Class X] [Distrib_Class X] :
-    RightDistrib_Class X :=
-  ⟨Distrib_Class.right_distrib⟩
+instance (priority := 100) DistribObj.rightDistribClass (X : C) [ComonObj X] [DistribObj X] :
+    RightDistribObj X :=
+  ⟨DistribObj.right_distrib⟩
 
-namespace Distrib_Class
+namespace DistribObj
 
-instance : Distrib_Class (𝟙_ C) where
+attribute [local instance] instTensorUnit
+
+instance : DistribObj (𝟙_ C) where
   left_distrib := sorry
   right_distrib := sorry
 
-end Distrib_Class
+end DistribObj
 
-class Semiring_Class (X : C) extends Comon_Class X, AddMon_Class X, IsAddCommMon X, Mon_Class X,
-    Distrib_Class X where
+class SemiringObj (X : C) extends ComonObj X, AddMonObj X, IsAddCommMonObj X, MonObj X,
+    DistribObj X where
   zero_mul : zero ▷ X ≫ mul = (𝟙_ C) ◁ ε ≫ (λ_ _).hom ≫ zero
   mul_zero : X ◁ zero ≫ mul = ε ▷ (𝟙_ C) ≫ (ρ_ _).hom ≫ zero
 
-namespace Semiring_Class
+namespace SemiringObj
 
-@[simps]
-instance : Semiring_Class (𝟙_ C) where
-  zero_mul := by sorry
-  mul_zero := by sorry
+-- @[simps]
+-- instance : SemiringObj (𝟙_ C) where
+--   zero_mul := by sorry
+--   mul_zero := by sorry
 
-end Semiring_Class
+end SemiringObj
 
 section IsSemiring_Hom
 
-open scoped Semiring_Class
+open scoped SemiringObj
 
-variable {M N O : C} [Semiring_Class M] [Semiring_Class N] [Semiring_Class O]
+variable {M N O : C} [SemiringObj M] [SemiringObj N] [SemiringObj O]
 
 /-- The property that a morphism between monoid objects is a monoid morphism. -/
-class IsSemiring_Hom (f : M ⟶ N) extends IsComon_Hom f, IsAddMon_Hom f, IsMon_Hom f
+class IsSemiring_Hom (f : M ⟶ N) extends IsComonHom f, IsAddMonHom f, IsMonHom f
 
 instance : IsSemiring_Hom (𝟙 M) where
 
@@ -87,30 +93,33 @@ instance (f : M ≅ N) [IsSemiring_Hom f.hom] : IsSemiring_Hom f.inv where
 
 end IsSemiring_Hom
 
+
+instance : SemiringObj (𝟙_ C) := sorry
+
 variable (C) in
 /-- A semiring object internal to a monoidal category.
 -/
-structure Semiring_ where
+structure Semiring where
   /-- The underlying object in the ambient monoidal category -/
   X : C
-  [semiring : Semiring_Class X]
+  [semiring : SemiringObj X]
 
-attribute [instance] Semiring_.semiring
+attribute [instance] Semiring.semiring
 
-namespace Semiring_
+namespace Semiring
 
 variable (C) in
 /-- The trivial monoid object. We later show this is initial in `AddMon_ C`.
 -/
 @[simps!]
-def trivial : Semiring_ C := mk (𝟙_ C)
+def trivial : Semiring C := mk (𝟙_ C)
 
-instance : Inhabited (Semiring_ C) :=
+instance : Inhabited (Semiring C) :=
   ⟨trivial C⟩
 
 /-- A morphism of monoid objects. -/
 @[ext]
-structure Hom (M N : Semiring_ C) where
+structure Hom (M N : Semiring C) where
   /-- The underlying morphism -/
   hom : M.X ⟶ N.X
   [is_semiring_Hom : IsSemiring_Hom hom]
@@ -119,23 +128,23 @@ attribute [instance] Hom.is_semiring_Hom
 
 /-- The identity morphism on a monoid object. -/
 @[simps]
-def id (M : Semiring_ C) : Hom M M := ⟨𝟙 M.X⟩
+def id (M : Semiring C) : Hom M M := ⟨𝟙 M.X⟩
 
-instance homInhabited (M : Semiring_ C) : Inhabited (Hom M M) :=
+instance homInhabited (M : Semiring C) : Inhabited (Hom M M) :=
   ⟨id M⟩
 
 /-- Composition of morphisms of monoid objects. -/
 @[simps]
-def comp {M N O : Semiring_ C} (f : Hom M N) (g : Hom N O) : Hom M O where
+def comp {M N O : Semiring C} (f : Hom M N) (g : Hom N O) : Hom M O where
   hom := f.hom ≫ g.hom
   is_semiring_Hom := instIsSemiring_HomComp f.hom g.hom
 
-instance : Category (Semiring_ C) where
+instance : Category (Semiring C) where
   Hom M N := Hom M N
   id := id
   comp := comp
 
-end Semiring_
+end Semiring
 
 namespace AlgebraOfLiftingBagtoListAlgebraMonad
 
@@ -152,28 +161,28 @@ the list monad. -/
 def bagAlgebra : (bag.monad C).Algebra := sndAlg α
 
 /-- The monoid object associated to a list algebra. -/
-def mon : Mon_ C := list.Algebra.mon (listAlgebra α)
+def mon : Mon C := list.Algebra.mon (listAlgebra α)
 
-instance monClass : Mon_Class α.A.A := list.Algebra.monClass (listAlgebra α)
+instance monClass : MonObj α.A.A := list.Algebra.monClass (listAlgebra α)
 
 /-- The commutative monoid object associated to a bag algebra. -/
-def commMon : CommMon_ C := bag.Algebra.commMon (bagAlgebra α)
+def commMon : CommMon C := bag.Algebra.commMon (bagAlgebra α)
 
 /-- The additive commutative monoid object associated to a bag algebra.
 This is a syntactic copy of `commMon`. -/
-def addCommMon : AddCommMon_ C := AddCommMon_.fromCommMon_ (commMon α)
+def addCommMon : AddCommMon C := AddCommMon.fromCommMon (commMon α)
 
-instance addMonClass : AddMon_Class α.A.A := (addCommMon α).toAddMon_ |>.mon
+instance addMonClass : AddMonObj α.A.A := (addCommMon α).toAddMon |>.mon
 
-instance : IsAddCommMon α.A.A := addCommMon α |>.comm
+instance : IsAddCommMonObj α.A.A := addCommMon α |>.comm
 
 /-- The internal semiring object associated to an algebra of the lifted bag monad to the category
 of algebras of the list monad. -/
-def toSemiring [SemiCartesianMonoidalCategory C] : Semiring_ C where
+def toSemiring [SemiCartesianMonoidalCategory C] : Semiring C where
   X := α.A.A
   semiring :=
-    { toComon_Class := sorry
-      toDistrib_Class := sorry
+    { toComonObj := sorry
+      toDistribObj := sorry
       zero_mul := by
         sorry
       mul_zero := by
@@ -181,7 +190,7 @@ def toSemiring [SemiCartesianMonoidalCategory C] : Semiring_ C where
 
 /-- The equivalence of category of algebras of the lifted bag monad and the category of semiring objects. -/
 def liftListBagAlgebraSemiringEquivalence [SemiCartesianMonoidalCategory C] :
-    (Lift.monad (list.monad C) (bag.monad C)).Algebra ≌ Semiring_ C where
+    (Lift.monad (list.monad C) (bag.monad C)).Algebra ≌ Semiring C where
   functor := {
     obj α := toSemiring α
     map {α β} f := {

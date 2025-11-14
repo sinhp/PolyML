@@ -556,7 +556,7 @@ open SemiCartesianMonoidalCategory MorphismProperty
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
 theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : succ ▷ P ≫ r = r) {n : 𝟙_ C ⟶ N} :
-    r = (constMorphism (isTerminalTensorUnit) N n) ▷ P ≫ r := by
+    r = constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) N n ▷ P ≫ r := by
   sorry
 
 end const

@@ -20,21 +20,23 @@ namespace MorphismProperty
 def IsConstant : MorphismProperty C := fun {X Y} (f : X ⟶ Y) => ∀ {Z} (g h : Z ⟶ X), g ≫ f = h ≫ f
 section ConstantMorphism
 
-variable {T : C} (h : IsTerminal T)
+variable (T : C) (h : IsTerminal T := by infer_instance)
 
-def constMorphism (X : C) {Y : C} (y : T ⟶ Y) : X ⟶ Y := h.from X ≫ y
+def constMorphismFrom (X : C) {Y : C} (y : T ⟶ Y) : X ⟶ Y := h.from X ≫ y
 
 variable {X Y : C}
+
+variable {T}
 
 /-- A morphism `f : X ⟶ Y` is constant at `y : T ⟶ Y` if it factors through the terminal object via `y`. -/
 def ConstantAt (f : X ⟶ Y) (y : T ⟶ Y) : Prop := f = h.from X ≫ y
 
 theorem constant_isConstantAt (y : T ⟶ Y) :
-    ConstantAt h (constMorphism h X y) y := by
+    ConstantAt h (constMorphismFrom T h X y) y := by
   rfl
 
 theorem eq_constant_isConstantAt {f : X ⟶ Y} {y : T ⟶ Y} :
-    ConstantAt h f y ↔ f = constMorphism h X y := by
+    ConstantAt h f y ↔ f = constMorphismFrom T h X y := by
   rfl
 
 /-- The precomposition of a constant morphism with any morphism remains constant. -/
@@ -45,8 +47,8 @@ theorem isConstantAt_precompose {f : X ⟶ Y} {y : T ⟶ Y} (h_const : ConstantA
   simp [← assoc, IsTerminal.comp_from]
 
 theorem const_precompose {Z} {f : X ⟶ Y} {z : T ⟶ Z} :
-  f ≫ constMorphism h Y z = constMorphism h X z := by
-  rw [← eq_constant_isConstantAt]
+  f ≫ constMorphismFrom T h Y z = constMorphismFrom T h X z := by
+  rw [← eq_constant_isConstantAt h]
   apply isConstantAt_precompose
   apply constant_isConstantAt
 
@@ -77,8 +79,8 @@ instance : IsStableUnderComposition (C:= C) (Constant h) where
 
 /-- The postcomposition of a constant morphism with any morphism gives a constant morphism. -/
 theorem const_postcompose {Z} {z : T ⟶ Y} {g : Y ⟶ Z} :
-  constMorphism h X z ≫ g = constMorphism h X (z ≫ g) := by
-  rw [← eq_constant_isConstantAt]
+  constMorphismFrom T h X z ≫ g = constMorphismFrom T h X (z ≫ g) := by
+  rw [← eq_constant_isConstantAt h]
   apply isConstantAt_postcompose
   apply constant_isConstantAt
 

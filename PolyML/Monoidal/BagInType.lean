@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import PolyML.ForMathlib.Monoidal.Internal.Types.Basic
+import Mathlib.CategoryTheory.Monoidal.Internal.Types.Basic
 import Mathlib.Data.Finsupp.Weight
 import PolyML.Monoidal.FreeCommMon
 -- import PolyML.Deprecated.Cartesian.FreeCommMon

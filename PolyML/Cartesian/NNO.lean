@@ -50,7 +50,7 @@ section PR
 
 open MorphismProperty CartesianMonoidalCategory
 
-def fst_eq_prec {A : C} : fst N A = prec (SemiCartesianMonoidalCategory.constMorphism A zero) succ := by
+def fst_eq_prec {A : C} : fst N A = prec (constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) A zero) succ := by
   sorry
 
 /-- The diagonal morphism on an object `X`. -/
@@ -194,8 +194,6 @@ def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
 /-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
 def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
   exists_colimit := sorry
-
-
 
 end NNO
 

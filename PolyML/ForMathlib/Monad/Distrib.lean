@@ -5,7 +5,7 @@ Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Endofunctor.Algebra
 import Mathlib.CategoryTheory.Monad.Algebra
-import PolyML.ForMathlib.Monoidal.Cartesian.Basic
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Monoidal.End
 import PolyML.Monoidal.FreeCommMon
 import PolyML.Monoidal.BagInType
