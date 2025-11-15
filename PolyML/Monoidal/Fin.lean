@@ -51,8 +51,6 @@ The left hand side vertical morphism is a monomorphism.
 -/
 noncomputable def fin (n : 𝟙_ C ⟶ N) := pullback n (add ≫ succ)
 
-#check NNO.BinaryCoproduct
-
 lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:=C) n (add ≫ succ)) := by
   intro n
   constructor
@@ -71,7 +69,7 @@ lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:=C) n (add ≫ succ)
 
 noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
   unfold fin
-  letI :  BinaryCoproductDisjoint (𝟙_ C) (N ⊗ N) := sorry
+  letI : BinaryCoproductDisjoint (𝟙_ C) (N ⊗ N) := sorry
   apply CategoryTheory.Limits.IsInitial.ofBinaryCoproductDisjointOfIsColimit
     (C:=C) (f:=zero) (g:= add ≫ succ)
   have := NNO.BinaryCoproduct (C:= C)
@@ -88,9 +86,9 @@ lemma s_is_mono : Mono NNO.succ (C:=C) := by {
 def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
   unfold fin
   have : (N ⨿ 𝟙_ C) ⊗ N ≅ (N ⊗ N) ⨿ N := by {
-    apply NNO.BinaryCoproduct
-
+    sorry--apply NNO.BinaryCoproduct
   }
+  sorry
 
 /-- fin 1 ≅ 1 -/
 def isTerminalFinOne : IsTerminal (fin one : C) := by

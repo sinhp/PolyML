@@ -29,17 +29,16 @@ def mul' : (N : C) ⊗ N ⟶ N :=
   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
 
 theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
-  simp [mul']
-  sorry
+  simp [mul', ← assoc, zero_prec]
 
 -- SH: can the rhs be a simpler term involving `mul'`?
 theorem succ_mul' :
     succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
-  simp [mul']
-  sorry
+  simp [mul', ← assoc, succ_prec]
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
-  sorry
+  simp [one, succ_mul', assoc, assoc,succ_mul']
+  rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
   sorry
@@ -51,7 +50,13 @@ section PR
 open MorphismProperty CartesianMonoidalCategory
 
 def fst_eq_prec {A : C} : fst N A = prec (SemiCartesianMonoidalCategory.constMorphism A zero) succ := by
-  sorry
+  apply prec_uniq
+  · dsimp [SemiCartesianMonoidalCategory.constMorphism, constMorphism]
+    simp only [whiskerRight_fst]
+    rw [← assoc]
+    refine ?_ =≫ _
+    ext : 1
+  · simp only [whiskerRight_fst]
 
 /-- The diagonal morphism on an object `X`. -/
 private def δ' (X : C) : X ⟶ X ⊗ X :=
@@ -63,17 +68,19 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  refine ?_ =≫ (zero ⊗ₘ init)
+  aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
-  simp only [uprimrecAux]
-  rw [fst_eq_prec]
   sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
@@ -81,12 +88,58 @@ def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
-  simp [uprimrec, uprimrecAux]
-  sorry
+  dsimp [uprimrec]
+  simp only [← assoc, uprimrecAux_zero]
+  simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrec init step = δ' _ ≫ N ◁ (uprimrec init step) ≫ step := by
-  sorry
+  simp [uprimrec]
+  rw [← assoc]
+  rw [uprimrecAux_succ]
+  simp only [comp_lift, lift_snd]
+  rw [← assoc, ← assoc]
+  refine ?_ =≫ step
+  simp only [uprimrecAux, whiskerLeft_comp, whiskerLeft_rightUnitor_inv, assoc]
+  rw [← assoc, ← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  refine
+    (Iso.cancel_iso_inv_left (ρ_ N)
+          (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step))
+          (δ' N ▷ 𝟙_ C ≫
+            (α_ N N (𝟙_ C)).hom ≫
+              N ◁ prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step) ≫
+                N ◁ snd N X)).mpr
+      ?_
+  symm
+  apply prec_uniq
+  · dsimp [δ']
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.hom_inv_id_assoc]
+    rw [tensorHom_def]
+    rw [← rightUnitor_naturality]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id, Iso.cancel_iso_hom_left]
+    refine _ ≫= ?_
+    rw [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
+    refine
+      (Iso.cancel_iso_inv_left (ρ_ N)
+            (lift (𝟙 N) (𝟙 N) ▷ 𝟙_ C ≫
+              (α_ N N (𝟙_ C)).hom ≫
+                N ◁
+                    prec ((λ_ (𝟙_ C)).inv ≫ (ρ_ (𝟙_ C)).hom ≫ zero ≫ (ρ_ N).inv ≫ N ◁ init)
+                      (lift (fst N X ≫ succ) step) ≫
+                  N ◁ snd N X)
+            (N ◁ init)).mpr
+        ?_
+    simp only [whiskerRight_id, assoc]
+    rw [← rightUnitor_naturality]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+    refine (Iso.eq_inv_comp (ρ_ N)).mp ?_
+    sorry
+  · sorry
+
 
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
@@ -109,18 +162,45 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
   simp only [pred, uprimrec, uprimrecAux]
-  sorry
+  simp [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  rw [Eq.symm (assoc (zero ▷ 𝟙_ C)
+    (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
+  rw [zero_prec]
+  simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
+  unfold CartesianMonoidalCategory.toUnit
+  simp only [IsTerminal.from_self, id_comp]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
   simp only [pred, uprimrec, uprimrecAux]
+  simp [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  rw [Eq.symm (assoc (succ ▷ 𝟙_ C)
+    (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
+  rw [succ_prec]
   sorry
+  -- simp only [comp_lift, lift_snd]
+  -- refine (Iso.inv_comp_eq_id (ρ_ N)).mpr ?_
+  -- refine (Iso.comp_inv_eq_id (ρ_ N)).mp ?_
+  -- rw [assoc]
+  -- rw [rightUnitor_inv_naturality]
+  -- simp only [whiskerRight_id, Iso.inv_hom_id_assoc]
+  -- rw [← rightUnitor_inv_fst]
+  -- simp only [rightUnitor_inv_fst]
+
+
+
+  -- rw [rightUnitor_inv_naturality]
+
+
 
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
 
 theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
-  simp [sumUpTo']
-  sorry
+  simp [sumUpTo', uprimrec_zero]
 
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry
@@ -172,8 +252,12 @@ noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
 noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
   (succ ▷ N) ≫ le
 
-theorem zero_lt [HasBinaryCoproducts C] : zero ▷ (N : C) ≫ lt = fst _ _ ≫ true := by
+theorem zero_lt [HasBinaryCoproducts C] : zero ▷ (N : C) ≫ lt = fst _ _ ≫ true := by {
+  simp [lt, le, eq', eq'Aux]
   sorry
+
+
+}
 
 theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
   sorry
