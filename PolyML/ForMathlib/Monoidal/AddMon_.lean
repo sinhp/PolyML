@@ -11,7 +11,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Monoidal.Mon_
 
 /-!
-# The category of monoids in a monoidal category.
+# The category of additive monoids in a monoidal category.
 
 We define monoids in a monoidal category `C` and show that the category of monoids is equivalent to
 the category of lax monoidal functors from the unit monoidal category to `C`.  We also show that if
@@ -29,7 +29,7 @@ variable {C : Type u₁} [Category.{v₁} C] [MonoidalCategory.{v₁} C]
 
 When the monoidal category is preadditive, this is also sometimes called an "algebra object".
 -/
-class AddMon_Class (X : C) where
+class AddMonObj (X : C) where
   /-- The unit morphism of a monoid object. -/
   zero : 𝟙_ C ⟶ X
   /-- The addition morphism of a monoid object. -/
@@ -42,17 +42,22 @@ class AddMon_Class (X : C) where
   -- The heuristic is that unitors and associators "don't have much weight".
   add_assoc (X) : (add ▷ X) ≫ add = (α_ X X X).hom ≫ (X ◁ add) ≫ add := by aesop_cat
 
-namespace AddMon_Class
+namespace AddMonObj
 
-@[inherit_doc] scoped notation "μ" => AddMon_Class.add
-@[inherit_doc] scoped notation "μ["M"]" => AddMon_Class.add (X := M)
-@[inherit_doc] scoped notation "η" => AddMon_Class.zero
-@[inherit_doc] scoped notation "η["M"]" => AddMon_Class.zero (X := M)
+@[inherit_doc] scoped notation "μ" => AddMonObj.add
+@[inherit_doc] scoped notation "μ["M"]" => AddMonObj.add (X := M)
+@[inherit_doc] scoped notation "η" => AddMonObj.zero
+@[inherit_doc] scoped notation "η["M"]" => AddMonObj.zero (X := M)
 
 attribute [reassoc (attr := simp)] zero_add add_zero add_assoc
 
+<<<<<<< HEAD
 /-- Transfers an instance of `Mon_Class` to `AddMon_Class` so that we can define `toSemiring`. -/
 instance fromMon_Class {X : C} [MonObj X] : AddMon_Class X where
+=======
+/-- Transfers an instance of `Mon_Class` to `AddMonObj` so that we can define `toSemiring`. -/
+instance fromMon_Class {X : C} [MonObj X] : AddMonObj X where
+>>>>>>> ddc7348efaafb8c5c99f398650b670ef9bcf7a42
   zero := MonObj.one
   add := MonObj.mul
   zero_add := MonObj.one_mul X
@@ -60,24 +65,24 @@ instance fromMon_Class {X : C} [MonObj X] : AddMon_Class X where
   add_assoc := MonObj.mul_assoc X
 
 @[simps]
-instance : AddMon_Class (𝟙_ C) where
+instance : AddMonObj (𝟙_ C) where
   zero := 𝟙 _
   add := (λ_ _).hom
   add_assoc := by monoidal_coherence
   add_zero := by monoidal_coherence
 
 @[ext]
-theorem ext {X : C} (h₁ h₂ : AddMon_Class X) (H : h₁.add = h₂.add) : h₁ = h₂ := by
+theorem ext {X : C} (h₁ h₂ : AddMonObj X) (H : h₁.add = h₂.add) : h₁ = h₂ := by
   suffices h₁.zero = h₂.zero by cases h₁; cases h₂; subst H this; rfl
   trans (λ_ _).inv ≫ (h₁.zero ⊗ₘ h₂.zero) ≫ h₁.add
   · simp [tensorHom_def, H, ← unitors_equal]
   · simp [tensorHom_def']
 
-end AddMon_Class
+end AddMonObj
 
-open scoped AddMon_Class
+open scoped AddMonObj
 
-variable {M N O : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Class O]
+variable {M N O : C} [AddMonObj M] [AddMonObj N] [AddMonObj O]
 
 /-- The property that a morphism between monoid objects is a monoid morphism. -/
 class IsAddMon_Hom (f : M ⟶ N) : Prop where
@@ -90,7 +95,7 @@ instance : IsAddMon_Hom (𝟙 M) where
 
 instance (f : M ⟶ N) (g : N ⟶ O) [IsAddMon_Hom f] [IsAddMon_Hom g] : IsAddMon_Hom (f ≫ g) where
 
-instance {M N : C} [AddMon_Class M] [AddMon_Class N] (f : M ≅ N) [IsAddMon_Hom f.hom] :
+instance {M N : C} [AddMonObj M] [AddMonObj N] (f : M ≅ N) [IsAddMon_Hom f.hom] :
    IsAddMon_Hom f.inv where
   zero_hom := by simp [Iso.comp_inv_eq]
   add_hom := by simp [Iso.comp_inv_eq]
@@ -103,7 +108,7 @@ When the monoidal category is preadditive, this is also sometimes called an "alg
 structure AddMon_ where
   /-- The underlying object in the ambient monoidal category -/
   X : C
-  [mon : AddMon_Class X]
+  [mon : AddMonObj X]
 
 attribute [instance] AddMon_.mon
 
@@ -120,9 +125,9 @@ instance : Inhabited (AddMon_ C) :=
 
 end AddMon_
 
-namespace AddMon_Class
+namespace AddMonObj
 
-variable {M : C} [AddMon_Class M]
+variable {M : C} [AddMonObj M]
 
 @[simp]
 theorem zero_add_hom {Z : C} (f : Z ⟶ M) : (η[M] ⊗ₘ f) ≫ μ[M] = (λ_ Z).hom ≫ f := by
@@ -137,7 +142,7 @@ variable (M) in
 theorem add_assoc_flip : M ◁ μ ≫ μ = (α_ M M M).inv ≫ μ ▷ M ≫ μ := by
   simp
 
-end AddMon_Class
+end AddMonObj
 
 namespace AddMon_
 
@@ -258,11 +263,11 @@ variable
 namespace Functor
 
 section LaxMonoidal
-variable [F.LaxMonoidal] [F'.LaxMonoidal] [G.LaxMonoidal] (X Y : C) [AddMon_Class X] [AddMon_Class Y]
+variable [F.LaxMonoidal] [F'.LaxMonoidal] [G.LaxMonoidal] (X Y : C) [AddMonObj X] [AddMonObj Y]
   (f : X ⟶ Y) [IsAddMon_Hom f]
 
 /-- The image of a monoid object under a lax monoidal functor is a monoid object. -/
-abbrev addMon_ClassObj : AddMon_Class (F.obj X) where
+abbrev AddMonObjObj : AddMonObj (F.obj X) where
   zero := ε F ≫ F.map η
   add := LaxMonoidal.μ F X X ≫ F.map μ
   zero_add := by simp [← F.map_comp]
@@ -270,10 +275,10 @@ abbrev addMon_ClassObj : AddMon_Class (F.obj X) where
   add_assoc := by
     simp_rw [comp_whiskerRight, Category.assoc, μ_natural_left_assoc,
       MonoidalCategory.whiskerLeft_comp, Category.assoc, μ_natural_right_assoc]
-    slice_lhs 3 4 => rw [← F.map_comp, AddMon_Class.add_assoc]
+    slice_lhs 3 4 => rw [← F.map_comp, AddMonObj.add_assoc]
     simp
 
-scoped[Obj] attribute [instance] CategoryTheory.Functor.addMon_ClassObj
+scoped[Obj] attribute [instance] CategoryTheory.Functor.AddMonObjObj
 
 open scoped Obj
 
@@ -285,7 +290,7 @@ instance map.instIsAddMon_Hom : IsAddMon_Hom (F.map f) where
   zero_hom := by simp [← map_comp]
   add_hom := by simp [← map_comp]
 
-open AddMon_Class
+open AddMonObj
 
 -- TODO: mapMod F A : Mod A ⥤ Mod (F.mapAddMon A)
 variable (F) in
@@ -355,7 +360,7 @@ protected instance Full.mapAddMon [F.Full] [F.Faithful] : F.mapAddMon.Full where
     }, AddMon_.Hom.ext hg⟩
 
 instance FullyFaithful.isAddMon_Hom_preimage (hF : F.FullyFaithful) {X Y : C}
-    [AddMon_Class X] [AddMon_Class Y] (f : F.obj X ⟶ F.obj Y) [IsAddMon_Hom f] :
+    [AddMonObj X] [AddMonObj Y] (f : F.obj X ⟶ F.obj Y) [IsAddMon_Hom f] :
     IsAddMon_Hom (hF.preimage f) where
   zero_hom := hF.map_injective <| by simp [← obj.add_η_def_assoc, ← obj.add_η_def, ← cancel_epi (ε F)]
   add_hom := hF.map_injective <| by
@@ -494,7 +499,7 @@ def equivLaxMonoidalFunctorPUnit : LaxMonoidalFunctor (Discrete PUnit.{u + 1}) C
 
 end AddMon_
 
-namespace AddMon_Class
+namespace AddMonObj
 
 /-!
 In this section, we prove that the category of monoids in a braided monoidal category is monoidal.
@@ -539,7 +544,7 @@ which have also been proved in `Mathlib/CategoryTheory/Monoidal/Braided.lean`.
 -/
 
 -- The proofs that associators and unitors preserve monoid units don't require braiding.
-theorem zero_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Class P] :
+theorem zero_associator {M N P : C} [AddMonObj M] [AddMonObj N] [AddMonObj P] :
     ((λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ η[N]) ⊗ₘ η[P])) ≫ (α_ M N P).hom =
       (λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ (λ_ (𝟙_ C)).inv ≫ (η[N] ⊗ₘ η[P])) := by sorry
   -- simp only [Category.assoc, Iso.cancel_iso_inv_left]
@@ -551,11 +556,11 @@ theorem zero_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Cl
   -- slice_lhs 1 2 => rw [leftUnitor_inv_naturality]
   -- simp
 
-theorem zero_leftUnitor {M : C} [AddMon_Class M] :
+theorem zero_leftUnitor {M : C} [AddMonObj M] :
     ((λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ₘ η[M])) ≫ (λ_ M).hom = η := by
   simp
 
-theorem zero_rightUnitor {M : C} [AddMon_Class M] :
+theorem zero_rightUnitor {M : C} [AddMonObj M] :
     ((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ 𝟙 (𝟙_ C))) ≫ (ρ_ M).hom = η := by
   simp [← unitors_equal]
 
@@ -563,7 +568,7 @@ section BraidedCategory
 
 variable [BraidedCategory C]
 
-theorem AddMon_tensor_zero_add (M N : C) [AddMon_Class M] [AddMon_Class N] :
+theorem AddMon_tensor_zero_add (M N : C) [AddMonObj M] [AddMonObj N] :
     (((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ η[N])) ▷ (M ⊗ N)) ≫
         tensorμ M N M N ≫ (μ ⊗ₘ μ) =
       (λ_ (M ⊗ N)).hom := by sorry
@@ -573,7 +578,7 @@ theorem AddMon_tensor_zero_add (M N : C) [AddMon_Class M] [AddMon_Class N] :
   -- symm
   -- exact tensor_left_unitality M N
 
-theorem AddMon_tensor_add_zero (M N : C) [AddMon_Class M] [AddMon_Class N] :
+theorem AddMon_tensor_add_zero (M N : C) [AddMonObj M] [AddMonObj N] :
     (M ⊗ N) ◁ ((λ_ (𝟙_ C)).inv ≫ (η[M] ⊗ₘ η[N])) ≫
         tensorμ M N M N ≫ (μ[M] ⊗ₘ μ[N]) =
       (ρ_ (M ⊗ N)).hom := by sorry
@@ -583,7 +588,7 @@ theorem AddMon_tensor_add_zero (M N : C) [AddMon_Class M] [AddMon_Class N] :
   -- symm
   -- exact tensor_right_unitality M N
 
-theorem AddMon_tensor_add_assoc (M N : C) [AddMon_Class M] [AddMon_Class N] :
+theorem AddMon_tensor_add_assoc (M N : C) [AddMonObj M] [AddMonObj N] :
     ((tensorμ M N M N ≫ (μ ⊗ₘ μ)) ▷ (M ⊗ N)) ≫
         tensorμ M N M N ≫ (μ ⊗ₘ μ) =
       (α_ (M ⊗ N : C) (M ⊗ N) (M ⊗ N)).hom ≫
@@ -596,7 +601,7 @@ theorem AddMon_tensor_add_assoc (M N : C) [AddMon_Class M] [AddMon_Class N] :
   -- slice_lhs 3 4 => rw [← tensorμ_natural_right]
   -- simp
 
-theorem add_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Class P] :
+theorem add_associator {M N P : C} [AddMonObj M] [AddMonObj N] [AddMonObj P] :
     (tensorμ (M ⊗ N) P (M ⊗ N) P ≫
           (tensorμ M N M N ≫ (μ ⊗ₘ μ) ⊗ₘ μ)) ≫
         (α_ M N P).hom =
@@ -611,7 +616,7 @@ theorem add_associator {M N P : C} [AddMon_Class M] [AddMon_Class N] [AddMon_Cla
   -- slice_lhs 1 3 => rw [associator_monoidal]
   -- simp only [Category.assoc]
 
-theorem add_leftUnitor {M : C} [AddMon_Class M] :
+theorem add_leftUnitor {M : C} [AddMonObj M] :
     (tensorμ (𝟙_ C) M (𝟙_ C) M ≫ ((λ_ (𝟙_ C)).hom ⊗ₘ μ)) ≫ (λ_ M).hom =
       ((λ_ M).hom ⊗ₘ (λ_ M).hom) ≫ μ := by sorry
   -- rw [← Category.comp_id (λ_ (𝟙_ C)).hom, ← Category.id_comp μ, tensor_comp]
@@ -620,7 +625,7 @@ theorem add_leftUnitor {M : C} [AddMon_Class M] :
   -- slice_lhs 1 3 => rw [← leftUnitor_monoidal]
   -- simp only [Category.id_comp]
 
-theorem add_rightUnitor {M : C} [AddMon_Class M] :
+theorem add_rightUnitor {M : C} [AddMonObj M] :
     (tensorμ M (𝟙_ C) M (𝟙_ C) ≫ (μ ⊗ₘ (λ_ (𝟙_ C)).hom)) ≫ (ρ_ M).hom =
       ((ρ_ M).hom ⊗ₘ (ρ_ M).hom) ≫ μ := by sorry
   -- rw [← Category.id_comp μ, ← Category.comp_id (λ_ (𝟙_ C)).hom, tensor_comp]
@@ -634,7 +639,7 @@ namespace tensorObj
 -- We don't want `tensorObj.zero_def` to be simp as it would loop with `IsAddMon_Hom.zero_hom` applied
 -- to `(λ_ N.X).inv`.
 @[simps -isSimp]
-instance {M N : C} [AddMon_Class M] [AddMon_Class N] : AddMon_Class (M ⊗ N) where
+instance {M N : C} [AddMonObj M] [AddMonObj N] : AddMonObj (M ⊗ N) where
   zero := (λ_ (𝟙_ C)).inv ≫ (η ⊗ₘ η)
   add := tensorμ M N M N ≫ (μ ⊗ₘ μ)
   zero_add := AddMon_tensor_zero_add M N
@@ -645,7 +650,7 @@ end tensorObj
 
 open IsAddMon_Hom
 
-variable {X Y Z W : C} [AddMon_Class X] [AddMon_Class Y] [AddMon_Class Z] [AddMon_Class W]
+variable {X Y Z W : C} [AddMonObj X] [AddMonObj Y] [AddMonObj Z] [AddMonObj W]
 
 instance {f : X ⟶ Y} {g : Z ⟶ W} [IsAddMon_Hom f] [IsAddMon_Hom g] : IsAddMon_Hom (f ⊗ₘ g) where
   zero_hom := by sorry
@@ -676,14 +681,14 @@ instance : IsAddMon_Hom (λ_ X).hom :=
 instance : IsAddMon_Hom (ρ_ X).hom :=
   ⟨zero_rightUnitor, add_rightUnitor⟩
 
-theorem zero_braiding (X Y : C) [AddMon_Class X] [AddMon_Class Y] : η ≫ (β_ X Y).hom = η := by
+theorem zero_braiding (X Y : C) [AddMonObj X] [AddMonObj Y] : η ≫ (β_ X Y).hom = η := by
   simp only [tensorObj.zero_def, Category.assoc, BraidedCategory.braiding_naturality,
     braiding_tensorUnit_right, Iso.cancel_iso_inv_left]
   monoidal
 
 end BraidedCategory
 
-end AddMon_Class
+end AddMonObj
 
 namespace AddMon_
 
@@ -759,8 +764,8 @@ instance monMonoidal : MonoidalCategory (AddMon_ C) where
 -- We don't want `tensorObj.zero_def` to be simp as it would loop with `IsAddMon_Hom.zero_hom` applied
 -- to `(λ_ N.X).inv`.
 @[simps! -isSimp]
-instance {M N : C} [AddMon_Class M] [AddMon_Class N] : AddMon_Class (M ⊗ N) :=
-  inferInstanceAs <| AddMon_Class (AddMon_.mk M ⊗ AddMon_.mk N).X
+instance {M N : C} [AddMonObj M] [AddMonObj N] : AddMonObj (M ⊗ N) :=
+  inferInstanceAs <| AddMonObj (AddMon_.mk M ⊗ AddMon_.mk N).X
 
 variable (C)
 
@@ -793,9 +798,9 @@ section SymmetricCategory
 
 variable [SymmetricCategory C]
 
-namespace AddMon_Class
+namespace AddMonObj
 
-theorem add_braiding (X Y : C) [AddMon_Class X] [AddMon_Class Y] :
+theorem add_braiding (X Y : C) [AddMonObj X] [AddMonObj Y] :
     μ ≫ (β_ X Y).hom = ((β_ X Y).hom ⊗ₘ (β_ X Y).hom) ≫ μ := by
   dsimp [tensorObj.add_def]
   simp only [tensorμ, Category.assoc, BraidedCategory.braiding_naturality,
@@ -818,10 +823,10 @@ theorem add_braiding (X Y : C) [AddMon_Class X] [AddMon_Class Y] :
     rw [← tensorHom_def]
   simp only [Category.assoc]
 
-instance {X Y : C} [AddMon_Class X] [AddMon_Class Y] : IsAddMon_Hom (β_ X Y).hom :=
+instance {X Y : C} [AddMonObj X] [AddMonObj Y] : IsAddMon_Hom (β_ X Y).hom :=
   ⟨zero_braiding X Y, add_braiding X Y⟩
 
-end AddMon_Class
+end AddMonObj
 
 namespace AddMon_
 
@@ -840,10 +845,10 @@ section
 variable [BraidedCategory.{v₁} C]
 
 /-- Predicate for a monoid object to be commutative. -/
-class IsAddCommMon (X : C) [AddMon_Class X] where
+class IsAddCommMon (X : C) [AddMonObj X] where
   add_comm (X) : (β_ X X).hom ≫ μ = μ := by aesop_cat
 
-open scoped AddMon_Class
+open scoped AddMonObj
 
 namespace IsAddCommMon
 

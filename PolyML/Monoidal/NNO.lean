@@ -7,7 +7,6 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.Comon_
 import PolyML.Monoidal.ListArithmetic
 import PolyML.ForMathlib.Monoidal.Powers
-import PolyML.ForMathlib.Monoidal.SemiCartesian
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
 
@@ -499,7 +498,8 @@ theorem len_eq_rec_zero_snd_succ {A : C} :
     simp only [plist.cons_map]
     refine _ ≫= ?_
     dsimp [snd,list]
-    simp only [assoc, Iso.hom_inv_id_assoc]
+    sorry
+    --simp only [assoc, Iso.hom_inv_id_assoc]
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
@@ -552,11 +552,11 @@ section const
 
 variable {C} [SemiCartesianMonoidalCategory C] [NNO C]
 
-open SemiCartesianMonoidalCategory
+open SemiCartesianMonoidalCategory MorphismProperty
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
-theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : succ ▷ P ≫ r = r) {n} :
-    r = (constMorphism N n) ▷ P ≫ r := by
+theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : succ ▷ P ≫ r = r) {n : 𝟙_ C ⟶ N} :
+    r = (constMorphism (isTerminalTensorUnit) N n) ▷ P ≫ r := by
   sorry
 
 end const
