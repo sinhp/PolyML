@@ -29,17 +29,16 @@ def mul' : (N : C) ⊗ N ⟶ N :=
   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
 
 theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
-  simp [mul']
-  sorry
+  simp [mul', ← assoc, zero_prec]
 
 -- SH: can the rhs be a simpler term involving `mul'`?
 theorem succ_mul' :
     succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
-  simp [mul']
-  sorry
+  simp [mul', ← assoc, succ_prec]
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
-  sorry
+  simp [one, succ_mul', assoc, assoc,succ_mul']
+  rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
   sorry
@@ -51,7 +50,13 @@ section PR
 open MorphismProperty CartesianMonoidalCategory
 
 def fst_eq_prec {A : C} : fst N A = prec (constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) A zero) succ := by
-  sorry
+  apply prec_uniq
+  · dsimp [constMorphismFrom, constMorphismFrom]
+    simp only [whiskerRight_fst]
+    rw [← assoc]
+    refine ?_ =≫ _
+    ext : 1
+  · simp only [whiskerRight_fst]
 
 /-- The diagonal morphism on an object `X`. -/
 private def δ' (X : C) : X ⟶ X ⊗ X :=
@@ -63,12 +68,16 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  refine ?_ =≫ (zero ⊗ₘ init)
+  aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
@@ -81,8 +90,9 @@ def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
-  simp [uprimrec, uprimrecAux]
-  sorry
+  dsimp [uprimrec]
+  simp only [← assoc, uprimrecAux_zero]
+  simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrec init step = δ' _ ≫ N ◁ (uprimrec init step) ≫ step := by
@@ -109,7 +119,15 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
   simp only [pred, uprimrec, uprimrecAux]
-  sorry
+  simp [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  rw [Eq.symm (assoc (zero ▷ 𝟙_ C)
+    (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
+  rw [zero_prec]
+  simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
+  unfold CartesianMonoidalCategory.toUnit
+  simp only [IsTerminal.from_self, id_comp]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
@@ -119,8 +137,7 @@ theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
 
 theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
-  simp [sumUpTo']
-  sorry
+  simp [sumUpTo', uprimrec_zero]
 
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry
@@ -193,7 +210,9 @@ def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
 
 /-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
 def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
-  exists_colimit := sorry
+  exists_colimit := by
+    constructor
+    exact colimitCocone X h
 
 end NNO
 
