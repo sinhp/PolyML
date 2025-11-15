@@ -29,13 +29,13 @@ namespace PolyCat
 
 variable (pol : PolyCat (C:=C) (I:=I) (O:=O) (E:=E) (B:=B))
 
-variable {S : Semiring_ C}
+variable {S : Semiring C}
 
 def pullback (m : I ⟶ S.X) : E ⟶ S.X := pol.i ≫ m
 
 def list_aggregator : list S.X ⟶ S.X := Mon.aggregator { X := S.X }
 
--- --def bag_of_m (m : E ⟶ S.X) := bag.map m ≫ bag.aggregator
+--def bag_of_m (m : E ⟶ S.X) := bag.map m ≫ bag.aggregator
 
 -- -- def pushforward (m : E ⟶ S.X) : B ⟶ S.X :=
 -- --    _ |> bag.map m |> bag.aggregator
