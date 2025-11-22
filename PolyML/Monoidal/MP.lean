@@ -12,7 +12,7 @@ open Category CategoryTheory NNO Functor MonoidalCategory Mon_Class Limits CommM
 universe v u
 
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [BraidedCategory C]
-  [NNO C] [HasPullbacks C] [HasBinaryCoproducts C] [WithBags C] [ListArithmetic C]
+  [NNO C] [HasPullbacks C] [HasBinaryCoproducts C] [WithBags C] [ListArithmetic C] [ChosenPullbacks C]
 
 variable {I O E B : C}
 
@@ -20,7 +20,7 @@ structure PolyCat where
   i : E ⟶ I
   o : B ⟶ O
   p : E ⟶ B
-  [finFibres : HasFiniteFibres p]
+  [finFibres : FiniteFibres p]
 
 -- Make the instance available
 attribute [instance] PolyCat.finFibres

@@ -50,6 +50,14 @@ The left hand side vertical morphism is a monomorphism.
 -/
 def fin (n : 𝟙_ C ⟶ N) := pullbackObj n (add ≫ succ)
 
+
+def N_is_coprod (n : 𝟙_ C ⟶ N) :
+    IsColimit (BinaryCofan.mk n succ) := by sorry
+  -- show that N ≅ (⊤_ C ⊔ N) with suitable maps
+
+lemma s_mono (n : 𝟙_ C ⟶ N)
+  (h : IsColimit (BinaryCofan.mk n s)) : Mono succ (C:= C) := by {sorry}
+
 def isInitialFinZero : IsInitial (fin zero : C) := by sorry
 
 def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C := sorry

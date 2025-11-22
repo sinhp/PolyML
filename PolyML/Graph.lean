@@ -36,7 +36,14 @@ def sum {V₁ V₂ : C} (G₁ : GraphObj V₁) (G₂ : GraphObj V₂) : GraphObj
   source := coprod.map G₁.source G₂.source
   target := coprod.map G₁.target G₂.target
   finite_neighborhood := by
-      sorry
+    simp only [lift_snd]
+    constructor
+    · sorry
+    · refine coprod.desc ?_ ?_
+      · sorry
+      · sorry
+    · sorry
+
 
 /-- The product of two graph objects. -/
 def prod {V₁ V₂ : C} (G₁ : GraphObj V₁) (G₂ : GraphObj V₂) : GraphObj (V₁ ⊗ V₂) where
@@ -44,7 +51,11 @@ def prod {V₁ V₂ : C} (G₁ : GraphObj V₁) (G₂ : GraphObj V₂) : GraphOb
   source := G₁.source ⊗ₘ G₂.source
   target := G₁.target ⊗ₘ G₂.target
   finite_neighborhood := by
-    sorry
+    simp only [lift_snd]
+    constructor
+    · sorry
+    · sorry
+    · sorry
 
 /-- The empty graph object on vertex object V. -/
 def empty [HasInitial C] (V : C) : GraphObj V where
@@ -52,15 +63,21 @@ def empty [HasInitial C] (V : C) : GraphObj V where
   source := IsInitial.to (initialIsInitial) V
   target := IsInitial.to (initialIsInitial) V
   finite_neighborhood := by
-    sorry
+    simp only [lift_snd]
+    constructor
+    · sorry
+    · sorry
+    · sorry
 
 /-- The mirror opposite of a graph object, obtained by swapping source and target. -/
 def opposite {V : C} (G : GraphObj V) : GraphObj V where
   E := G.E
   source := G.target
   target := G.source
-  finite_neighborhood := by
-    sorry
+  finite_neighborhood := by {
+    refine { fibCard := ?_ , ext := ?_, isPullback := ?_ }
+
+  }
 
 /-- The symmetrization of a graph object, obtained by adding a reversed edge for each edge. -/
 def symmetrize {V : C} (G : GraphObj V) : GraphObj V where
