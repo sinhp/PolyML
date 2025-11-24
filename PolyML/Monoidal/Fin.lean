@@ -50,17 +50,38 @@ The left hand side vertical morphism is a monomorphism.
 -/
 def fin (n : 𝟙_ C ⟶ N) := pullbackObj n (add ≫ succ)
 
+lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:=C) n (add ≫ succ)) := by
+  intro n
+  constructor
+  aesop_cat
 
-def N_is_coprod (n : 𝟙_ C ⟶ N) :
+--#check isInitialOfPullbackOfCoproduct
+
+-- instance :  BinaryCoproductDisjoint (𝟙_ C) (N ⊗ N)
+--  := by {
+--   have := NNO.BinaryCoproduct (C:= C)
+--   unfold BinaryCoproduct at this
+--   unfold HasBinaryCoproduct at this
+--   sorry
+
+--  }
+
+
+def N_is_coprod (n :  𝟙_ C  ⟶ N) :
     IsColimit (BinaryCofan.mk n succ) := by sorry
-  -- show that N ≅ (⊤_ C ⊔ N) with suitable maps
+  -- show that N ≅ (𝟙_ C ⊔ N) with suitable maps
 
 lemma s_mono (n : 𝟙_ C ⟶ N)
   (h : IsColimit (BinaryCofan.mk n s)) : Mono succ (C:= C) := by {sorry}
 
-def isInitialFinZero : IsInitial (fin zero : C) := by sorry
+noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
+  unfold fin
+  have := NNO.BinaryCoproduct (C:= C) N
 
-def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C := sorry
+
+noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
+  IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
+
 
 /-- fin (n + 1) ≅ fin n + 1 -/
 def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by

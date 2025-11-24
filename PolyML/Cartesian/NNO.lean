@@ -85,6 +85,7 @@ theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   rw [fst_eq_prec]
   sorry
 
+
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
   uprimrecAux init step ≫ snd N X
 
@@ -141,7 +142,6 @@ theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
 
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry
-
 /-- The Subtraction morphism of natural numbers, truncated at `0`.-/
 def sub' : (N : C) ⊗ N ⟶ N := sorry
 
@@ -161,8 +161,8 @@ theorem max'_min'_add : lift max' min' ≫ add = add (C:= C) := by
 def eqZero' : N ⟶ (N : C) := (λ_ _).inv ≫ (one ▷ N) ≫ sub'
 
 theorem eqZero'_toBool_eq_toBool [HasBinaryCoproducts C] : eqZero' ≫ toBool C = toBool C := by
-  simp [eqZero']
   sorry
+
 
 /-- Testing for equality of two natural numbers.-/
 def eq'Aux : (N : C) ⊗ N ⟶ N :=  lift (sub' ≫ eqZero') (twist₁ N ≫ sub' ≫ eqZero') ≫ min'
@@ -195,17 +195,53 @@ theorem zero_lt [HasBinaryCoproducts C] : zero ▷ (N : C) ≫ lt = fst _ _ ≫ 
 theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
   sorry
 
-
-
 end operations
 
+noncomputable def new_zero [HasBinaryCoproducts C]  :
+    (𝟙_ C)  ⟶ ((𝟙_ C) ⨿ (N : C)) := by {
+  exact coprod.inl
+}
+noncomputable def new_succ [HasBinaryCoproducts C]  :
+   ((𝟙_ C) ⨿ (N : C)) ⟶ ((𝟙_ C) ⨿ (N : C)) := by {
+  exact 𝟙 (𝟙_ C ⨿ N)
+}
+
+def etc [HasBinaryCoproducts C] : IsNNO  new_zero new_succ (N := ((𝟙_ C) ⨿ (N : C))) where
+  prec := sorry
+  zero_prec := sorry
+  succ_prec := sorry
+  prec_uniq := sorry
+
+noncomputable def one_coprod_iso [HasBinaryCoproducts C]  :
+    ((𝟙_ C) ⨿ (N : C)) ≅ (N : C) :=
+{ hom := by {
+  refine coprod.desc ?_ ?_
+  exact zero
+  exact succ
+}
+  inv := coprod.inr
+  hom_inv_id := by {
+    simp only [coprod.desc_comp]
+    apply?
+    sorry
+  }
+  inv_hom_id := by
+    sorry
+    }
 
 /-- The diagram `T_C ⟶ T_C ⨿ N ⟵  T_C ⨿ N`  defines an nno. -/
-
-
 def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
-  cocone := sorry
-  isColimit := sorry
+  cocone :=
+{ pt := N
+  ι :=
+  { app := fun j =>
+  match j with
+  | Discrete.mk WalkingPair.left => by {
+    simp only [pair_obj_left, Functor.const_obj_obj]
+  }
+  | Discrete.mk WalkingPair.right => 𝟙 N } }
+  isColimit := by
+    refine BinaryCofan.IsColimit.mk (C:=C) ?_ ?_ ?_ ?_ ?_
 
 
 /-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
