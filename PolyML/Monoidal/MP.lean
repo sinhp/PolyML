@@ -35,7 +35,13 @@ def pullback (m : I ⟶ S.X) : E ⟶ S.X := pol.i ≫ m
 
 def list_aggregator : list S.X ⟶ S.X := Mon.aggregator { X := S.X }
 
---def bag_of_m (m : E ⟶ S.X) := bag.map m ≫ bag.aggregator
+def bag_map (m : E ⟶ S.X) : bag E ⟶ bag S.X := bag.map m
+
+def list_map (m : E ⟶ S.X) : list E ⟶ list S.X := list.map m
+
+#check bag.aggregator
+
+--def bag_of_m (m : E ⟶ S.X) : B ⟶ S.X := _ ≫ bag.map m ≫ _
 
 -- -- def pushforward (m : E ⟶ S.X) : B ⟶ S.X :=
 -- --    _ |> bag.map m |> bag.aggregator
@@ -54,8 +60,8 @@ def list_aggregator : list S.X ⟶ S.X := Mon.aggregator { X := S.X }
 -- `list S.X` for each fiber, which requires dependent products/types
 -- not fully defined in your files.
 -- -/
--- noncomputable def push_to_list (m : E ⟶ S.X) : B ⟶ list S.X :=
---   sorry -- This definition requires dependent products/fiberwise list construction
+noncomputable def push_to_list (m : E ⟶ S.X) : B ⟶ list S.X :=
+  sorry -- This definition requires dependent products/fiberwise list construction
 
 -- /--
 -- Categorical pushforward operation.

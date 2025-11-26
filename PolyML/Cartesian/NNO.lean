@@ -197,40 +197,11 @@ theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ �
 
 end operations
 
-noncomputable def new_zero [HasBinaryCoproducts C]  :
-    (𝟙_ C)  ⟶ ((𝟙_ C) ⨿ (N : C)) := by {
-  exact coprod.inl
-}
-noncomputable def new_succ [HasBinaryCoproducts C]  :
-   ((𝟙_ C) ⨿ (N : C)) ⟶ ((𝟙_ C) ⨿ (N : C)) := by {
-  exact 𝟙 (𝟙_ C ⨿ N)
-}
+noncomputable def one_coprod_cocone : BinaryCofan (𝟙_ C) N :=
+  IsFiltered.cocone (pair (𝟙_ C) N)
 
-def etc [HasBinaryCoproducts C] : IsNNO  new_zero new_succ (N := ((𝟙_ C) ⨿ (N : C))) where
-  prec := sorry
-  zero_prec := sorry
-  succ_prec := sorry
-  prec_uniq := sorry
-
-noncomputable def one_coprod_iso [HasBinaryCoproducts C]  :
-    ((𝟙_ C) ⨿ (N : C)) ≅ (N : C) :=
-{ hom := by {
-  refine coprod.desc ?_ ?_
-  exact zero
-  exact succ
-}
-  inv := coprod.inr
-  hom_inv_id := by {
-    simp only [coprod.desc_comp]
-    apply?
-    sorry
-  }
-  inv_hom_id := by
-    sorry
-    }
-
-/-- The diagram `T_C ⟶ T_C ⨿ N ⟵  T_C ⨿ N`  defines an nno. -/
-def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
+/-- The diagram `𝟙_ C → 𝟙_ C ⨿ N ← 𝟙_ C ⨿ N`  defines an nno. -/
+noncomputable def colimitCocone : ColimitCocone (pair (𝟙_ C) N) where
   cocone :=
 { pt := N
   ι :=
@@ -238,17 +209,39 @@ def colimitCocone (X : C) (h : IsTerminal X) : ColimitCocone (pair X N) where
   match j with
   | Discrete.mk WalkingPair.left => by {
     simp only [pair_obj_left, Functor.const_obj_obj]
+    exact zero
   }
-  | Discrete.mk WalkingPair.right => 𝟙 N } }
+  | Discrete.mk WalkingPair.right => by {
+    simp only [pair_obj_right, Functor.const_obj_obj]
+    exact succ
+  }
+    naturality := by {
+      intros X Y f
+      simp only [Functor.const_obj_obj, pair_obj_left, id_eq, pair_obj_right, Functor.const_obj_map,
+        comp_id]
+      sorry
+    }}
+  }
   isColimit := by
     refine BinaryCofan.IsColimit.mk (C:=C) ?_ ?_ ?_ ?_ ?_
+    intros X f g
+    simp only
+    · exact g
+    · intros X f g
+      simp only [pair_obj_left, Functor.const_obj_obj, id_eq]
+      sorry
+    · sorry
+    · sorry
+
+instance BinaryCoproduct : HasBinaryCoproduct (𝟙_ C) N where
+  exists_colimit := Nonempty.intro (colimitCocone)
 
 
-/-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
-def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
-  exists_colimit := by
-    constructor
-    exact colimitCocone X h
+-- /-- The diagram `𝟙_ C ← N → N` is a colimit diagram. -/
+-- def BinaryCoproduct (X : C) (h : IsTerminal X) : HasBinaryCoproduct X N where
+--   exists_colimit := by
+--     constructor
+--     exact colimitCocone (C:=C) X
 
 end NNO
 

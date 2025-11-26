@@ -8,6 +8,7 @@ import PolyML.Monoidal.NNO
 import PolyML.Cartesian.NNO
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.LocallyCartesianClosed.ChosenPullbacksAlong
+import Mathlib.CategoryTheory.Limits.Shapes.DisjointCoproduct
 
 /-
 In this file, we prove that in a list-arithmetic category, the list object `list A` is a free monoid on the object `A`.
@@ -65,23 +66,33 @@ lemma mono : ∀ (n : 𝟙_ C ⟶ N), Mono (pullback.snd (C:=C) n (add ≫ succ)
 --   sorry
 
 --  }
-
-
-def N_is_coprod (n :  𝟙_ C  ⟶ N) :
-    IsColimit (BinaryCofan.mk n succ) := by sorry
-  -- show that N ≅ (𝟙_ C ⊔ N) with suitable maps
+#check CategoryTheory.Limits.BinaryCoproductDisjoint.of_binaryCofan
 
 lemma s_mono (n : 𝟙_ C ⟶ N)
-  (h : IsColimit (BinaryCofan.mk n s)) : Mono succ (C:= C) := by {sorry}
+  (h : IsColimit (BinaryCofan.mk n s)) : Mono succ (C:= C) := sorry
 
 noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
   unfold fin
-  have := NNO.BinaryCoproduct (C:= C) N
-
+  letI := NNO.BinaryCoproduct (C:= C)
+  have : BinaryCoproductDisjoint (𝟙_ C) N := sorry
+  have hc : IsColimit (BinaryCofan.mk zero succ (C:=C)) := by {
+    have := colimitCocone.isColimit (C:=C)
+    sorry
+  }
+  -- canonical pullback cone of the coproduct injections 1 ⟶ 1 ⨿ N and N ⟶ 1 ⨿ N
+  have s :
+      PullbackCone (C:= C)
+        (coprod.inl : (𝟙_ C) ⟶ ((𝟙_ C) ⨿ N))
+        (coprod.inr : N ⟶ ((𝟙_ C) ⨿ N)) :=
+    pullback.cone
+      (C:= C)
+      (coprod.inl : (𝟙_ C) ⟶ ((𝟙_ C) ⨿ N))
+      (coprod.inr : N ⟶ ((𝟙_ C) ⨿ N))
+  have := CategoryTheory.Limits.IsInitial.ofBinaryCoproductDisjointOfIsLimit (s:=s)
+  sorry
 
 noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
   IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
-
 
 /-- fin (n + 1) ≅ fin n + 1 -/
 def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
@@ -93,7 +104,7 @@ def isTerminalFinOne : IsTerminal (fin one : C) := by sorry
 def pairing (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ (m ⊗ₘ n)
 
-/-- fin (m + n ) ≅ fin m + fin n -/
+/-- fin (m + n) ≅ fin m + fin n -/
 def finSumIso [HasBinaryCoproducts C] (m n : 𝟙_ C ⟶ N) :
     fin (pairing m n ≫ NNO.add) ≅ fin m ⨿ fin n := by
   sorry
