@@ -238,7 +238,7 @@ instance BinaryCoproduct : HasBinaryCoproduct (𝟙_ C) N where
 
 
 -- /-- The diagram `𝟙_ C ← N → N` is a colimit diagram. -/
--- def BinaryCoproduct (X : C) (h : IsTerminal X) : HasBinaryCoproduct X N where
+-- noncomputable def BinaryCoproduct (X : C) (h : IsTerminal X) : HasBinaryCoproduct X N where
 --   exists_colimit := by
 --     constructor
 --     exact colimitCocone (C:=C) X

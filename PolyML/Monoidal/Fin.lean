@@ -80,15 +80,7 @@ noncomputable def isInitialFinZero : IsInitial (fin zero : C) := by
     sorry
   }
   -- canonical pullback cone of the coproduct injections 1 ⟶ 1 ⨿ N and N ⟶ 1 ⨿ N
-  have s :
-      PullbackCone (C:= C)
-        (coprod.inl : (𝟙_ C) ⟶ ((𝟙_ C) ⨿ N))
-        (coprod.inr : N ⟶ ((𝟙_ C) ⨿ N)) :=
-    pullback.cone
-      (C:= C)
-      (coprod.inl : (𝟙_ C) ⟶ ((𝟙_ C) ⨿ N))
-      (coprod.inr : N ⟶ ((𝟙_ C) ⨿ N))
-  have := CategoryTheory.Limits.IsInitial.ofBinaryCoproductDisjointOfIsLimit (s:=s)
+  --have := CategoryTheory.Limits.IsInitial.ofBinaryCoproductDisjointOfIsLimit (s:=s)
   sorry
 
 noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
