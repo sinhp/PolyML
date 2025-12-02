@@ -31,9 +31,15 @@ universe v u
 --   snd_def (X Y : C) : SemiCartesianMonoidalCategory.snd X Y = isTerminalTensorUnit.from X ▷ Y ≫ (λ_ Y).hom := by aesop_cat
 
 
+-- TODO: CocartesianMonoidalCategory
+
+
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C] [ChosenPullbacks C]
 
 open ChosenPullbacksAlong
+
+/-- The universal map with finite fibres. -/
+def univMap : (N : C) ⊗ N ⟶ N := add ≫ succ
 
 /-- The cardinal finite objects in a category with pullbacks and NNO.
 We think of `fin n` as the the "set" of pairs `(a, b)` where `a + b + 1 = n`; There are exactly `n` such pairs.
@@ -48,11 +54,26 @@ fin n ------------------> 1
 ```
 The left hand side vertical morphism is a monomorphism.
 -/
-def fin (n : 𝟙_ C ⟶ N) := pullbackObj n (add ≫ succ)
+def fin (n : 𝟙_ C ⟶ N) := pullbackObj n univMap
 
 def isInitialFinZero : IsInitial (fin zero : C) := by sorry
 
-def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C := sorry
+@[simps pt]
+def binaryCofan : BinaryCofan (𝟙_ C) N where
+  pt := N
+  ι := {
+    app := fun
+          | ⟨.left⟩ => zero
+          | ⟨.right⟩ => succ
+    naturality := by sorry
+  }
+
+
+
+#check HasBinaryCoproduct
+
+noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
+  IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
 
 /-- fin (n + 1) ≅ fin n + 1 -/
 def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
@@ -97,13 +118,15 @@ finLt ------------------> 1
               lt
 ```
 -/
-noncomputable
-abbrev finLt [HasBinaryCoproducts C] := pullback (C:= C) bool.true NNO.lt
+noncomputable abbrev finLt [HasBinaryCoproducts C] := pullback (C:= C) bool.true NNO.lt
+
+def univMapIso [HasBinaryCoproducts C] :
+    Over.mk univMap ≅ Over.mk (pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N) := by
+  sorry
 
 variable (C) in
-noncomputable
-def univMap [HasBinaryCoproducts C] : finLt ⟶ (N : C) :=
-pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N
+noncomputable def univMap' [HasBinaryCoproducts C] : finLt ⟶ (N : C) :=
+  pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N
 
 /--
 The following square is a pullback square:
