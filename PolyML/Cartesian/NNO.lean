@@ -29,20 +29,38 @@ def mul' : (N : C) ⊗ N ⟶ N :=
   (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
 
 theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
-  simp [mul']
-  sorry
+  simp [mul', ← assoc, zero_prec]
 
 -- SH: can the rhs be a simpler term involving `mul'`?
 theorem succ_mul' :
     succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
-  simp [mul']
-  sorry
+  simp [mul', ← assoc, succ_prec]
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
-  sorry
+  simp [one, succ_mul', assoc, assoc,succ_mul']
+  rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
+
+#check leftUnitor_inv_naturality
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
-  sorry
+  simp [mul']
+  rw [← assoc]
+  refine ?_ =≫ _
+  apply prec_uniq
+  · simp only [BraidedCategory.braiding_naturality_left_assoc, braiding_tensorUnit_left, assoc,
+    Iso.hom_inv_id_assoc]
+    rw [prec_precompose]
+    refine (Iso.eq_inv_comp (λ_ N)).mp ?_
+    refine (Iso.inv_comp_eq (ρ_ N)).mpr ?_
+    apply Eq.symm
+    apply prec_uniq
+    · rw [← assoc, unitors_equal]
+      simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+    · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, comp_lift, zero_add, Iso.inv_hom_id,
+      comp_id, whiskerRight_snd, leftUnitor_inv_snd]
+      sorry
+  · simp only [BraidedCategory.braiding_naturality_left_assoc, comp_lift, assoc]
+    sorry
 
 -- instance semiring [ListArithmetic C] [WithBags C] : Semiring_ C := sorry
 
@@ -50,8 +68,14 @@ section PR
 
 open MorphismProperty CartesianMonoidalCategory
 
-def fst_eq_prec {A : C} : fst N A = prec (constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) A zero) succ := by
-  sorry
+def fst_eq_prec {A : C} : fst N A = prec (SemiCartesianMonoidalCategory.constMorphism A zero) succ := by
+  apply prec_uniq
+  · dsimp [SemiCartesianMonoidalCategory.constMorphism, constMorphism]
+    simp only [whiskerRight_fst]
+    rw [← assoc]
+    refine ?_ =≫ _
+    ext : 1
+  · simp only [whiskerRight_fst]
 
 /-- The diagonal morphism on an object `X`. -/
 private def δ' (X : C) : X ⟶ X ⊗ X :=
@@ -62,13 +86,17 @@ def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N 
 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
-  simp only [uprimrecAux]
-  sorry
+  dsimp [uprimrecAux]
+  rw [← assoc, rightUnitor_inv_naturality, assoc,zero_prec]
+  simp only [Iso.hom_inv_id_assoc]
+  refine ?_ =≫ (zero ⊗ₘ init)
+  aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
-  sorry
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
@@ -81,12 +109,35 @@ def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
-  simp [uprimrec, uprimrecAux]
-  sorry
+  dsimp [uprimrec]
+  simp only [← assoc, uprimrecAux_zero]
+  simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrec init step = δ' _ ≫ N ◁ (uprimrec init step) ≫ step := by
-  sorry
+  dsimp [uprimrec]
+  rw [← assoc, uprimrecAux_succ,δ']
+  simp only [comp_lift, lift_snd, whiskerLeft_comp, assoc, lift_whiskerLeft_assoc, id_comp]
+  refine ?_ =≫ _
+  dsimp [uprimrecAux]
+  refine (Iso.inv_comp_eq (ρ_ N)).mpr ?_
+  apply Eq.symm
+  apply prec_uniq
+  · simp only [whiskerRight_id, assoc, comp_lift, comp_id, Iso.hom_inv_id_assoc, Iso.inv_hom_id]
+    rw [← assoc]
+    rw [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
+    rw [comp_whiskerRight]
+    rw [assoc]
+    rw [← assoc (zero ▷ 𝟙_ C)  (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step))  (snd N X)]
+    rw [zero_prec]
+    simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.hom_inv_id_assoc, tensorHom_snd,
+      Iso.inv_hom_id_assoc]
+    rw [tensorHom_def]
+    simp only [whiskerRight_id, assoc]
+    sorry
+  · sorry
 
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
@@ -108,19 +159,23 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
-  simp only [pred, uprimrec, uprimrecAux]
-  sorry
+  simp [pred, uprimrec_zero]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
   simp only [pred, uprimrec, uprimrecAux]
+  rw [assoc, ← assoc, rightUnitor_inv_naturality, assoc]
+  rw [← assoc (succ ▷ 𝟙_ C) (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N)]
+  rw [succ_prec]
+  simp only [comp_lift, lift_snd]
+  refine (Iso.inv_comp_eq_id (ρ_ N)).mpr ?_
   sorry
+
 
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
 
 theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
-  simp [sumUpTo']
-  sorry
+  simp [sumUpTo', uprimrec_zero]
 
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry

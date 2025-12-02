@@ -195,8 +195,9 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
   apply prec_uniq
   · dsimp [toBool]
     have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prec inl constTrue) ≫ bool.toUnit =
-    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prec inl constTrue) ≫ bool.toUnit := by
+    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prec inl constTrue) ≫ bool.toUnit := by {
       simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
+    }
     rw [this]; clear this
     simp only [ Iso.hom_inv_id, id_comp, comp_id]
     rw [zero_prec]
@@ -205,8 +206,8 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
      BinaryCofan.ι_app_left, BinaryCofan.mk_inl, comp_id]
   · simp only [whiskerRight_id, assoc, comp_id]
     have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ bool.toUnit =
-    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by
-      simp only [assoc, Iso.inv_hom_id_assoc]
+    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by {
+      simp only [assoc, Iso.inv_hom_id_assoc]}
     rw [this]; clear this
     rw [rightUnitor_inv_naturality]
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
@@ -216,8 +217,8 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [rightUnitor_inv_naturality]
     rw [assoc, assoc]
     have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prec inl constTrue ≫ bool.toUnit=
-    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prec inl constTrue) ≫ bool.toUnit := by
-      simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prec inl constTrue) ≫ bool.toUnit := by {
+      simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]}
     rw [this]; clear this
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
     rw [← assoc,rightUnitor_inv_naturality]

@@ -149,6 +149,13 @@ theorem self_tensor_map_self_cons {B : C} {f : A ⟶ B} :
   refine ?_ =≫ μ
   sorry
 
+  --rw [tensorHom_def]
+  --rw [tensorHom_def]
+
+  --dsimp [singleton, bagMon,freeCommMon, map,endofunctor]
+
+
+
 def ofList [ListArithmetic C] : list A ⟶ bag A := list.lift (bag.singleton)
 
 theorem ofList_nil [ListArithmetic C] :
@@ -213,25 +220,85 @@ namespace Algebra
 
 /-- A commutative monoid structure on gives rise to an algebra for the `bag` monad. -/
 @[simps!]
-def ofCommMon (M : CommMon C) : (monad C).Algebra := commMonToBagAlgebraFunctor _ |>.obj M
+def ofCommMon (M : CommMon_ C) : Algebra (monad C) where
+  A := M.X
+  a := lift (𝟙 _)
+  unit := by {
+    have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
+     (WithBags.adj) (A:=M.X) (B:=M) (f:= (bagMon.lift (𝟙 M.X)))
+    dsimp [monad,lift]
+    simp only [CommMon_.forget_obj, Functor.id_obj, comp_obj,
+      CommMon_.forget_map, comp'] at this
+    rw [this]
+    exact rfl
+  }
+  assoc := by {
+    dsimp [monad,lift]
+    have h_nat := Adjunction.counit_naturality WithBags.adj (f:= (bagMon.lift (𝟙 M.X)))
+    have h_nat_C := congr_arg (CommMon_.forget C).map h_nat
+    simp only [CommMon_.forget_obj, Functor.id_obj,
+      CommMon_.forget_map, comp', comp_obj] at h_nat
+    have h_nat_hom := congr_arg (fun f => f.hom) h_nat
+    simp only [toMon__X, Mon_.comp_hom'] at h_nat_hom
+    dsimp [freeCommMon] at h_nat_hom
+    rw [← h_nat_hom]
+    dsimp [bagMon.lift,freeCommMon.lift]
+    congr
+    have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M)
+    simp only [CommMon_.forget_obj,forget₂Mon_] at this
+    rw [← this]
+    simp only [inducedFunctor_obj, toMon__X]
+    ext
+    rfl
+  }
 
-@[simp]
-theorem ofMon_a_eq {M : CommMon C} : (ofCommMon M).a = bag.lift (𝟙 M.X) := by
-  dsimp [ofCommMon, commMonToBagAlgebraFunctor, Monad.comparison]
-  have := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
-     (adj) (A:=M.X) (B:=M) (f:= (bagMon.lift (𝟙 M.X))) (𝟙 M.X)
-  dsimp [monad, lift]
-  simp only [Functor.map_id, id_comp] at this
-  symm
-  congr
-  apply this.mp
-  simpa using singleton_lift
+instance monClassOfAlgebra {α : Algebra (monad C)} :
+    Mon_Class ((monad C).obj α.A) := by
+  dsimp [monad_obj]
+  infer_instance
 
+--#check append_map
 /-- An algebra for the `bag` monad is a commutative monoid structure. -/
 instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
   one := nil ≫ α.a
   mul := (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
-  one_mul := sorry
+  one_mul := by {
+    simp only [forget₂Mon_obj_one, comp_whiskerRight, forget₂Mon_obj_mul, Category.assoc]
+    dsimp [singleton, bag,bagMon,freeCommMon]
+    have h1 := α.unit
+    have h2 := Monad.unit_naturality C (monad C) (α.a)
+    --have h3 := Monad.right_unit (monad C) (α.A)
+    --have h4 := Monad.left_unit (monad C) (α.A)
+
+    dsimp [monad] at *
+    dsimp [forget₂Mon_] at *
+    rw [tensorHom_def]
+    have H : α.a ▷ α.A ≫ (WithBags.adj.unit.app α.A ▷ α.A) =
+       WithBags.adj.unit.app (WithBags.functor.obj α.A).X ▷ α.A ≫ (WithBags.functor.map α.a).hom ▷ α.A:= by {
+        simp only [comp_obj, CommMon_.forget_obj, Functor.id_obj, toMon__X]
+        rw [← comp_whiskerRight]
+        rw [← comp_whiskerRight]
+        simp_all only [comp_whiskerRight]
+       }
+    simp only [comp_obj, CommMon_.forget_obj, Functor.id_obj, toMon__X] at *
+    have : η ▷ α.A ≫
+      α.a ▷ α.A ≫ (WithBags.adj.unit.app α.A ▷ α.A ≫
+        (WithBags.functor.obj α.A).X ◁ WithBags.adj.unit.app α.A) ≫ μ ≫ α.a =
+        η ▷ α.A ≫
+      (α.a ▷ α.A ≫ (WithBags.adj.unit.app α.A ▷ α.A)) ≫
+        (((WithBags.functor.obj α.A).X ◁ WithBags.adj.unit.app α.A) ≫ μ ≫ α.a) := by {simp only [forget₂Mon_obj_one,
+          comp_obj, CommMon_.forget_obj, Functor.id_obj, Category.assoc]}
+    have haunit : WithBags.adj.unit.app α.A ▷ α.A ≫ α.a ▷ α.A = 𝟙 α.A ▷ α.A := by {
+      rw [← comp_whiskerRight]
+      simp_all only [Functor.id_obj, comp_obj, CommMon_.forget_obj, id_whiskerRight]
+    }
+    rw [this, H]
+    sorry
+
+    --rw [this, H];clear this
+    --simp?
+
+  }
   mul_one := sorry
   mul_assoc := sorry
 
@@ -300,6 +367,26 @@ theorem aggregator_join : join ≫ aggregator M = (map <| aggregator M) ≫ aggr
 
 theorem aggregator_map {M' : CommMon C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
+  dsimp [aggregator]
+  dsimp [lift,map,endofunctor,bagMon.lift,freeCommMon.lift]
+  have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M)
+  simp only [CommMon_.forget_obj,forget₂Mon_] at *
+  simp only [inducedFunctor_obj, toMon__X] at this
+  have h_nat_hom := congr_arg (fun f => f.hom) this
+  simp only [toMon__X] at h_nat_hom
+  dsimp [freeCommMon]
+  rw [h_nat_hom]
+  have := Adjunction.homEquiv_symm_id WithBags.adj (C:=C) (X:=M')
+  simp only [CommMon_.forget_obj,forget₂Mon_] at *
+  simp only [inducedFunctor_obj, toMon__X] at this
+  have h_nat_hom' := congr_arg (fun f => f.hom) this
+  simp only [toMon__X] at h_nat_hom'
+  rw [h_nat_hom']
+  have := Adjunction.counit_naturality WithBags.adj (Y:=M') (X:=M)
+  let g : M ⟶ M' := by {
+    sorry
+  }
+  simp only [CommMon_.forget_obj, Functor.id_obj, CommMon_.forget_map, comp', comp_obj] at *
   sorry
 
 theorem aggregator_ofList [ListArithmetic C] {M' : CommMon C} :
