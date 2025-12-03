@@ -22,7 +22,7 @@ variable {C : Type u} [Category.{v} C]
 
 -- SH: prec for "parameterized" recursion.
 -- SH: usually params are on the left, although this becomes incompatible with plist.
-class IsNNO [MonoidalCategory C] {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
+class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
   prec {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
   zero_prec {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (zero ▷ P) ≫ prec f g = (λ_ P).hom ≫ f
   succ_prec {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prec f g = prec f g ≫ g
@@ -33,7 +33,7 @@ namespace IsNNO
 
 variable [MonoidalCategory C]
 
-variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsNNO zero succ]
+variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsNNO N zero succ]
 
 theorem congr_arg {P B : C} {f f' : P ⟶ B} {g g' : B ⟶ B}
     (h : f = f') (h' : g = g') :
@@ -43,7 +43,7 @@ theorem congr_arg {P B : C} {f f' : P ⟶ B} {g g' : B ⟶ B}
 
 /-- Any two natural number objects in a monoidal category are isomorphic. -/
 def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
-    [IsNNO zero succ] [IsNNO zero' succ'] : N ≅ N' where
+    [IsNNO N zero succ] [IsNNO N' zero' succ'] : N ≅ N' where
   hom := (ρ_ N).inv ≫ prec zero succ zero' succ'
   inv := (ρ_ N').inv ≫ prec zero' succ' zero succ
   hom_inv_id := sorry
@@ -62,11 +62,11 @@ class NNO [MonoidalCategory C] where
   /-- The successor morphism. -/
   succ : N ⟶ N
   /-- The natural number object satisfies the properties of a left natural number object. -/
-  [isNNO : IsNNO zero succ]
+  [isNNO : IsNNO N zero succ]
 
 -- @[inherit_doc] notation "N_" => NNO.N
 
-def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
+abbrev nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
 
 namespace NNO
 
@@ -74,7 +74,7 @@ open IsNNO
 
 variable {C} [MonoidalCategory C] [NNO C] {P B : C}
 
-instance : IsNNO (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
+instance : IsNNO N (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
   NNO.isNNO
 
 def prec (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B :=
@@ -275,8 +275,6 @@ theorem fromBool_toBool [HasBinaryCoproducts C] :
 
 section Comon
 
-variable [MonoidalCategory C] [NNO C]
-
 /-- Duplicates a natural number, it maps `n` to `n ⊗ n`. Note that this is not necessarily the diagonal morphism, it
 does not use the cartesian monoidal structure. -/
 def duplicate : (N : C) ⟶ N ⊗ N :=
@@ -306,16 +304,19 @@ def twist₀ : Twist P 0 := (λ_ P).hom ≫ (ρ_ P).inv
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist₁ : Twist P 1 := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
-theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
+instance : IsNNO ((N : C)^[1]) zero succ := sorry
+
+theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
   apply Eq.symm
-  apply prec_uniq
-  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
-    nth_rw 2 [← assoc, ← assoc]
-    refine ?_ =≫ _
-    rw [assoc, unitors_equal]
-    simp only [Iso.inv_hom_id, comp_id]
-  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
+  sorry
+  --apply prec_uniq
+  -- · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
+  --   nth_rw 2 [← assoc, ← assoc]
+  --   refine ?_ =≫ _
+  --   rw [assoc, unitors_equal]
+  --   simp only [Iso.inv_hom_id, comp_id]
+  -- · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
 theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
