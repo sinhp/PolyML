@@ -9,18 +9,9 @@ import PolyML.Monoidal.ListArithmetic
 import PolyML.ForMathlib.Monoidal.Powers
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Adjunction.Mates
 
->>>>>>> 68cafd8 (nnos)
-=======
-import Mathlib.CategoryTheory.Closed.Cartesian
-import Mathlib.CategoryTheory.Adjunction.Mates
-
->>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
 
 universe u v
 
@@ -42,12 +33,6 @@ class IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N
   prc_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
   (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prc f g
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-namespace IsNNO
-=======
-=======
->>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
 /-- Natural number object in a monoidal category. -/
 class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
   rc {B : C} (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B
@@ -96,16 +81,12 @@ def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (
       Iso.cancel_iso_hom_left]
     refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
     unfold MonoidalClosed.uncurry
-    unfold ihom.adjunction
-    sorry
+
+
   succ_prc := sorry
   prc_uniq := sorry
 
 namespace IsPNNO
-<<<<<<< HEAD
->>>>>>> 68cafd8 (nnos)
-=======
->>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
 
 variable [MonoidalCategory C]
 
@@ -380,13 +361,6 @@ def twist₀ : Twist P 0 := (λ_ P).hom ≫ (ρ_ P).inv
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist₁ : Twist P 1 := prc ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
-  dsimp [twist₁]
-  apply Eq.symm
-  apply prec_uniq
-=======
 instance : IsPNNO ((N : C)^[1]) zero succ where
   prc := fun {A B} f g => by
     unfold pow
@@ -413,35 +387,6 @@ theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _
   unfold pow
   dsimp [iteratedTensor]
   apply prc_uniq
->>>>>>> 68cafd8 (nnos)
-=======
-instance : IsPNNO ((N : C)^[1]) zero succ where
-  prc := fun {A B} f g => by
-    unfold pow
-    dsimp [iteratedTensor]
-    apply prc f g
-  zero_prc := by
-    intros B f g h
-    simp only [id_eq, zero_prc]
-  succ_prc := by
-    intros E F f g
-    simp only [id_eq]
-    rw [succ_prc]
-  prc_uniq := by
-    intros A D f g r hzero hsucc
-    unfold prc
-    simp only [id_eq]
-    rw [IsPNNO.prc_uniq (zero:=zero) (r:=r) (succ:=succ)]
-    · exact hzero
-    · exact hsucc
-
-theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
-  dsimp [twist₁]
-  apply Eq.symm
-  unfold pow
-  dsimp [iteratedTensor]
-  apply prc_uniq
->>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
   · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
     nth_rw 2 [← assoc, ← assoc]
     refine ?_ =≫ _
