@@ -70,10 +70,19 @@ def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N
       exact h_succ
 
 /- In monoidal closed categories, every natural number object is a parameterized natural number object. -/
-def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
+def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N)
+(succ : N ⟶ N)
     [IsNNO N zero succ] : IsPNNO N zero succ where
-  prc := fun {A B f g} => sorry
-  zero_prc := sorry
+  prc := fun {P B} f g => (β_ N P).hom ≫
+      (MonoidalClosed.uncurry <| rc zero succ ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
+  zero_prc := by
+    intros A B f g
+    simp only [BraidedCategory.braiding_naturality_left_assoc, braiding_tensorUnit_left, assoc,
+      Iso.cancel_iso_hom_left]
+    refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
+    unfold MonoidalClosed.uncurry
+    unfold ihom.adjunction
+    sorry
   succ_prc := sorry
   prc_uniq := sorry
 
