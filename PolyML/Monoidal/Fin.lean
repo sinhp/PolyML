@@ -68,6 +68,15 @@ def binaryCofan : BinaryCofan (𝟙_ C) N where
     naturality := by sorry
   }
 
+def isNNOPlusOne [HasBinaryCoproduct (𝟙_ C) N] :
+    IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
+  prec := _
+  zero_prec := _
+  succ_prec := _
+  prec_uniq := _
+
+
+
 
 
 #check HasBinaryCoproduct

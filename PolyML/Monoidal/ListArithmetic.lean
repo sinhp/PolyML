@@ -192,15 +192,15 @@ open Recursive
 
 variable [MonoidalCategory C] [Recursive C] {A P : C}
 
-/-r₀ : X ⟶ rec (A,X)-/
+/-r₀ : X ⟶ rc (A,X)-/
 def nil : P ⟶ plist A P := freeForgetAdj A |>.unit |>.app P
 
-/-r₁ : A × rec (A, X) ⟶ rec (A,X) -/
+/-r₁ : A × rc (A, X) ⟶ rc (A,X) -/
 def cons : A ⊗ plist A P ⟶ plist A P :=
   freeActionFunctor A |>.obj P |>.str
 
 /-- The recursor morphism obtained as an adjoint transpose. -/
-def rec {Y : C} (init : P ⟶ Y) (action : A ⊗ Y ⟶ Y) : plist A P ⟶ Y :=
+def rc {Y : C} (init : P ⟶ Y) (action : A ⊗ Y ⟶ Y) : plist A P ⟶ Y :=
   Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨Y, action⟩ |>.invFun init
 
 /-- `plist` is functorial in the parameter `P`. -/
@@ -234,38 +234,38 @@ instance map'_iso_of_iso {A P P' : C} (f : P ⟶ P') [h : IsIso f] :
   · rw [← map'_comp, hfinvl, map'_id']
   · rw [← map'_comp, hfinvr, map'_id']
 
-/- r₀ ≫ rec action init = init -/
+/- r₀ ≫ rc action init = init -/
 @[reassoc (attr := simp)]
-theorem nil_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    plist.nil ≫ plist.rec init action = init := by
-  dsimp [rec, nil, Adjunction.homEquiv]
+theorem nil_rc {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.nil ≫ plist.rc init action = init := by
+  dsimp [rc, nil, Adjunction.homEquiv]
   simp only [Functor.map_comp, Adjunction.unit_naturality_assoc,
     Adjunction.right_triangle_components, comp_id]
 
 @[reassoc (attr := simp)]
-theorem whiskerLeft_nil_whiskerLeft_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    A ◁ plist.nil ≫ A ◁ plist.rec init action = A ◁ init := by
-  rw [← whiskerLeft_comp A, nil_rec]
+theorem whiskerLeft_nil_whiskerLeft_rc {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    A ◁ plist.nil ≫ A ◁ plist.rc init action = A ◁ init := by
+  rw [← whiskerLeft_comp A, nil_rc]
 
 @[reassoc (attr := simp)]
-theorem whiskerRight_nil_whiskerRight_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    plist.nil ▷ A ≫ plist.rec init action ▷ A = init ▷ A := by
-  rw [← comp_whiskerRight _ _ A, nil_rec]
+theorem whiskerRight_nil_whiskerRight_rc {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.nil ▷ A ≫ plist.rc init action ▷ A = init ▷ A := by
+  rw [← comp_whiskerRight _ _ A, nil_rc]
 
 open CategoryTheory (Adjunction)
 
-theorem cons_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    plist.cons ≫ plist.rec init action = A ◁ plist.rec init action ≫ action := by
-  dsimp [rec, cons, Adjunction.homEquiv]
+theorem cons_rc {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.cons ≫ plist.rc init action = A ◁ plist.rc init action ≫ action := by
+  dsimp [rc, cons, Adjunction.homEquiv]
   simp only [Act.forget, Algebra.forget,← Act.hom, plist]
 
-theorem whiskerLeft_cons_whiskerLeft_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    A ◁ plist.cons ≫ A ◁ plist.rec init action = A ◁ (A ◁ plist.rec init action ≫ action) := by
-  rw [← whiskerLeft_comp A, cons_rec]
+theorem whiskerLeft_cons_whiskerLeft_rc {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    A ◁ plist.cons ≫ A ◁ plist.rc init action = A ◁ (A ◁ plist.rc init action ≫ action) := by
+  rw [← whiskerLeft_comp A, cons_rc]
 
-theorem whiskerRight_cons_whiskerRight_rec {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    plist.cons ▷ A ≫ plist.rec init action ▷ A = (A ◁ plist.rec init action ≫ action) ▷ A := by
-  rw [← comp_whiskerRight _ _ A, cons_rec]
+theorem whiskerRight_cons_whiskerRight_rc {Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    plist.cons ▷ A ≫ plist.rc init action ▷ A = (A ◁ plist.rc init action ≫ action) ▷ A := by
+  rw [← comp_whiskerRight _ _ A, cons_rc]
 
 -- *SH: not needed anymore*
 /--
@@ -282,29 +282,29 @@ theorem adjunction_hom_equiv_unique
   (adj.homEquiv X Y).bijective
 
 /-- Any morphism `r : plist A P ⟶ Y` which composes with `plist.nil` to `init` and
-composes with `plist.cons` to `A ◁ r ≫ action` is equal to `plist.rec init action`. -/
-theorem rec_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
+composes with `plist.cons` to `A ◁ r ≫ action` is equal to `plist.rc init action`. -/
+theorem rc_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
     (r : plist A P ⟶ Y) (h_nil : nil ≫ r = init) (h_cons : cons ≫ r = A ◁ r ≫ action) :
-    r = rec init action := by
+    r = rc init action := by
   let adj := freeForgetAdj A
   let rAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, action⟩ := ⟨r, h_cons.symm⟩
-  let recAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, action⟩ := ⟨rec init action, plist.cons_rec.symm⟩
-  have r_tr_eq_rec_tr : adj.homEquiv P ⟨Y, action⟩ rAlgHom = adj.homEquiv P ⟨Y, action⟩ recAlgHom := by
-    rwa [← nil_rec (init:= init) (action:= action)] at h_nil
-  injection adj.homEquiv .. |>.bijective.1 r_tr_eq_rec_tr
+  let rcAlgHom : (freeActionFunctor A).obj P ⟶ ⟨Y, action⟩ := ⟨rc init action, plist.cons_rc.symm⟩
+  have r_tr_eq_rc_tr : adj.homEquiv P ⟨Y, action⟩ rAlgHom = adj.homEquiv P ⟨Y, action⟩ rcAlgHom := by
+    rwa [← nil_rc (init:= init) (action:= action)] at h_nil
+  injection adj.homEquiv .. |>.bijective.1 r_tr_eq_rc_tr
 
 /-- If two morphisms `f, g : plist A P ⟶ Y` agree on `nil` and `cons`, then they are equal. -/
 theorem ext {A P Y : C} {f g : plist A P ⟶ Y} (h₀ : nil ≫ f = nil ≫ g)
   (h₁ : cons ≫ f = cons ≫ g)  : f = g := sorry
 
-theorem rec_nil_cons_id : rec nil cons = 𝟙 (plist A P) := by
-  rw [← rec_uniq]
-  · simp only [comp_id, whiskerLeft_id, id_comp, rec_uniq, nil_rec]
-  · simp only [comp_id, whiskerLeft_id, id_comp, rec_uniq, nil_rec]
+theorem rc_nil_cons_id : rc nil cons = 𝟙 (plist A P) := by
+  rw [← rc_uniq]
+  · simp only [comp_id, whiskerLeft_id, id_comp, rc_uniq, nil_rc]
+  · simp only [comp_id, whiskerLeft_id, id_comp, rc_uniq, nil_rc]
 
-theorem map'_eq_rec {A P P' : C} {f : P ⟶ P'} :
-    (plist.map' A f) = plist.rec (f ≫ plist.nil) plist.cons := by
-  refine rec_uniq (Act.forget.map (freeActionFunctor A |>.map f)) ?_ ?_
+theorem map'_eq_rc {A P P' : C} {f : P ⟶ P'} :
+    (plist.map' A f) = plist.rc (f ≫ plist.nil) plist.cons := by
+  refine rc_uniq (Act.forget.map (freeActionFunctor A |>.map f)) ?_ ?_
   · simp only [nil, Adjunction.unit_naturality]
   · simp only [cons, Act.forget, forget_map, Act.hom]
 
@@ -312,12 +312,12 @@ theorem map'_eq_rec {A P P' : C} {f : P ⟶ P'} :
 theorem map'_id (A : C) : plist.map' A (𝟙 _) = 𝟙 (plist A (𝟙_ C)) := by {
   dsimp [plist.map']
   simp only [Functor.map_id, comp_id, whiskerLeft_id, id_comp,
-    plist.rec_uniq, plist.nil_rec]
+    plist.rc_uniq, plist.nil_rc]
   exact rfl}
 
 /-- Covariant action of `plist` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `plist.map f : plist A P ⟶ plist B P`. -/
-def map {B : C} (f : A ⟶ B) : plist A P ⟶ plist B P := rec nil (f ▷ (plist B P) ≫ cons)
+def map {B : C} (f : A ⟶ B) : plist A P ⟶ plist B P := rc nil (f ▷ (plist B P) ≫ cons)
 
 /-- Covariant action of `plist` on morphisms can be obtained as image of the component of the
 natural transformation `Act.forget.map <| freeActionFunctorMapTriangle f` under the forgetful
@@ -334,13 +334,13 @@ theorem map_nat_trans {B : C} {f : A ⟶ B} :
 
 @[reassoc (attr := simp)]
 theorem nil_map {B: C} {f : A ⟶ B} : (nil : P ⟶ plist A P) ≫ map f = nil := by
-  simp only [map, nil_rec]
+  simp only [map, nil_rc]
 
 @[simp]
 theorem cons_map {B : C} {f : A ⟶ B} :
     (cons : A ⊗ plist A P ⟶ plist A P) ≫ map f =
     (A ◁ map f) ≫ (f ▷ plist B P) ≫ cons := by
-  simp only [map, cons_rec]
+  simp only [map, cons_rc]
 
 @[reassoc (attr := simp)]
 theorem whiskerLeft_nil_whiskerLeft_map {B : C} {f : A ⟶ B} :
@@ -355,23 +355,23 @@ theorem whiskerRight_nil_whiskerRight_map {B : C} {f : A ⟶ B} :
 @[simp]
 theorem map_id : map (𝟙 A) = 𝟙 (plist A P) := by
    dsimp [map]
-   simp only [id_whiskerRight, id_comp, nil_rec, comp_id, whiskerLeft_id, rec_uniq]
-   exact rec_nil_cons_id
+   simp only [id_whiskerRight, id_comp, nil_rc, comp_id, whiskerLeft_id, rc_uniq]
+   exact rc_nil_cons_id
 
 @[simp]
 theorem map_comp {A B B' P : C} (f : A ⟶ B) (g : B ⟶ B') :
     plist.map (P := P) (f ≫ g) = plist.map f ≫ plist.map g := by
   dsimp [map]
-  rw [← rec_uniq]
-  · rw [← assoc, nil_rec]
-    rw [nil_rec]
-  · rw [← assoc, cons_rec]
+  rw [← rc_uniq]
+  · rw [← assoc, nil_rc]
+    rw [nil_rc]
+  · rw [← assoc, cons_rc]
     simp only [assoc,whiskerLeft_comp, comp_whiskerRight]
-    rw [← assoc, cons_rec]
+    rw [← assoc, cons_rc]
     rw [assoc]
-    refine A ◁ rec nil (f ▷ plist B P ≫ cons) ≫= ?_
+    refine A ◁ rc nil (f ▷ plist B P ≫ cons) ≫= ?_
     exact
-      Eq.symm (whisker_exchange_assoc f (rec nil (g ▷ plist B' P ≫ cons)) (g ▷ plist B' P ≫ cons))
+      Eq.symm (whisker_exchange_assoc f (rc nil (g ▷ plist B' P ≫ cons)) (g ▷ plist B' P ≫ cons))
 
 variable (P)
 
@@ -387,7 +387,7 @@ variable (A)
 
 /-- The comparision morphism `plist A (P ⊗ X) ⟶ (plist A P) ⊗ X`. -/
 def cmp (X : C) : plist A (P ⊗ X) ⟶ (plist A P) ⊗ X :=
-  plist.rec (plist.nil ▷ X) ((α_ _ _ _).inv ≫ (plist.cons ▷ X))
+  plist.rc (plist.nil ▷ X) ((α_ _ _ _).inv ≫ (plist.cons ▷ X))
 
 variable {A P}
 
@@ -398,7 +398,7 @@ theorem nil_cmp {X : C} : plist.nil ≫ plist.cmp A P X = plist.nil ▷ X := by
 @[reassoc (attr := simp)]
 theorem cons_cmp {X : C} :
     plist.cons ≫ plist.cmp .. = (A ◁ plist.cmp A P X) ≫ ((α_ _ _ _).inv ≫ (plist.cons ▷ X)) := by
-  simp [cmp, plist.cons_rec]
+  simp [cmp, plist.cons_rc]
 
 end plist
 
@@ -416,18 +416,18 @@ def nil : 𝟙_ C ⟶ list A := plist.nil (P := 𝟙_ C)
 /- cons : A × list A ⟶ list A -/
 def cons : A ⊗ list A ⟶ list A := plist.cons (P := 𝟙_ C)
 
-/-- The weak non-parametized recursion scheme for the list object. See `list.prec` for the
+/-- The weak non-parametized recursion scheme for the list object. See `list.prc` for the
 parameterized version. -/
-def rec {Y : C} (init : 𝟙_ C ⟶ Y) (action : A ⊗ Y ⟶ Y) : list A ⟶ Y := plist.rec init action
+def rc {Y : C} (init : 𝟙_ C ⟶ Y) (action : A ⊗ Y ⟶ Y) : list A ⟶ Y := plist.rc init action
 
 -- [a, b, c].foldr f init  = f a (f b (f c init))
-def foldr {Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rec e f
+def foldr {Y : C} (f : A ⊗ Y ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y := plist.rc e f
 
 -- SH: I don't think this is foldl. It gives
 -- [a, b, c].foldl f init  = f (f (f init c) b) a`
 -- while it should be f (f (f init a) b) c
 def foldl [BraidedCategory C] {Y : C} (f : Y ⊗ A ⟶ Y) (e : 𝟙_ C ⟶ Y) : list A ⟶ Y :=
-  plist.rec e ((β_ A Y).hom ≫ f)
+  plist.rc e ((β_ A Y).hom ≫ f)
 
 def map {B : C} (f : A ⟶ B) : list A ⟶ list B := plist.map (P := 𝟙_ C) f
 
@@ -502,7 +502,7 @@ def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id]
     rw [plist.map'_id_tensor]
-    simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq, plist.nil_rec]
+    simp only [comp_id, whiskerLeft_id, id_comp, plist.rc_uniq, plist.nil_rc]
   inv_hom_id := by
     refine (comp_hom_eq_id (plist.map' A (λ_ P).inv ≫ plist.cmp A (𝟙_ C) P)).mpr ?_
     have := ListArithmetic.hom_inv_id (A:= A) (P:= (𝟙_ C)) (Y:= P)
@@ -511,14 +511,14 @@ def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
     rw [← this]
     rw [← plist.map'_comp]
     simp only [Iso.hom_inv_id, plist.map'_id_tensor, comp_id, whiskerLeft_id, id_comp,
-      plist.rec_uniq, plist.nil_rec]
+      plist.rc_uniq, plist.nil_rc]
 
 /-- Paramterized recursion scheme for the list object in a list-arithmetic category. -/
-def list.prec {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y :=
-  (plistIsoTensor A P).inv ≫ plist.rec e a
+def list.prc {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y :=
+  (plistIsoTensor A P).inv ≫ plist.rc e a
 
-theorem list.prec_rec {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
-    (ρ_ (list A)).inv ≫ list.prec e a = list.rec e a := by
+theorem list.prc_rc {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
+    (ρ_ (list A)).inv ≫ list.prc e a = list.rc e a := by
   sorry
 
 namespace list
@@ -527,61 +527,61 @@ local notation "η" => list.singleton
 
 /--
 ```
-     nil⊗P              prec
+     nil⊗P              prc
 1 ⊗ P ----> list A ⊗ P -----> Y
   |            |              |
 ≅ |            | ≅            |
   |            |              |
   P  -----> plist A P  ---->  Y
-      nil               rec
+      nil               rc
 ```
 -/
 @[reassoc (attr := simp)]
-theorem nil_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    (list.nil ▷ P) ≫ list.prec init action = (λ_ P).hom ≫ init := by
-  dsimp [prec]
-  nth_rw 2 [← plist.nil_rec (init := init) (action := action)]
+theorem nil_prc {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    (list.nil ▷ P) ≫ list.prc init action = (λ_ P).hom ≫ init := by
+  dsimp [prc]
+  nth_rw 2 [← plist.nil_rc (init := init) (action := action)]
   rw [← assoc]
   rw [← assoc]
-  refine ?_ =≫ plist.rec init action
+  refine ?_ =≫ plist.rc init action
   refine (Iso.comp_inv_eq (plistIsoTensor A P)).mpr ?_
   simp only [assoc]
   dsimp [list.nil, plistIsoTensor]
-  rw [plist.map'_eq_rec]
+  rw [plist.map'_eq_rc]
   dsimp [plist.cmp]
-  simp only [plist.nil_rec, plist.nil_rec_assoc, assoc, Iso.hom_inv_id_assoc]
+  simp only [plist.nil_rc, plist.nil_rc_assoc, assoc, Iso.hom_inv_id_assoc]
 
-theorem cons_prec {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-    (list.cons ▷ P) ≫ list.prec init action = (α_ _ _ _).hom ≫ (A ◁ list.prec init action) ≫ action := by
-  dsimp [prec,cons]
+theorem cons_prc {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
+    (list.cons ▷ P) ≫ list.prc init action = (α_ _ _ _).hom ≫ (A ◁ list.prc init action) ≫ action := by
+  dsimp [prc,cons]
   sorry
 
 @[simp]
-theorem prec_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
+theorem prc_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
     (r : list A ⊗ P ⟶ Y) (h_nil : nil ▷ P ≫ r = (λ_ _).hom ≫ init)
     (h_cons : cons ▷ P ≫ r = (α_ _ _ _).hom ≫ (A ◁ r) ≫ action) :
-    r = prec init action := by
+    r = prc init action := by
   simp [nil, cons] at *
   refine (Iso.eq_inv_comp (plistIsoTensor A P)).mpr ?_
-  rw [plist.rec_uniq (r:= (plistIsoTensor A P).hom ≫ r)]
+  rw [plist.rc_uniq (r:= (plistIsoTensor A P).hom ≫ r)]
   · dsimp [plistIsoTensor]
-    rw [← assoc,← assoc, plist.map'_eq_rec]
-    simp only [plist.nil_rec, assoc, plist.nil_cmp]
+    rw [← assoc,← assoc, plist.map'_eq_rc]
+    simp only [plist.nil_rc, assoc, plist.nil_cmp]
     rw [h_nil]
     simp only [Iso.inv_hom_id_assoc]
   · simp only [whiskerLeft_comp, assoc]
     dsimp [plistIsoTensor]
-    rw [plist.map'_eq_rec]
-    rw [← assoc, ← assoc, plist.cons_rec]
+    rw [plist.map'_eq_rc]
+    rw [← assoc, ← assoc, plist.cons_rc]
     simp only [assoc, plist.cons_cmp, whiskerLeft_comp]
     rw [h_cons]
     dsimp [list]
     simp only [Iso.inv_hom_id_assoc]
 
-def pfoldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prec e a
+def pfoldr {A P Y : C} (a : A ⊗ Y ⟶ Y) (e : P ⟶ Y) : list A ⊗ P ⟶ Y := list.prc e a
 
 /-- Appends two lists. -/
-def append {A : C} : list A ⊗ list A ⟶ list A := list.prec (𝟙 _) (list.cons)
+def append {A : C} : list A ⊗ list A ⟶ list A := list.prc (𝟙 _) (list.cons)
 
 -- [] ++ xs = xs
 @[reassoc (attr := simp)]
@@ -607,13 +607,13 @@ theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
   dsimp [append,list.singleton]
   simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc]
-  rw [cons_prec]
+  rw [cons_prc]
   have : A ◁ (λ_ (list A)).inv ≫
     A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
-    (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons ≫ cons=
+    (α_ A (list A) (list A)).hom ≫ A ◁ prc (𝟙 (list A)) cons ≫ cons=
     A ◁ (λ_ (list A)).inv ≫
     (A ◁ nil ▷ list A ≫ (α_ A (list A) (list A)).inv ≫
-     (α_ A (list A) (list A)).hom ≫ A ◁ prec (𝟙 (list A)) cons) ≫ cons :=
+     (α_ A (list A) (list A)).hom ≫ A ◁ prc (𝟙 (list A)) cons) ≫ cons :=
        by {simp only [Iso.inv_hom_id_assoc, assoc]}
   rw [this]
   clear this
@@ -623,27 +623,27 @@ theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
   refine (inv_comp_eq_id (A ◁ (λ_ (plist A (𝟙_ C))).hom)).mp ?_
   simp only [inv_whiskerLeft, IsIso.Iso.inv_hom]
   have {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
-     nil ▷ P ≫ prec init action = (λ_ P).hom ≫ init := nil_prec
+     nil ▷ P ≫ prc init action = (λ_ P).hom ≫ init := nil_prc
   rw [← whiskerLeft_comp]
-  rw [nil_prec]
+  rw [nil_prc]
   dsimp [list]
-  simp only [comp_id, whiskerLeft_id, id_comp, plist.rec_uniq,
-    plist.nil_rec, whiskerLeft_inv_hom]
+  simp only [comp_id, whiskerLeft_id, id_comp, plist.rc_uniq,
+    plist.nil_rc, whiskerLeft_inv_hom]
 
 def snoc {A : C} : list A ⊗ A ⟶ list A := (list A ◁ singleton) ≫ append
 
 theorem braiding_hom_list_unit_twist [BraidedCategory C] {P : C} :
-    (β_ (list (𝟙_ C)) P).hom = list.prec ((ρ_ P).inv ≫ P ◁ (list.nil (A:= 𝟙_C))) (λ_ _).hom := by
+    (β_ (list (𝟙_ C)) P).hom = list.prc ((ρ_ P).inv ≫ P ◁ (list.nil (A:= 𝟙_C))) (λ_ _).hom := by
   sorry
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] {A : C} : list A ⟶ list A :=
-  list.rec list.nil ((η ▷ list A) ≫ (β_ _ _).hom ≫ append)
+  list.rc list.nil ((η ▷ list A) ≫ (β_ _ _).hom ≫ append)
 
 /- rev_nil [] = [] -/
 theorem nil_rev [BraidedCategory C] {A : C} : list.nil ≫ rev = list.nil (A := A) := by
-  dsimp [rev, list.nil, list.rec]
-  simp only [plist.nil_rec]
+  dsimp [rev, list.nil, list.rc]
+  simp only [plist.nil_rc]
 
 /- rev [x] = [x] -/
 theorem singleton_rev_eq_singleton [BraidedCategory C] {A : C} : η ≫ rev (A := A) = η := by
@@ -666,7 +666,7 @@ theorem rev_rev [BraidedCategory C] {A : C} : list.rev ≫ list.rev = 𝟙 (list
   sorry
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
-def flatten {A : C} : list (list A) ⟶ list A := list.rec list.nil list.append
+def flatten {A : C} : list (list A) ⟶ list A := list.rc list.nil list.append
 
 end list
 
@@ -798,20 +798,20 @@ noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoprodu
   cons := list.cons
   split := by {
     dsimp [list]
-    refine plist.rec ?_ ?_
+    refine plist.rc ?_ ?_
     · exact coprod.inl
     · have i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
       have Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
         𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
       exact Axecons ≫ i₂
     }
-  nil_split := plist.nil_rec
+  nil_split := plist.nil_rc
   cons_split := by {
     dsimp
     let Axecons : A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ A ⊗ plist A (𝟙_ C) :=
         𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
     let i₂ := coprod.inr (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
-    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let f := plist.rc coprod.inl (Axecons ≫ i₂)
     let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
      coprod.desc plist.nil plist.cons
     let i₁ := coprod.inl (X := 𝟙_ C) (Y := A ⊗ plist A (𝟙_ C))
@@ -819,15 +819,15 @@ noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoprodu
     let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
     have : f ≫ econs = 𝟙 (list A) := by {
       dsimp [list]
-      rw [← plist.rec_nil_cons_id]
-      rw [← plist.rec_uniq]
+      rw [← plist.rc_nil_cons_id]
+      rw [← plist.rc_uniq]
       · dsimp [f, econs]
-        simp only [plist.nil_rec_assoc]
+        simp only [plist.nil_rc_assoc]
         simp only [colimit.ι_desc, BinaryCofan.mk_pt,
           BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
       · rw [← assoc]
         dsimp [f, econs, Axecons, i₂]
-        rw [plist.cons_rec]
+        rw [plist.cons_rc]
         simp only [assoc, whiskerLeft_comp]
         simp only [id_tensorHom]
         simp only [colimit.ι_desc, BinaryCofan.mk_pt,
@@ -836,7 +836,7 @@ noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoprodu
     have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
       dsimp [f, Axf, Axecons, i₂,list.cons]
       simp only [id_tensorHom]
-      rw [plist.cons_rec]
+      rw [plist.cons_rc]
     }
     change cons ≫ f = coprod.inr (C:=C)
     rw [topSqComm]
@@ -860,19 +860,19 @@ noncomputable instance list.semirecursive [MonoidalCategory C] [HasBinaryCoprodu
     let econs : (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) ⟶ plist A (𝟙_ C) :=
      coprod.desc plist.nil plist.cons
     let Axecons := 𝟙 A ⊗ₘ econs
-    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let f := plist.rc coprod.inl (Axecons ≫ i₂)
     change f ≫ econs = 𝟙 (list A)
     let Axf : A ⊗ list A ⟶ A ⊗ (𝟙_ C ⨿ A ⊗ plist A (𝟙_ C)) := 𝟙 A ⊗ₘ f
     dsimp [list]
-    rw [← plist.rec_nil_cons_id]
-    rw [← plist.rec_uniq]
+    rw [← plist.rc_nil_cons_id]
+    rw [← plist.rc_uniq]
     · dsimp [f, econs]
-      simp only [plist.nil_rec_assoc]
+      simp only [plist.nil_rc_assoc]
       simp only [colimit.ι_desc, BinaryCofan.mk_pt,
         BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
     · rw [← assoc]
       dsimp [f]
-      rw [plist.cons_rec]
+      rw [plist.cons_rc]
       dsimp [econs, Axecons, econs, i₂]
       simp only [assoc, whiskerLeft_comp]
       simp only [id_tensorHom]
@@ -886,31 +886,31 @@ noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoprod
   nil := plist.nil
   cons := plist.cons
   split := by {
-    apply plist.rec coprod.inl
+    apply plist.rc coprod.inl
     · exact (𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons) ≫
          (coprod.inr (X := P) (Y := A ⊗ plist A P))}
   nil_split := by {
-    simp only [id_tensorHom, nil_rec]
+    simp only [id_tensorHom, nil_rc]
   }
   cons_split := by {
     let Axecons : A ⊗ (P ⨿ A ⊗ plist A P) ⟶ A ⊗ plist A P :=
         𝟙 A ⊗ₘ coprod.desc plist.nil plist.cons
     let i₂ := coprod.inr (X := P) (Y := A ⊗ plist A P)
-    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let f := plist.rc coprod.inl (Axecons ≫ i₂)
     let econs : (P ⨿ A ⊗ plist A P) ⟶ plist A P :=
      coprod.desc plist.nil plist.cons
     let i₁ := coprod.inl (X := P) (Y := A ⊗ plist A P)
     let i₁focons := coprod.desc i₁ (cons ≫ f)
     let Axf : A ⊗ plist A P ⟶ A ⊗ (P ⨿ A ⊗ plist A P) := 𝟙 A ⊗ₘ f
     have : f ≫ econs = 𝟙 (plist A P) := by {
-      rw [← plist.rec_nil_cons_id, ← plist.rec_uniq]
+      rw [← plist.rc_nil_cons_id, ← plist.rc_uniq]
       · dsimp [f, econs]
-        simp only [plist.nil_rec_assoc]
+        simp only [plist.nil_rc_assoc]
         simp only [colimit.ι_desc, BinaryCofan.mk_pt,
           BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
       · rw [← assoc]
         dsimp [f, econs, Axecons, i₂]
-        rw [plist.cons_rec]
+        rw [plist.cons_rc]
         simp only [assoc, whiskerLeft_comp]
         simp only [id_tensorHom]
         simp only [colimit.ι_desc, BinaryCofan.mk_pt,
@@ -919,7 +919,7 @@ noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoprod
     have topSqComm : cons ≫ f = Axf ≫ Axecons ≫ i₂ := by {
       dsimp [f, Axf, Axecons, i₂, list.cons]
       simp only [id_tensorHom]
-      rw [plist.cons_rec]
+      rw [plist.cons_rc]
     }
     change cons ≫ f = coprod.inr (C:=C)
     rw [topSqComm]
@@ -943,17 +943,17 @@ noncomputable instance plist.semirecursive [MonoidalCategory C] [HasBinaryCoprod
     let econs : (P ⨿ A ⊗ plist A P) ⟶ plist A (P) :=
      coprod.desc plist.nil plist.cons
     let Axecons := 𝟙 A ⊗ₘ econs
-    let f := plist.rec coprod.inl (Axecons ≫ i₂)
+    let f := plist.rc coprod.inl (Axecons ≫ i₂)
     change f ≫ econs = 𝟙 (plist A P)
     let Axf : A ⊗ plist A P ⟶ A ⊗ (P ⨿ A ⊗ plist A P) := 𝟙 A ⊗ₘ f
-    rw [← plist.rec_nil_cons_id, ← plist.rec_uniq]
+    rw [← plist.rc_nil_cons_id, ← plist.rc_uniq]
     · dsimp [f, econs]
-      simp only [plist.nil_rec_assoc]
+      simp only [plist.nil_rc_assoc]
       simp only [colimit.ι_desc, BinaryCofan.mk_pt,
         BinaryCofan.ι_app_left, BinaryCofan.mk_inl]
     · rw [← assoc]
       dsimp [f, econs, Axecons, econs, i₂]
-      rw [plist.cons_rec]
+      rw [plist.cons_rc]
       simp only [assoc, whiskerLeft_comp]
       simp only [id_tensorHom]
       simp only [colimit.ι_desc, BinaryCofan.mk_pt,
@@ -975,7 +975,7 @@ theorem list.nil_tail {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := b
   dsimp [tail,Semirecursive.split]
   rw [← assoc]
   dsimp [list.nil]
-  simp only [id_tensorHom, plist.nil_rec, coprod.inl_map, id_comp]
+  simp only [id_tensorHom, plist.nil_rc, coprod.inl_map, id_comp]
 
 theorem list.cons_tail {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
   sorry
@@ -1054,7 +1054,7 @@ noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
     IsInitial (plistAlgebra A P) := by
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
-    f := plist.rec (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
+    f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
     h := by sorry
   }
   · sorry
@@ -1064,7 +1064,7 @@ noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
     IsInitial (listAlgebra A) := by
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
-    f := plist.rec (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
+    f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
     h := by sorry
   }
   · sorry
