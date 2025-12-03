@@ -154,12 +154,12 @@ def ofList [ListArithmetic C] : list A ⟶ bag A := list.lift (bag.singleton)
 theorem ofList_nil [ListArithmetic C] :
     list.nil ≫ ofList = bag.nil (A:= A) := by
   simp only [bag.nil, ofList, singleton, list.nil, list.lift,list.foldr]
-  simp only [plist.nil_rec]
+  simp only [plist.nil_rc]
 
 theorem ofList_cons [ListArithmetic C] :
     list.cons ≫ ofList = A ◁ ofList ≫ bag.cons := by
   dsimp [ofList, list.lift, list.foldr, list.cons]
-  rw [plist.cons_rec]
+  rw [plist.cons_rc]
   refine _ ≫= ?_
   dsimp [cons, bag.append, bag]
 

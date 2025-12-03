@@ -26,19 +26,19 @@ namespace NNO
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C]
 
 def mul' : (N : C) ⊗ N ⟶ N :=
-  (prec (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
+  (prc (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
 
 theorem zero_mul' : zero ▷ (N : C) ≫ mul' = fst _ _ ≫ zero := by
-  simp [mul', ← assoc, zero_prec]
+  simp [mul', ← assoc, zero_prc]
 
 -- SH: can the rhs be a simpler term involving `mul'`?
 theorem succ_mul' :
-    succ ▷ (N : C) ≫ mul' = (prec ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
-  simp [mul', ← assoc, succ_prec]
+    succ ▷ (N : C) ≫ mul' = (prc ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ add := by
+  simp [mul', ← assoc, succ_prc]
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
   simp [one, succ_mul', assoc, assoc,succ_mul']
-  rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
+  rw [← assoc,zero_prc, Iso.hom_inv_id_assoc, zero_add]
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
   sorry
@@ -47,10 +47,10 @@ theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
 
 section PR
 
-open MorphismProperty CartesianMonoidalCategory
+open MorphismProperty CartesianMonoidalCategory IsPNNO
 
-def fst_eq_prec {A : C} : fst N A = prec (constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) A zero) succ := by
-  apply prec_uniq
+def fst_eq_prc {A : C} : fst N A = prc (constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) A zero) succ := by
+  apply prc_uniq
   · dsimp [constMorphismFrom, constMorphismFrom]
     simp only [whiskerRight_fst]
     rw [← assoc]
@@ -63,12 +63,12 @@ private def δ' (X : C) : X ⟶ X ⊗ X :=
   lift (𝟙 X) (𝟙 X)
 
 def uprimrecAux {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ N ⊗ X  :=
-  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)
+  (ρ_ _).inv ≫ prc ((λ_ _).inv ≫ (zero ⊗ₘ init)) (lift (fst N X ≫ succ) step)
 
 theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrecAux init step = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init) := by
   simp only [uprimrecAux]
-  rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prec]
+  rw [← assoc, rightUnitor_inv_naturality, assoc, zero_prc]
   simp only [Iso.hom_inv_id_assoc]
   refine ?_ =≫ (zero ⊗ₘ init)
   aesop
@@ -76,13 +76,13 @@ theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
-  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prc]
   simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
   simp only [uprimrecAux]
-  rw [fst_eq_prec]
+  rw [fst_eq_prc]
   sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
@@ -100,7 +100,7 @@ theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
 
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
-  prec ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ' P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
+  prc ((λ_ _).inv ≫ ((𝟙_ C) ◁ (δ' P)) ≫ (zero ⊗ₘ (𝟙 P) ⊗ₘ init ))
     ( lift (succ ⊗ₘ fst _ _) step ≫ (α_ N P B).hom )
 
 /-- The full primitive recursion schema. -/
@@ -123,8 +123,8 @@ theorem pred_zero : zero (C:= C) ≫ pred = zero := by
   rw [rightUnitor_inv_naturality]
   simp only [assoc]
   rw [Eq.symm (assoc (zero ▷ 𝟙_ C)
-    (prec ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
-  rw [zero_prec]
+    (prc ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
+  rw [zero_prc]
   simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
   unfold CartesianMonoidalCategory.toUnit
   simp only [IsTerminal.from_self, id_comp]

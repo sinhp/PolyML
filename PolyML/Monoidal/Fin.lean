@@ -38,8 +38,10 @@ variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C] [Ch
 
 open ChosenPullbacksAlong
 
+
+variable (C) in
 /-- The universal map with finite fibres. -/
-def univMap : (N : C) ⊗ N ⟶ N := add ≫ succ
+def univFinMap : (N : C) ⊗ N ⟶ N := add ≫ succ
 
 /-- The cardinal finite objects in a category with pullbacks and NNO.
 We think of `fin n` as the the "set" of pairs `(a, b)` where `a + b + 1 = n`; There are exactly `n` such pairs.
@@ -54,7 +56,7 @@ fin n ------------------> 1
 ```
 The left hand side vertical morphism is a monomorphism.
 -/
-def fin (n : 𝟙_ C ⟶ N) := pullbackObj n univMap
+def fin (n : 𝟙_ C ⟶ N) := pullbackObj n (univFinMap C)
 
 def isInitialFinZero : IsInitial (fin zero : C) := by sorry
 
@@ -70,13 +72,10 @@ def binaryCofan : BinaryCofan (𝟙_ C) N where
 
 def isNNOPlusOne [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
-  rc := _
-  zero_rc := _
-  succ_rc := _
-  rc_uniq := _
-
-
-
+  rc := sorry
+  zero_rc := sorry
+  succ_rc := sorry
+  rc_uniq := sorry
 
 
 #check HasBinaryCoproduct
@@ -129,12 +128,12 @@ finLt ------------------> 1
 -/
 noncomputable abbrev finLt [HasBinaryCoproducts C] := pullback (C:= C) bool.true NNO.lt
 
-def univMapIso [HasBinaryCoproducts C] :
-    Over.mk univMap ≅ Over.mk (pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N) := by
+def univFinMapIso [HasBinaryCoproducts C] :
+    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N) := by
   sorry
 
 variable (C) in
-noncomputable def univMap' [HasBinaryCoproducts C] : finLt ⟶ (N : C) :=
+noncomputable def univFinMap' [HasBinaryCoproducts C] : finLt ⟶ (N : C) :=
   pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N
 
 /--
@@ -151,8 +150,8 @@ The following square is a pullback square:
 -/
 class FiniteFibres [HasBinaryCoproducts C] {E B : C} (p : E ⟶ B) where
   fibCard : B ⟶ N
-  ext : E ⟶ finLt
-  isPullback : IsPullback (ext) p (univMap C) (fibCard)
+  ext : E ⟶ N ⊗ N
+  isPullback : IsPullback (ext) p (univFinMap C) (fibCard)
 
 /--
 By pullback pasting lemmas the following square is also a pullback square:
@@ -169,7 +168,7 @@ def fibre {E B : C} (p : E ⟶ B) (b : 𝟙_ C ⟶ B) : C :=
   pullbackObj (C:= C) p b
 
 /-- The tautological instance showing that `finLtToNNO` has finite fibres. -/
-instance [HasBinaryCoproducts C] : FiniteFibres (univMap C : finLt ⟶ N) := sorry
+instance [HasBinaryCoproducts C] : FiniteFibres (univFinMap C) := sorry
 
 def fibreOfFiniteFibresIsCardinalFinite [HasBinaryCoproducts C] {E B : C} {p : E ⟶ B} [FiniteFibres p]
     (b :  𝟙_ C ⟶ B) :
