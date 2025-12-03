@@ -10,6 +10,8 @@ import PolyML.ForMathlib.Monoidal.Powers
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
 import Mathlib.CategoryTheory.Closed.Cartesian
+import Mathlib.CategoryTheory.Adjunction.Mates
+
 
 universe u v
 
@@ -45,21 +47,42 @@ def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N
   rc := fun {B} f g => (ρ_ N).inv ≫ IsPNNO.prc zero succ f g
   zero_rc := by
     intros B f g
-    sorry
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
+    rw [zero_prc]
+    rw [unitors_equal]
+    simp only [Iso.inv_hom_id_assoc]
   succ_rc := by
     intros B f g
-    sorry
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
+    rw [succ_prc]
   rc_uniq := by
     intros B f g r h_zero h_succ
-    sorry
+    refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+    apply prc_uniq
+    · rw [unitors_equal]
+      simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
+      exact h_zero
+    · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
+      exact h_succ
 
 /- In monoidal closed categories, every natural number object is a parameterized natural number object. -/
-def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
+def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N)
+(succ : N ⟶ N)
     [IsNNO N zero succ] : IsPNNO N zero succ where
-  prc {P B} f g :=
-    (β_ N P).hom ≫
+  prc := fun {P B} f g => (β_ N P).hom ≫
       (MonoidalClosed.uncurry <| rc zero succ ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
-  zero_prc := sorry
+  zero_prc := by
+    intros A B f g
+    simp only [BraidedCategory.braiding_naturality_left_assoc, braiding_tensorUnit_left, assoc,
+      Iso.cancel_iso_hom_left]
+    refine (Iso.inv_comp_eq (ρ_ A)).mpr ?_
+    unfold MonoidalClosed.uncurry
+
+
   succ_prc := sorry
   prc_uniq := sorry
 
@@ -338,19 +361,38 @@ def twist₀ : Twist P 0 := (λ_ P).hom ≫ (ρ_ P).inv
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist₁ : Twist P 1 := prc ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
-instance : IsPNNO ((N : C)^[1]) zero succ := sorry
+instance : IsPNNO ((N : C)^[1]) zero succ where
+  prc := fun {A B} f g => by
+    unfold pow
+    dsimp [iteratedTensor]
+    apply prc f g
+  zero_prc := by
+    intros B f g h
+    simp only [id_eq, zero_prc]
+  succ_prc := by
+    intros E F f g
+    simp only [id_eq]
+    rw [succ_prc]
+  prc_uniq := by
+    intros A D f g r hzero hsucc
+    unfold prc
+    simp only [id_eq]
+    rw [IsPNNO.prc_uniq (zero:=zero) (r:=r) (succ:=succ)]
+    · exact hzero
+    · exact hsucc
 
 theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
   apply Eq.symm
-  sorry
-  --apply prc_uniq
-  -- · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
-  --   nth_rw 2 [← assoc, ← assoc]
-  --   refine ?_ =≫ _
-  --   rw [assoc, unitors_equal]
-  --   simp only [Iso.inv_hom_id, comp_id]
-  -- · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
+  unfold pow
+  dsimp [iteratedTensor]
+  apply prc_uniq
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
+    nth_rw 2 [← assoc, ← assoc]
+    refine ?_ =≫ _
+    rw [assoc, unitors_equal]
+    simp only [Iso.inv_hom_id, comp_id]
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
 theorem twist₁_swap : twist₁ N = prc ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
@@ -465,7 +507,6 @@ instance NNO.mon [BraidedCategory C] : Mon C where
   X := N
   mon := by infer_instance
 
-
 instance [BraidedCategory C] : IsCommMonObj (N : C) where
   mul_comm := add_comm
 
@@ -533,8 +574,11 @@ theorem len_eq_rc_zero_snd_succ {A : C} :
     simp only [plist.cons_map]
     refine _ ≫= ?_
     dsimp [snd,list]
+    unfold SemiCartesianMonoidalCategory.toUnit
+    simp only [← assoc]
+    congr
     sorry
-    --simp only [assoc, Iso.hom_inv_id_assoc]
+
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
