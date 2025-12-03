@@ -10,11 +10,17 @@ import PolyML.ForMathlib.Monoidal.Powers
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Adjunction.Mates
 
 >>>>>>> 68cafd8 (nnos)
+=======
+import Mathlib.CategoryTheory.Closed.Cartesian
+import Mathlib.CategoryTheory.Adjunction.Mates
+
+>>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
 
 universe u v
 
@@ -26,18 +32,22 @@ open Category Opposite MonoidalCategory Limits
 
 variable {C : Type u} [Category.{v} C]
 
--- SH: prec for "parameterized" recursion.
+-- SH: prc for "parameterized" rcursion.
 -- SH: usually params are on the left, although this becomes incompatible with plist.
-class IsNNO [MonoidalCategory C] {N : C} (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
-  prec {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
-  zero_prec {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (zero ▷ P) ≫ prec f g = (λ_ P).hom ≫ f
-  succ_prec {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prec f g = prec f g ≫ g
-  prec_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
-  (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prec f g
+/-- Parameterized natural number object in a monoidal category. -/
+class IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
+  prc {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
+  zero_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (zero ▷ P) ≫ prc f g = (λ_ P).hom ≫ f
+  succ_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prc f g = prc f g ≫ g
+  prc_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
+  (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prc f g
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 namespace IsNNO
 =======
+=======
+>>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
 /-- Natural number object in a monoidal category. -/
 class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
   rc {B : C} (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B
@@ -92,27 +102,30 @@ def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (
   prc_uniq := sorry
 
 namespace IsPNNO
+<<<<<<< HEAD
 >>>>>>> 68cafd8 (nnos)
+=======
+>>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
 
 variable [MonoidalCategory C]
 
-variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsNNO zero succ]
+variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsPNNO N zero succ]
 
 theorem congr_arg {P B : C} {f f' : P ⟶ B} {g g' : B ⟶ B}
     (h : f = f') (h' : g = g') :
-    prec zero succ f g = prec zero succ f' g' := by
+    prc zero succ f g = prc zero succ f' g' := by
   subst h h'
   rfl
 
 /-- Any two natural number objects in a monoidal category are isomorphic. -/
 def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
-    [IsNNO zero succ] [IsNNO zero' succ'] : N ≅ N' where
-  hom := (ρ_ N).inv ≫ prec zero succ zero' succ'
-  inv := (ρ_ N').inv ≫ prec zero' succ' zero succ
+    [IsPNNO N zero succ] [IsPNNO N' zero' succ'] : N ≅ N' where
+  hom := (ρ_ N).inv ≫ prc zero succ zero' succ'
+  inv := (ρ_ N').inv ≫ prc zero' succ' zero succ
   hom_inv_id := sorry
   inv_hom_id := sorry
 
-end IsNNO
+end IsPNNO
 
 variable (C)
 
@@ -125,59 +138,59 @@ class NNO [MonoidalCategory C] where
   /-- The successor morphism. -/
   succ : N ⟶ N
   /-- The natural number object satisfies the properties of a left natural number object. -/
-  [isNNO : IsNNO zero succ]
+  [isPNNO : IsPNNO N zero succ]
 
 -- @[inherit_doc] notation "N_" => NNO.N
 
-def nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
+abbrev nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
 
 namespace NNO
 
-open IsNNO
+open IsPNNO
 
 variable {C} [MonoidalCategory C] [NNO C] {P B : C}
 
-instance : IsNNO (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
-  NNO.isNNO
+instance : IsPNNO N (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
+  NNO.isPNNO
 
-def prec (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B :=
-  IsNNO.prec zero succ f g
+def prc (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B :=
+  IsPNNO.prc zero succ f g
 
 @[simp]
-theorem zero_prec {f : P ⟶ B} {g : B ⟶ B} :
-  (zero ▷ P) ≫ prec f g = (λ_ P).hom ≫ f := by
-  apply IsNNO.zero_prec
+theorem zero_prc {f : P ⟶ B} {g : B ⟶ B} :
+  (zero ▷ P) ≫ prc f g = (λ_ P).hom ≫ f := by
+  apply IsPNNO.zero_prc
 
-theorem succ_prec {f : P ⟶ B} {g : B ⟶ B} :
-  (succ ▷ P) ≫ prec f g = prec f g ≫ g := by
-  apply IsNNO.succ_prec
+theorem succ_prc {f : P ⟶ B} {g : B ⟶ B} :
+  (succ ▷ P) ≫ prc f g = prc f g ≫ g := by
+  apply IsPNNO.succ_prc
 
-theorem prec_precompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
-  N ◁ u ≫ prec f g = prec (u ≫ f) g := by
-  apply prec_uniq
+theorem prc_prcompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
+  N ◁ u ≫ prc f g = prc (u ≫ f) g := by
+  apply prc_uniq
   all_goals rw [← assoc, ← whisker_exchange, assoc]
-  · rw [zero_prec]
+  · rw [zero_prc]
     aesop
-  · rw [succ_prec]
+  · rw [succ_prc]
     aesop
 
-theorem prec_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B ⟶ B')
+theorem prc_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B ⟶ B')
     (comm_sq : CommSq g d d g' := by aesop) :
-    prec f g ≫ d = prec (f ≫ d) g' := by
-  apply prec_uniq
-  · rw [← assoc, zero_prec]
+    prc f g ≫ d = prc (f ≫ d) g' := by
+  apply prc_uniq
+  · rw [← assoc, zero_prc]
     simp only [assoc]
-  · rw [← assoc, succ_prec]
+  · rw [← assoc, succ_prc]
     simp only [assoc]
     refine _ ≫= ?_
     exact comm_sq.w
 
 /-- Iterates an endomorphism `n` times. -/
-def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prec (𝟙 _) (f)
+def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prc (𝟙 _) (f)
 
-/-- Recursion with the parameter `P` set to the unit object `𝟙_ C` -/
-def urec (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
-  (ρ_ _).inv ≫ prec f g
+/-- rcursion with the parameter `P` set to the unit object `𝟙_ C` -/
+def urc (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
+  (ρ_ _).inv ≫ prc f g
 
 @[reassoc (attr := simp)]
 theorem zero_iter {f : P ⟶ P} :
@@ -186,25 +199,25 @@ theorem zero_iter {f : P ⟶ P} :
 
 theorem succ_iter {f : P ⟶ P} :
   succ ▷ P ≫ iter f = iter f ≫ f := by
-  simp [iter, succ_prec]
+  simp [iter, succ_prc]
 
-/-- `prec` can be reconstructed from `iter`. -/
+/-- `prc` can be rconstructed from `iter`. -/
 @[reassoc (attr := simp)]
-theorem iter_prec {f : P ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prec f g := by
-  simpa using prec_precompose (u:= f) (f:= 𝟙 B) (g:= g)
+theorem iter_prc {f : P ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prc f g := by
+  simpa using prc_prcompose (u:= f) (f:= 𝟙 B) (g:= g)
 
 theorem eq_whisker_iter {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
     (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ : (succ ▷ P) ≫ r = r ≫ g) :
     r = (N ◁ f) ≫ iter g := by
-  rw [iter_prec]
-  apply prec_uniq
+  rw [iter_prc]
+  apply prc_uniq
   all_goals
   assumption
 
 -- SH : rfpi coherence
-lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
+lemma prc_zero_succ_eq_rightUnitor : prc (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
   symm
-  apply prec_uniq
+  apply prc_uniq
   · coherence
   · apply rightUnitor_naturality succ
 
@@ -212,7 +225,7 @@ lemma prec_zero_succ_eq_rightUnitor : prec (P := 𝟙_ C) (B := N) zero succ = (
 def one : 𝟙_ C ⟶ N := zero ≫ succ
 
 /-- Maps any natural number to the fixed element `x`. -/
-def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prec x (𝟙 X)
+def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prc x (𝟙 X)
 
 /-- Mapping the NNO to the unit of the monoidal category. -/
 def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 (𝟙_ C))
@@ -227,9 +240,9 @@ theorem succ_toUnit : succ ≫ toUnit = toUnit (C:= C) := by
 
 @[simp]
 theorem iter_id : iter (𝟙 P) = toUnit ▷ P ≫ (λ_ _).hom := by
-  simp [iter, prec]
+  simp [iter, prc]
   symm
-  apply prec_uniq
+  apply prc_uniq
   · rw [← assoc, ← comp_whiskerRight, zero_toUnit, id_whiskerRight, id_comp, comp_id]
   · rw [← assoc, ← comp_whiskerRight, succ_toUnit, comp_id]
 
@@ -240,7 +253,7 @@ theorem const_toUnit (X : C) (x : 𝟙_ C ⟶ X) : const X x = toUnit ≫ x := b
   dsimp [const, toUnit]
   simp only [assoc, Iso.cancel_iso_inv_left]
   apply Eq.symm
-  apply prec_uniq
+  apply prc_uniq
   · rw [← assoc]; rw [zero_iter]
   · rw [← assoc]; rw [succ_iter]; simp only [comp_id]
 
@@ -250,19 +263,19 @@ variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
 noncomputable
-def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prec inl constTrue
+def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prc inl constTrue
 
 theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
   refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
   rw [iter]
-  apply prec_uniq
+  apply prc_uniq
   · dsimp [toBool]
-    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prec inl constTrue) ≫ bool.toUnit =
-    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prec inl constTrue) ≫ bool.toUnit := by
+    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc inl constTrue) ≫ bool.toUnit =
+    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc inl constTrue) ≫ bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
     rw [this]; clear this
     simp only [ Iso.hom_inv_id, id_comp, comp_id]
-    rw [zero_prec]
+    rw [zero_prc]
     rw [unitors_equal, bool.toUnit, elim]
     simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
      BinaryCofan.ι_app_left, BinaryCofan.mk_inl, comp_id]
@@ -278,15 +291,15 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [← assoc]
     rw [rightUnitor_inv_naturality]
     rw [assoc, assoc]
-    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prec inl constTrue ≫ bool.toUnit=
-    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prec inl constTrue) ≫ bool.toUnit := by
+    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc inl constTrue ≫ bool.toUnit=
+    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc inl constTrue) ≫ bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
     rw [this]; clear this
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
     rw [← assoc,rightUnitor_inv_naturality]
     rw [assoc]
     refine _ ≫= ?_
-    rw [← assoc,succ_prec]
+    rw [← assoc,succ_prc]
     rw [assoc]
     refine _ ≫= ?_
     rw [constTrue_eq_toUnit_true]
@@ -303,7 +316,7 @@ theorem zero_toBool [HasBinaryCoproducts C] :
     zero ≫ toBool C = bool.false := by
   dsimp [toBool]
   rw [← assoc, rightUnitor_inv_naturality]
-  rw [assoc, zero_prec]
+  rw [assoc, zero_prc]
   dsimp [bool.false]
   refine (Iso.inv_comp_eq (ρ_ (𝟙_ C))).mpr ?_
   refine ?_ =≫ _
@@ -316,7 +329,7 @@ theorem succ_toBool [HasBinaryCoproducts C] :
   rw [← assoc, rightUnitor_inv_naturality, assoc, assoc, assoc]
   refine _ ≫= ?_
   rw [← assoc]
-  rw [succ_prec, assoc]
+  rw [succ_prc, assoc]
   refine _ ≫= ?_
   exact constTrue_eq_toUnit_true
 
@@ -338,12 +351,10 @@ theorem fromBool_toBool [HasBinaryCoproducts C] :
 
 section Comon
 
-variable [MonoidalCategory C] [NNO C]
-
 /-- Duplicates a natural number, it maps `n` to `n ⊗ n`. Note that this is not necessarily the diagonal morphism, it
 does not use the cartesian monoidal structure. -/
 def duplicate : (N : C) ⟶ N ⊗ N :=
-  (ρ_ _).inv ≫ prec ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
+  (ρ_ _).inv ≫ prc ((λ_ _).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ)
 
 abbrev delete : N ⟶ 𝟙_ C := toUnit
 
@@ -367,8 +378,9 @@ def Twist : ℕ → Type v := fun k => (N^[k] ⊗ P ⟶ P ⊗ N^[k])
 def twist₀ : Twist P 0 := (λ_ P).hom ≫ (ρ_ P).inv
 
 /-- The twist map induced by the universal property of the natural number object. -/
-def twist₁ : Twist P 1 := prec ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
+def twist₁ : Twist P 1 := prc ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 theorem twist₁_eq_rightUnitor_leftUnitor : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   dsimp [twist₁]
@@ -402,6 +414,34 @@ theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _
   dsimp [iteratedTensor]
   apply prc_uniq
 >>>>>>> 68cafd8 (nnos)
+=======
+instance : IsPNNO ((N : C)^[1]) zero succ where
+  prc := fun {A B} f g => by
+    unfold pow
+    dsimp [iteratedTensor]
+    apply prc f g
+  zero_prc := by
+    intros B f g h
+    simp only [id_eq, zero_prc]
+  succ_prc := by
+    intros E F f g
+    simp only [id_eq]
+    rw [succ_prc]
+  prc_uniq := by
+    intros A D f g r hzero hsucc
+    unfold prc
+    simp only [id_eq]
+    rw [IsPNNO.prc_uniq (zero:=zero) (r:=r) (succ:=succ)]
+    · exact hzero
+    · exact hsucc
+
+theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
+  dsimp [twist₁]
+  apply Eq.symm
+  unfold pow
+  dsimp [iteratedTensor]
+  apply prc_uniq
+>>>>>>> 4cd3ab887189a74316646bc471230f981c88839e
   · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
     nth_rw 2 [← assoc, ← assoc]
     refine ?_ =≫ _
@@ -409,13 +449,13 @@ theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _
     simp only [Iso.inv_hom_id, comp_id]
   · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
-theorem twist₁_swap : twist₁ N = prec ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
+theorem twist₁_swap : twist₁ N = prc ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
   sorry
 
 theorem twist₁_braiding [BraidedCategory C] {P : C} :
     twist₁ P = (β_ N P).hom := by
-  dsimp [twist₁, prec]
-  rw [← prec_uniq]
+  dsimp [twist₁, prc]
+  rw [← prc_uniq]
   · simp only [BraidedCategory.braiding_naturality_left,
       braiding_tensorUnit_left, assoc]
   · simp only [BraidedCategory.braiding_naturality_left]
@@ -449,44 +489,44 @@ theorem succ_add : succ ▷ (N : C) ≫ add = add ≫ succ := by
 
 theorem one_add_zero : (one ⊗ₘ zero) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
   simp only [one, add, iter, one ]
-  rw [tensorHom_def, assoc, prec_precompose]
+  rw [tensorHom_def, assoc, prc_prcompose]
   refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mp ?_
-  rw [comp_whiskerRight, assoc, succ_prec]
-  have : (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ ≫ succ=
-  (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prec (zero ≫ 𝟙 N) succ) ≫ succ := by
+  rw [comp_whiskerRight, assoc, succ_prc]
+  have : (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C ≫ prc (zero ≫ 𝟙 N) succ ≫ succ=
+  (λ_ (𝟙_ C)).inv ≫ (zero ▷ 𝟙_ C ≫ prc (zero ≫ 𝟙 N) succ) ≫ succ := by
     simp only [whiskerRight_id, comp_id, assoc]
   rw [this]
   clear this
-  rw [zero_prec]
+  rw [zero_prc]
   simp only [comp_id, assoc, Iso.inv_hom_id_assoc]
 
 theorem zero_add_one : (zero ⊗ₘ one) ≫ add = (λ_ (𝟙_ C)).hom ≫ one := by
   simp only [add, one, iter]
   rw [tensorHom_def, assoc, whiskerLeft_comp, assoc]
-  rw [prec_precompose, prec_precompose, zero_prec]
+  rw [prc_prcompose, prc_prcompose, zero_prc]
   simp only [comp_id]
 
 -- commutativity of addition
 theorem add_comm [BraidedCategory C] : (β_ (N : C) N).hom ≫ add = add := by
   dsimp [add]
   nth_rw 2 [iter]
-  apply prec_uniq
+  apply prc_uniq
   · simp only [BraidedCategory.braiding_naturality_left_assoc,
-      braiding_tensorUnit_left, iter_prec,
+      braiding_tensorUnit_left, iter_prc,
     assoc, comp_id]
     nth_rw 2 [← comp_id (f:= (λ_ N).hom)]
-    refine (Iso.cancel_iso_hom_left (λ_ N) ((ρ_ N).inv ≫ prec zero succ) (𝟙 N)).mpr ?_
+    refine (Iso.cancel_iso_hom_left (λ_ N) ((ρ_ N).inv ≫ prc zero succ) (𝟙 N)).mpr ?_
     refine (Iso.inv_comp_eq_id (ρ_ N)).mpr ?_
     apply Eq.symm
-    apply prec_uniq
+    apply prc_uniq
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
     refine ?_ =≫ _
     exact Eq.symm unitors_equal
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
-  · simp only [BraidedCategory.braiding_naturality_left_assoc, iter_prec, assoc,
+  · simp only [BraidedCategory.braiding_naturality_left_assoc, iter_prc, assoc,
     Iso.cancel_iso_hom_left]
     apply Eq.symm
-    apply prec_uniq
+    apply prc_uniq
     · simp only [zero_iter_assoc]
     · rw [← assoc, succ_iter]
 
@@ -498,9 +538,9 @@ theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom :=
 theorem add_assoc :
     add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
   dsimp [add]
-  simp only [iter_prec]
+  simp only [iter_prc]
   rw [← IsIso.inv_comp_eq]
-  apply prec_uniq
+  apply prc_uniq
   · simp only [whiskerRight_tensor, IsIso.Iso.inv_hom, assoc, Iso.hom_inv_id_assoc]
     rw [← assoc (zero ▷ N ▷ N) (iter succ ▷ N) (iter succ)]
     rw [← comp_whiskerRight, zero_iter]
@@ -538,19 +578,19 @@ instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NN
   N := list (𝟙_ C)
   zero := list.nil
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
-  isNNO := {
-    prec {P B} e a := list.prec e ((λ_ _).hom ≫ a)
-    zero_prec {A B f g} := by rw [list.nil_prec]
-    succ_prec {A B f g} := by
+  isPNNO := {
+    prc {P B} e a := list.prc e ((λ_ _).hom ≫ a)
+    zero_prc {A B f g} := by rw [list.nil_prc]
+    succ_prc {A B f g} := by
       rw [comp_whiskerRight, assoc]
       refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
-      rw [list.cons_prec, ← assoc, ← assoc, ← assoc]
+      rw [list.cons_prc, ← assoc, ← assoc, ← assoc]
       refine ?_ =≫ g
       simp only [id_whiskerLeft, assoc,
         Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
         IsIso.inv_comp, IsIso.Iso.inv_inv]
-    prec_uniq {A B f g r hnil hcons} := by
-     apply list.prec_uniq r hnil
+    prc_uniq {A B f g r hnil hcons} := by
+     apply list.prc_uniq r hnil
      simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
      refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
      simp_all only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
@@ -579,10 +619,10 @@ open SemiCartesianMonoidalCategory
 
 variable {A : C}
 
-theorem len_eq_rec_zero_snd_succ {A : C} :
-    list.len (A:= A) = list.rec zero (snd A N ≫ succ) := by
-  dsimp [list.rec]
-  apply plist.rec_uniq
+theorem len_eq_rc_zero_snd_succ {A : C} :
+    list.len (A:= A) = list.rc zero (snd A N ≫ succ) := by
+  dsimp [list.rc]
+  apply plist.rc_uniq
   · dsimp [nil,len,map,map]
     simp only [plist.nil_map]
   . dsimp [len, map, cons]

@@ -39,7 +39,7 @@ def iteratedTensor : Nat → C → C
   | 1 , A => A
   | n + 2, A =>  A ⊗ iteratedTensor (n + 1) A
 
-def pow : ℕ → C → C := iteratedTensor
+abbrev pow : ℕ → C → C := iteratedTensor
 
 scoped notation  A "^[" n "]" => pow n A
 

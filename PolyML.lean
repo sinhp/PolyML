@@ -9,3 +9,4 @@ import PolyML.Monoidal.FreeMon
 import PolyML.Monoidal.FreeCommMon
 import PolyML.Monoidal.BagInType
 import PolyML.ForMathlib.Monoidal.Semiring
+import PolyML.Monoidal.Fin
