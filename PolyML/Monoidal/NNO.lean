@@ -25,7 +25,7 @@ variable {C : Type u} [Category.{v} C]
 -- SH: usually params are on the left, although this becomes incompatible with plist.
 /-- Parameterized natural number object in a monoidal category. -/
 class IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
-  prc {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
+  prc (zero succ) {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
   zero_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (zero ▷ P) ≫ prc f g = (λ_ P).hom ≫ f
   succ_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prc f g = prc f g ≫ g
   prc_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
@@ -33,7 +33,7 @@ class IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N
 
 /-- Natural number object in a monoidal category. -/
 class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
-  rc {B : C} (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B
+  rc (zero succ) {B : C} (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B
   zero_rc {B : C} {f : 𝟙_ C ⟶ B} {g : B ⟶ B} : zero ≫ rc f g = f
   succ_rc {B : C} {f : 𝟙_ C ⟶ B} {g : B ⟶ B} : succ ≫ rc f g = rc f g ≫ g
   rc_uniq {B : C} {f : 𝟙_ C ⟶ B} {g : B ⟶ B} (r : N ⟶ B)
@@ -54,9 +54,11 @@ def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N
     sorry
 
 /- In monoidal closed categories, every natural number object is a parameterized natural number object. -/
-def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
+def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
     [IsNNO N zero succ] : IsPNNO N zero succ where
-  prc := sorry
+  prc {P B} f g :=
+    (β_ N P).hom ≫
+      (MonoidalClosed.uncurry <| rc zero succ ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
   zero_prc := sorry
   succ_prc := sorry
   prc_uniq := sorry
