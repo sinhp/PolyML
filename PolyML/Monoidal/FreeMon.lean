@@ -19,7 +19,7 @@ The development here is a categorification of `Mathlib.Algebra.FreeMonoid.Basic`
 
 namespace CategoryTheory
 
-open Category CategoryTheory ListArithmetic MonoidalCategory MonObj NNO Limits
+open Category CategoryTheory ListArithmetic MonoidalCategory MonObj PNNO Limits
 
 universe v u
 

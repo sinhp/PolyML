@@ -17,23 +17,20 @@ namespace CategoryTheory
 
 open Category Opposite MonoidalCategory Limits
 
--- attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
 variable {C : Type u} [Category.{v} C]
 
--- SH: prc for "parameterized" rcursion.
 -- SH: usually params are on the left, although this becomes incompatible with plist.
 /-- Parameterized natural number object in a monoidal category. -/
-class IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
-  prc (zero succ) {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
+structure IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
+  prc {zero succ} {P B : C} (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B
   zero_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (zero ▷ P) ≫ prc f g = (λ_ P).hom ≫ f
   succ_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prc f g = prc f g ≫ g
   prc_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
-  (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prc f g
+    (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prc f g
 
 /-- Natural number object in a monoidal category. -/
-class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
-  rc (zero succ) {B : C} (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B
+structure IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) where
+  rc {zero succ} {B : C} (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B
   zero_rc {B : C} {f : 𝟙_ C ⟶ B} {g : B ⟶ B} : zero ≫ rc f g = f
   succ_rc {B : C} {f : 𝟙_ C ⟶ B} {g : B ⟶ B} : succ ≫ rc f g = rc f g ≫ g
   rc_uniq {B : C} {f : 𝟙_ C ⟶ B} {g : B ⟶ B} (r : N ⟶ B)
@@ -41,14 +38,14 @@ class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
 
 /-- Every parameterized natural number object in a monoidal closed category is a natural number object. -/
 def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
-    [IsPNNO N zero succ] : IsNNO N zero succ where
-  rc := fun {B} f g => (ρ_ N).inv ≫ IsPNNO.prc zero succ f g
+    (pnno : IsPNNO N zero succ) : IsNNO N zero succ where
+  rc := fun {B} f g => (ρ_ N).inv ≫ pnno.prc f g
   zero_rc := by
     intros B f g
     simp only [← assoc]
     rw [rightUnitor_inv_naturality]
     simp only [assoc]
-    rw [zero_prc]
+    rw [pnno.zero_prc]
     rw [unitors_equal]
     simp only [Iso.inv_hom_id_assoc]
   succ_rc := by
@@ -70,9 +67,9 @@ def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N
 /- In monoidal closed categories, every natural number object is a parameterized natural number object. -/
 def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N)
 (succ : N ⟶ N)
-    [IsNNO N zero succ] : IsPNNO N zero succ where
+    (nno : IsNNO N zero succ) : IsPNNO N zero succ where
   prc := fun {P B} f g => (β_ N P).hom ≫
-      (MonoidalClosed.uncurry <| rc zero succ ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
+      (MonoidalClosed.uncurry <| nno.rc ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
   zero_prc := by
     intros A B f g
     simp only [BraidedCategory.braiding_naturality_left_assoc, braiding_tensorUnit_left,
@@ -121,19 +118,19 @@ namespace IsPNNO
 
 variable [MonoidalCategory C]
 
-variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} [IsPNNO N zero succ]
+variable {N : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} (pnno : IsPNNO N zero succ)
 
 theorem congr_arg {P B : C} {f f' : P ⟶ B} {g g' : B ⟶ B}
     (h : f = f') (h' : g = g') :
-    prc zero succ f g = prc zero succ f' g' := by
+    pnno.prc f g = pnno.prc f' g' := by
   subst h h'
   rfl
 
 /-- Any two natural number objects in a monoidal category are isomorphic. -/
 def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
-    [IsPNNO N zero succ] [IsPNNO N' zero' succ'] : N ≅ N' where
-  hom := (ρ_ N).inv ≫ prc zero succ zero' succ'
-  inv := (ρ_ N').inv ≫ prc zero' succ' zero succ
+    (pnno : IsPNNO N zero succ) (pnno' : IsPNNO N' zero' succ') : N ≅ N' where
+  hom := (ρ_ N).inv ≫ pnno.prc zero' succ'
+  inv := (ρ_ N').inv ≫ pnno'.prc zero succ
   hom_inv_id := sorry
   inv_hom_id := sorry
 
@@ -142,39 +139,34 @@ end IsPNNO
 variable (C)
 
 /-- A natural number object in a monoidal category. -/
-class NNO [MonoidalCategory C] where
-  /-- The (left) natural number object. -/
+class PNNO [MonoidalCategory C] where
+  /-- The (left) parameterized natural number object. -/
   N : C
   /-- The zero morphism. -/
   zero : 𝟙_ C ⟶ N
   /-- The successor morphism. -/
   succ : N ⟶ N
-  /-- The natural number object satisfies the properties of a left natural number object. -/
+  /-- The parameterized natural number object satisfies the properties of a left natural number object. -/
   [isPNNO : IsPNNO N zero succ]
 
--- @[inherit_doc] notation "N_" => NNO.N
+-- @[inherit_doc] notation "N_" => PNNO.N
 
-abbrev nno (C : Type u) [Category.{v} C] [MonoidalCategory C] [NNO C] : C := NNO.N
-
-namespace NNO
+namespace PNNO
 
 open IsPNNO
 
-variable {C} [MonoidalCategory C] [NNO C] {P B : C}
-
-instance : IsPNNO N (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N) :=
-  NNO.isPNNO
+variable {C} [MonoidalCategory C] [PNNO C] {P B : C}
 
 def prc (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B :=
-  IsPNNO.prc zero succ f g
+  isPNNO.prc f g
 
 @[simp]
 theorem zero_prc {f : P ⟶ B} {g : B ⟶ B} :
-  (zero ▷ P) ≫ prc f g = (λ_ P).hom ≫ f := by
+    (zero ▷ P) ≫ prc f g = (λ_ P).hom ≫ f := by
   apply IsPNNO.zero_prc
 
 theorem succ_prc {f : P ⟶ B} {g : B ⟶ B} :
-  (succ ▷ P) ≫ prc f g = prc f g ≫ g := by
+    (succ ▷ P) ≫ prc f g = prc f g ≫ g := by
   apply IsPNNO.succ_prc
 
 theorem prc_prcompose {P'} {u : P' ⟶ P} {f : P ⟶ B} {g : B ⟶ B} :
@@ -201,7 +193,7 @@ theorem prc_postcompose {B'} {f : P ⟶ B} {g : B ⟶ B} (g' : B' ⟶ B') (d : B
 def iter (f : P ⟶ P) : N ⊗ P ⟶ P := prc (𝟙 _) (f)
 
 /-- rcursion with the parameter `P` set to the unit object `𝟙_ C` -/
-def urc (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
+def rc (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
   (ρ_ _).inv ≫ prc f g
 
 @[reassoc (attr := simp)]
@@ -239,7 +231,10 @@ def one : 𝟙_ C ⟶ N := zero ≫ succ
 /-- Maps any natural number to the fixed element `x`. -/
 def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := (ρ_ _).inv ≫ prc x (𝟙 X)
 
-/-- Mapping the NNO to the unit of the monoidal category. -/
+/-- Mapping the NNO to the unit of the monoidal category.
+Note: toUnit here is different than `SemiCartesianMonoidalCategory.toUnit`.
+`𝟙_ C` is not neccessarily a terminal object.
+-/
 def toUnit : N ⟶ 𝟙_ C := (ρ_ _).inv ≫ iter (𝟙 (𝟙_ C))
 
 @[reassoc (attr := simp)]
@@ -277,7 +272,7 @@ variable (C)
 noncomputable
 def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prc inl constTrue
 
-theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = NNO.toUnit := by
+theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = toUnit := by
   refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
   rw [iter]
   apply prc_uniq
@@ -392,26 +387,7 @@ def twist₀ : Twist P 0 := (λ_ P).hom ≫ (ρ_ P).inv
 /-- The twist map induced by the universal property of the natural number object. -/
 def twist₁ : Twist P 1 := prc ((ρ_ _ ).inv ≫ (P ◁ zero)) (P ◁ succ)
 
-instance : IsPNNO ((N : C)^[1]) zero succ where
-  prc := fun {A B} f g => by
-    unfold pow
-    dsimp [iteratedTensor]
-    apply prc f g
-  zero_prc := by
-    intros B f g h
-    simp only [id_eq, zero_prc]
-  succ_prc := by
-    intros E F f g
-    simp only [id_eq]
-    rw [succ_prc]
-  prc_uniq := by
-    intros A D f g r hzero hsucc
-    unfold prc
-    simp only [id_eq]
-    rw [IsPNNO.prc_uniq (zero:=zero) (r:=r) (succ:=succ)]
-    · exact hzero
-    · exact hsucc
-
+example : IsPNNO ((N : C)^[1]) zero succ := isPNNO
 
 theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _).hom ≫ (λ_ _).inv := by
   apply Eq.symm
@@ -543,13 +519,13 @@ instance [BraidedCategory C] : IsCommMonObj (N : C) where
 def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
-end NNO
+end PNNO
 
-open NNO
+open PNNO
 
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
-instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : NNO C where
+instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : PNNO C where
   N := list (𝟙_ C)
   zero := list.nil
   succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
@@ -652,11 +628,11 @@ end length
 
 end list
 
-namespace NNO
+namespace PNNO
 
 section const
 
-variable {C} [SemiCartesianMonoidalCategory C] [NNO C]
+variable {C} [SemiCartesianMonoidalCategory C] [PNNO C]
 
 open SemiCartesianMonoidalCategory MorphismProperty
 
@@ -666,6 +642,88 @@ theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : 
   sorry
 
 end const
+
+end PNNO
+
+class NNO [MonoidalCategory C] where
+  /-- The (left) natural number object. -/
+  N : C
+  /-- The zero morphism. -/
+  zero : 𝟙_ C ⟶ N
+  /-- The successor morphism. -/
+  succ : N ⟶ N
+  /-- The natural number object satisfies the properties of a left natural number object. -/
+  [isNNO : IsNNO N zero succ]
+
+@[simps]
+def PNNO.toNNO [MonoidalCategory C] [PNNO C] : NNO C where
+  N := PNNO.N
+  zero := PNNO.zero
+  succ := PNNO.succ
+  isNNO := isPNNO.toIsNNO
+
+namespace NNO
+
+open IsNNO
+
+variable {C} [MonoidalCategory C] [NNO C] {B : C}
+
+def rc (f : 𝟙_ C ⟶ B) (g : B ⟶ B) : N ⟶ B :=
+  isNNO.rc f g
+
+@[simp]
+theorem zero_rc {f : 𝟙_ C ⟶ B} {g : B ⟶ B} :
+    zero ≫ rc f g = f := by
+  apply IsNNO.zero_rc
+
+theorem succ_rc {f : 𝟙_ C ⟶ B} {g : B ⟶ B} :
+    succ ≫ rc f g = rc f g ≫ g := by
+  apply IsNNO.succ_rc
+
+/-- The morphism for number one, i.e. the successor of zero. -/
+def one : 𝟙_ C ⟶ N := zero ≫ succ
+
+/-- Maps any natural number to the fixed element `x`. -/
+def const (X : C) (x : 𝟙_ C ⟶ X) : N ⟶ X := rc x (𝟙 X)
+
+def toUnit : N ⟶ 𝟙_ C := const (𝟙_ C) (𝟙 _)
+
+open bool coprod
+
+variable (C)
+
+/-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
+noncomputable
+def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := rc inl constTrue
+
+/-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
+noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
+
+variable {C}
+
+theorem zero_toBool [HasBinaryCoproducts C] :
+    zero ≫ toBool C = bool.false := by
+  dsimp [toBool, bool.false]
+  rw [zero_rc]
+
+theorem succ_toBool [HasBinaryCoproducts C] :
+    succ ≫ toBool C = toUnit ≫ bool.true := by
+  rw [toUnit, toBool, succ_rc, constTrue, const]
+  sorry
+
+theorem false_fromBool [HasBinaryCoproducts C] :
+    bool.false ≫ fromBool C = zero := by
+  simp only [fromBool, false_elim]
+
+theorem true_fromBool [HasBinaryCoproducts C] :
+    bool.true ≫ fromBool C = one := by
+  simp only [fromBool, true_elim]
+
+theorem fromBool_toBool [HasBinaryCoproducts C] :
+    fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
+  apply bool.ext
+  · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
+  · sorry
 
 end NNO
 

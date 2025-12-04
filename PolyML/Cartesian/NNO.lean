@@ -20,13 +20,13 @@ universe u v
 
 namespace CategoryTheory
 
-open Category Opposite MonoidalCategory Limits IsNNO CartesianMonoidalCategory
+open Category Opposite MonoidalCategory Limits IsPNNO CartesianMonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
-namespace NNO
+namespace PNNO
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [PNNO C]
 
 def mul' : (N : C) ⊗ N ⟶ N :=
   (prc (C:= C) ((λ_ _).inv ≫ zero ▷ N) (lift add (snd _ _))) ≫ (fst N N)
@@ -217,6 +217,6 @@ def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
     constructor
     exact colimitCocone X h
 
-end NNO
+end PNNO
 
 end CategoryTheory
