@@ -218,14 +218,6 @@ theorem succ_iter {f : P ⟶ P} :
 theorem iter_prc {f : P ⟶ B} {g : B ⟶ B} : (N ◁ f) ≫ iter g = prc f g := by
   simpa using prc_prcompose (u:= f) (f:= 𝟙 B) (g:= g)
 
-theorem eq_whisker_iter {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
-    (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ : (succ ▷ P) ≫ r = r ≫ g) :
-    r = (N ◁ f) ≫ iter g := by
-  rw [iter_prc]
-  apply prc_uniq
-  all_goals
-  assumption
-
 -- SH : rfpi coherence
 lemma prc_zero_succ_eq_rightUnitor : prc (P := 𝟙_ C) (B := N) zero succ = (ρ_ N).hom := by
   symm
