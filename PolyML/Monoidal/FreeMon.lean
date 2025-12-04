@@ -34,6 +34,9 @@ def freeMon : C ⥤ Mon C where
   map_id := by aesop
   map_comp := by aesop
 
+attribute [local instance] AddMonObj.toMonObj
+-- attribute [local instance] AddMon.toMon
+
 /-- Extends the isomorphism `listUnitIsoNNO` of the types to the monoids. -/
 def freeMonUnitIsoMonNNO [BraidedCategory C] :
     (freeMon C).obj (𝟙_ C) ≅ Mon.mk N := by
@@ -43,11 +46,10 @@ def freeMonUnitIsoMonNNO [BraidedCategory C] :
   · simp [listUnitIsoNNO]
     dsimp [MonObj.mul, add, iter, prc]
     apply list.prc_uniq
-    · simp only [list.whiskerRight_nil_append, comp_id]
-    · nth_rw 1 [list.append]
+    · aesop --simp only [list.whiskerRight_nil_append, comp_id]
+    · simp [list.append]
       rw [← Category.assoc, list.cons_prc]
-      simp only [id_whiskerLeft, Category.assoc, Iso.hom_inv_id_assoc, Iso.cancel_iso_hom_left]
-      dsimp [list.append]
+      simp only [id_whiskerLeft, Category.assoc]
 
 namespace list
 

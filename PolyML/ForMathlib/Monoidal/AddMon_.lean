@@ -72,6 +72,13 @@ def fromMonObj {X : C} [MonObj X] : AddMonObj X where
   add_zero := MonObj.mul_one X
   add_assoc := MonObj.mul_assoc X
 
+def toMonObj {X : C} [AddMonObj X] : MonObj X where
+  one := AddMonObj.zero
+  mul := AddMonObj.add
+  one_mul := AddMonObj.zero_add X
+  mul_one := AddMonObj.add_zero X
+  mul_assoc := AddMonObj.add_assoc X
+
 /-- Transfer `AddMonObj` along an isomorphism. -/
 -- Note: The simps lemmas are not tagged simp because their `#discr_tree_simp_key` are too generic.
 @[simps! -isSimp]
@@ -199,9 +206,17 @@ When the monoidal category is preadditive, this is also sometimes called an "alg
 structure AddMon where
   /-- The underlying object in the ambient monoidal category -/
   X : C
-  [mon : AddMonObj X]
+  [addMon : AddMonObj X]
 
-attribute [instance] AddMon.mon
+attribute [instance] AddMon.addMon
+
+def AddMon.toMon (a : AddMon C) : Mon C where
+  X := a.X
+  mon := AddMonObj.toMonObj
+
+def AddMon.ofMon (a : Mon C) : AddMon C where
+  X := a.X
+  addMon := AddMonObj.fromMonObj
 
 namespace AddMon
 
@@ -527,7 +542,7 @@ instance uniqueHomFromTrivial (A : AddMon C) : Unique (trivial C ⟶ A) where
     ext
     rw [← Category.id_comp f.hom]
     dsimp only [trivial_X]
-    rw [← trivial_mon_zero, IsAddMonHom.zero_hom]
+    rw [← trivial_addMon_zero, IsAddMonHom.zero_hom]
 
 open CategoryTheory.Limits
 

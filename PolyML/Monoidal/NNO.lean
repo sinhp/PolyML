@@ -5,6 +5,7 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Monoidal.Comon_
+import PolyML.ForMathlib.Monoidal.AddCommMon_
 import PolyML.Monoidal.ListArithmetic
 import PolyML.ForMathlib.Monoidal.Powers
 import Mathlib.Tactic.CategoryTheory.Coherence
@@ -501,20 +502,19 @@ theorem add_assoc :
     rw [assoc, succ_iter]
 
 /-- The monoid structure on the natural number object. -/
-instance monObj [BraidedCategory C] : MonObj (N : C) where
-  one := zero
-  mul := add
-  one_mul := zero_add
-  mul_one := add_zero
-  mul_assoc := add_assoc
+instance addMonObj [BraidedCategory C] : AddMonObj (N : C) where
+  zero := zero
+  add := add
+  zero_add := zero_add
+  add_zero := add_zero
+  add_assoc := add_assoc
 
-instance NNO.mon [BraidedCategory C] : Mon C where
+instance addMon [BraidedCategory C] : AddMon C where
   X := N
-  mon := by infer_instance
+  addMon := by infer_instance
 
-
-instance [BraidedCategory C] : IsCommMonObj (N : C) where
-  mul_comm := add_comm
+instance [BraidedCategory C] : IsAddCommMonObj (N : C) where
+  add_comm := add_comm
 
 def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
@@ -613,14 +613,16 @@ theorem singleton_len_one :
     list.singleton ≫ list.len = toUnit A ≫ one := by
   sorry
 
+attribute [local instance] CategoryTheory.AddMonObj.toMonObj
+
+/-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
 instance isMonHomLen [BraidedCategory C] : IsMonHom (list.len (A:= A)) where
   one_hom := nil_len_zero
   mul_hom := append_len_add
 
-#check Mon.Hom
 /-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
 def list.lenMonHom [BraidedCategory C] {A : C} :
-    Mon.Hom (List.mon A) (NNO.mon) where
+    Mon.Hom (List.mon A) (PNNO.addMon.toMon) where
   hom := list.len
   isMonHom_hom := by infer_instance
 
