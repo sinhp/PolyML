@@ -68,10 +68,10 @@ def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N
       exact h_succ
 
 /- In monoidal closed categories, every natural number object is a parameterized natural number object. -/
-def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
+def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N)
+(succ : N ⟶ N)
     [IsNNO N zero succ] : IsPNNO N zero succ where
-  prc {P B} f g :=
-    (β_ N P).hom ≫
+  prc := fun {P B} f g => (β_ N P).hom ≫
       (MonoidalClosed.uncurry <| rc zero succ ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
   zero_prc := by
     intros A B f g
@@ -535,7 +535,6 @@ instance NNO.mon [BraidedCategory C] : Mon C where
   X := N
   mon := by infer_instance
 
-
 instance [BraidedCategory C] : IsCommMonObj (N : C) where
   mul_comm := add_comm
 
@@ -603,8 +602,11 @@ theorem len_eq_rc_zero_snd_succ {A : C} :
     simp only [plist.cons_map]
     refine _ ≫= ?_
     dsimp [snd,list]
+    unfold SemiCartesianMonoidalCategory.toUnit
+    simp only [← assoc]
+    congr
     sorry
-    --simp only [assoc, Iso.hom_inv_id_assoc]
+
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by

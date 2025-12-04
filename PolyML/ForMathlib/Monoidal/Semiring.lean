@@ -56,9 +56,13 @@ namespace DistribObj
 
 attribute [local instance] instTensorUnit
 
-instance : DistribObj (𝟙_ C) where
-  left_distrib := sorry
-  right_distrib := sorry
+instance : Distrib_Class (𝟙_ C) where
+  left_distrib := by
+    dsimp
+    sorry
+  right_distrib := by
+    dsimp
+    sorry
 
 end DistribObj
 
@@ -67,12 +71,12 @@ class SemiringObj (X : C) extends ComonObj X, AddMonObj X, IsAddCommMonObj X, Mo
   zero_mul : zero ▷ X ≫ mul = (𝟙_ C) ◁ ε ≫ (λ_ _).hom ≫ zero
   mul_zero : X ◁ zero ≫ mul = ε ▷ (𝟙_ C) ≫ (ρ_ _).hom ≫ zero
 
-namespace SemiringObj
+namespace Semiring_Class
 
--- @[simps]
--- instance : SemiringObj (𝟙_ C) where
---   zero_mul := by sorry
---   mul_zero := by sorry
+@[simps]
+instance : Semiring_Class (𝟙_ C) where
+  zero_mul := by simp
+  mul_zero := by simp [unitors_equal]
 
 end SemiringObj
 

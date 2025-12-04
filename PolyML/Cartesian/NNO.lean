@@ -38,6 +38,8 @@ theorem succ_mul' :
 
 theorem one_mul' : one ▷ (N : C) ≫ mul' = (λ_ _).hom := by
   simp [one, succ_mul', assoc, assoc,succ_mul']
+  rw [← assoc,zero_prec, Iso.hom_inv_id_assoc, zero_add]
+  simp [one, succ_mul', assoc, assoc,succ_mul']
   rw [← assoc,zero_prc, Iso.hom_inv_id_assoc, zero_add]
 
 theorem mul'_comm : (β_ N N).hom ≫ mul' = mul' (C:= C) := by
@@ -74,15 +76,16 @@ theorem uprimrecAux_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
   aesop
 
 theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
-    succ ≫ uprimrecAux init step = uprimrecAux init step ≫ (lift (fst N X ≫ succ) step) := by
+    succ ≫ uprimrecAux init step = uprimrecAux init step ≫
+      (lift (fst N X ≫ succ) step) := by
   simp only [uprimrecAux]
   rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prc]
+  simp only [comp_lift, assoc]
+  rw [← assoc, rightUnitor_inv_naturality, assoc, succ_prec]
   simp only [comp_lift, assoc]
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
-  simp only [uprimrecAux]
-  rw [fst_eq_prc]
   sorry
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
@@ -90,6 +93,9 @@ def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
 
 theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     zero ≫ uprimrec init step = init := by
+  dsimp [uprimrec]
+  simp only [← assoc, uprimrecAux_zero]
+  simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
   dsimp [uprimrec]
   simp only [← assoc, uprimrecAux_zero]
   simp only [assoc, tensorHom_snd, leftUnitor_inv_snd_assoc]
@@ -118,20 +124,14 @@ def pred : (N : C) ⟶ N := uprimrec zero (fst N N)
 
 @[reassoc (attr := simp)]
 theorem pred_zero : zero (C:= C) ≫ pred = zero := by
-  simp only [pred, uprimrec, uprimrecAux]
-  simp [← assoc]
-  rw [rightUnitor_inv_naturality]
-  simp only [assoc]
-  rw [Eq.symm (assoc (zero ▷ 𝟙_ C)
-    (prc ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (lift (fst N N ≫ succ) (fst N N))) (snd N N))]
-  rw [zero_prc]
-  simp only [Iso.hom_inv_id_assoc, tensorHom_snd, rightUnitor_inv_snd_assoc]
-  unfold CartesianMonoidalCategory.toUnit
-  simp only [IsTerminal.from_self, id_comp]
+  dsimp [pred]
+  rw [uprimrec_zero]
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
-  simp only [pred, uprimrec, uprimrecAux]
+  simp only [pred]
+  rw [uprimrec_succ]
+  simp only [whiskerLeft_fst]
   sorry
 
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
