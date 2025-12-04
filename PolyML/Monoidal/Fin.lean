@@ -68,15 +68,7 @@ def binaryCofan : BinaryCofan (𝟙_ C) N where
           | ⟨.left⟩ => zero
           | ⟨.right⟩ => succ
     naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
-      cases X; cases Y
-      · dsimp [pair, BinaryCofan]
-        simp only [Discrete.functor_map_id, Discrete.functor_obj_eq_as, id_comp, comp_id]
-      · simp only [pair_obj_left, const_obj_obj, pair_obj_right, const_obj_map, comp_id]
-        grind only
-      · cases Y
-        · grind only
-        · simp only [pair_obj_right, const_obj_obj, Discrete.id_def', Discrete.functor_map_id,
-          id_comp, comp_id]
+      cases X  <;> cases Y <;> repeat (first | grind | aesop)
   }
 
 def isNNOPlusOne [HasBinaryCoproduct (𝟙_ C) N] :
