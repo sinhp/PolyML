@@ -74,7 +74,7 @@ def binaryCofan : BinaryCofan (𝟙_ C) N where
       · simp only [pair_obj_left, const_obj_obj, pair_obj_right, const_obj_map, comp_id]
         grind only
       · cases Y
-        · grind
+        · grind only
         · simp only [pair_obj_right, const_obj_obj, Discrete.id_def', Discrete.functor_map_id,
           id_comp, comp_id]
   }
