@@ -10,7 +10,10 @@ import PolyML.ForMathlib.ConstantMorphism
 -- import PolyML.ForMathlib.Monoidal.CoCartesian.Basic
 
 /-!
-# The Natural Numbers Object in Monoidal Categories
+# Additional facts about natural numbers object in a cartesian monoidal category
+
+We use the universal property of the tensor product to define various new operations on natural numbers
+and prove additional lemmas about the existing and new operations.
 -/
 
 universe u v
