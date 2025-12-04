@@ -67,7 +67,7 @@ def binaryCofan : BinaryCofan (𝟙_ C) N where
     app := fun
           | ⟨.left⟩ => zero
           | ⟨.right⟩ => succ
-    naturality :=  fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
+    naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
       cases X; cases Y
       · dsimp [pair, BinaryCofan]
         simp only [Discrete.functor_map_id, Discrete.functor_obj_eq_as, id_comp, comp_id]
