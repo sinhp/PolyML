@@ -1,0 +1,54 @@
+/-
+Copyright (c) 2025 Sina Hazratpour. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sina Hazratpour
+-/
+
+import PolyML.Monoidal.Fin
+import Mathlib.CategoryTheory.Monoidal.Internal.Types.Basic
+import Mathlib.Data.FinEnum
+import Mathlib.CategoryTheory.Monoidal.FunctorCategory
+
+namespace CategoryTheory
+
+
+/-- The natural numbers object in the category `Type`. -/
+def NNOType₀ : NNO (Type) where
+  N := ℕ
+  zero := fun _ => 0
+  succ := Nat.succ
+  isNNO := {
+    rc := fun {B} b g => Nat.rec (b ()) (fun n b => g b)
+    zero_rc := by aesop
+    succ_rc := by aesop
+    rc_uniq := by sorry
+  }
+
+def NNOType : NNO (Type u) where
+  N := ULift ℕ
+  zero := fun _ => ULift.up 0
+  succ := fun n => ULift.up (Nat.succ n.down)
+  isNNO := {
+    rc := fun {B} b g => sorry
+    zero_rc := sorry
+    succ_rc := sorry
+    rc_uniq := sorry
+  }
+
+/-- The NNO in presheaf categories. -/
+def NNOPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
+  N := (Functor.const (J:= C)).obj ℕ
+  zero := (Functor.const (J:= C)).map (fun _ => 0)
+  succ := (Functor.const (J:= C)).map Nat.succ
+  isNNO := {
+    rc := fun {B} b g =>
+      { app := fun X => Nat.rec (b.app X ()) (fun n b => g.app X b)
+        naturality := by
+          sorry }
+    zero_rc := sorry
+    succ_rc := sorry
+    rc_uniq := sorry
+  }
+
+
+end CategoryTheory

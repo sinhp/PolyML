@@ -5,12 +5,11 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Monoidal.Comon_
-import PolyML.ForMathlib.Monoidal.AddCommMon_
-import PolyML.Monoidal.ListArithmetic
-import PolyML.ForMathlib.Monoidal.Powers
 import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
-import Mathlib.CategoryTheory.Closed.Cartesian
+import PolyML.ForMathlib.Monoidal.AddMon_
+import PolyML.ForMathlib.Monoidal.Powers
+import PolyML.Monoidal.ListArithmetic
 
 universe u v
 
@@ -115,6 +114,20 @@ def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (
       simp only [assoc]
       rw [hs]
 
+/-- Any two parameteried natural number objects in a monoidal category are isomorphic. -/
+def IsPNNO.iso [MonoidalCategory C] {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
+    (pnno : IsPNNO N zero succ) (pnno' : IsPNNO N' zero' succ') : N ≅ N' where
+  hom := (ρ_ N).inv ≫ pnno.prc zero' succ'
+  inv := (ρ_ N').inv ≫ pnno'.prc zero succ
+  hom_inv_id := sorry
+  inv_hom_id := sorry
+
+
+/-- Any two natural number objects in a monoidal category are isomorphic. -/
+def IsNNO.iso [MonoidalCategory C] {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
+    (nno : IsNNO N zero succ) (nno' : IsNNO N' zero' succ') : N ≅ N' :=
+  sorry
+
 namespace IsPNNO
 
 variable [MonoidalCategory C]
@@ -126,14 +139,6 @@ theorem congr_arg {P B : C} {f f' : P ⟶ B} {g g' : B ⟶ B}
     pnno.prc f g = pnno.prc f' g' := by
   subst h h'
   rfl
-
-/-- Any two natural number objects in a monoidal category are isomorphic. -/
-def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
-    (pnno : IsPNNO N zero succ) (pnno' : IsPNNO N' zero' succ') : N ≅ N' where
-  hom := (ρ_ N).inv ≫ pnno.prc zero' succ'
-  inv := (ρ_ N').inv ≫ pnno'.prc zero succ
-  hom_inv_id := sorry
-  inv_hom_id := sorry
 
 end IsPNNO
 

@@ -71,7 +71,7 @@ def fin [MonoidalCategory C] [PNNO C] (n : 𝟙_ C ⟶ N) := pullbackObj n (univ
 def isInitialFinZero [MonoidalCategory C] [PNNO C] : IsInitial (fin zero : C) := by sorry
 
 @[simps pt]
-def binaryCofan [MonoidalCategory C] [PNNO C] : BinaryCofan (𝟙_ C) N where
+def binaryCofan [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N where
   pt := N
   ι := {
     app := fun
@@ -81,7 +81,8 @@ def binaryCofan [MonoidalCategory C] [PNNO C] : BinaryCofan (𝟙_ C) N where
       cases X  <;> cases Y <;> repeat (first | contradiction | aesop)
   }
 
-noncomputable def isNNOPlusOne [MonoidalCategory C] [PNNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+  /-- If `N` is an NNO then `1 + N` is also an NNO. -/
+noncomputable def isNNOPlusOne [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
   rc {B} b g := coprod.desc b (rc (b ≫ g) g)
   zero_rc := by
@@ -90,40 +91,60 @@ noncomputable def isNNOPlusOne [MonoidalCategory C] [PNNO C] [HasBinaryCoproduct
   succ_rc := by
     intros B f g
     simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
-    unfold PNNO.rc
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    rw [assoc]
-    rw [ PNNO.zero_prc]
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    simp only [assoc]
-    rw [ PNNO.succ_prc]
-    simp only [← assoc]
-    rw [unitors_equal]
-    simp only [Iso.inv_hom_id, id_comp, assoc]
+    unfold NNO.rc
+    rw [IsNNO.zero_rc]
+    rw [IsNNO.succ_rc]
   rc_uniq := by
     intros B f g r hr1 hr2
-    unfold PNNO.rc
-    unfold PNNO.prc
+    -- unfold IsNNO.rc
+    -- unfold NNO.prc
     refine coprod.hom_ext_iff.mpr ?_
     · rw [hr1]
       simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
         true_and]
-      refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
-      apply isPNNO.prc_uniq
-      · simp only [MonoidalCategory.whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
-        rw [← hr1]
+      -- refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+      apply isNNO.rc_uniq
+      · rw [← hr1]
         simp only [assoc]
         rw [← hr2]
-        rw [unitors_equal]
         simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
-      · simp only [MonoidalCategory.whiskerRight_id, assoc, Iso.inv_hom_id_assoc,
-        Iso.cancel_iso_hom_left]
+      · rw [assoc]
         rw [← hr2]
         simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
 
+/-- `N` is isomorphic to `1 + N`. -/
+noncomputable def NNOIsoPlusOne [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    NNO.N ≅ (𝟙_ C ⨿ N) := by
+  apply IsNNO.iso (NNO.isNNO) (isNNOPlusOne)
 
+theorem NNOIsoPlusOne_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    (NNOIsoPlusOne).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
+  --have := IsColimit.uniq _
+  --rw [coprod.desc, colimit.desc, colimit.isColimit]
+  -- rw [IsColimit.uniq]
+  sorry
+
+#check CategoryTheory.Limits.coprod.desc'
+
+/-- The diagram `𝟙_C ⟶ N ⟵ N`  is a coproduct diagram. -/
+noncomputable def colimitCocone [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+  ColimitCocone (pair (𝟙_ C) N) where
+    cocone := binaryCofan
+    isColimit := by
+      refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
+      · intro S a b
+        exact NNOIsoPlusOne.hom ≫ (coprod.desc a b)
+      · sorry
+      · sorry
+      · sorry
+
+/-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
+def BinaryCoproduct [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] : HasBinaryCoproduct (𝟙_ C) N where
+  exists_colimit := by
+    constructor
+    exact colimitCocone
+
+#check CartesianMonoidalCategory
 
 
 noncomputable def finZeroIso [MonoidalCategory C] [PNNO C] [HasInitial C] : fin zero ≅ ⊥_ C :=
@@ -213,7 +234,10 @@ def fibre [MonoidalCategory C] {E B : C} (p : E ⟶ B) (b : 𝟙_ C ⟶ B) : C :
   pullbackObj (C:= C) p b
 
 /-- The tautological instance showing that `finLtToNNO` has finite fibres. -/
-instance [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] : FiniteFibres (univFinMap C) := sorry
+instance [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] : FiniteFibres (univFinMap C) where
+  fibCard := sorry
+  ext := sorry
+  isPullback := sorry
 
 def fibreOfFiniteFibresIsCardinalFinite [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C]
     {E B : C} {p : E ⟶ B} [FiniteFibres p]
