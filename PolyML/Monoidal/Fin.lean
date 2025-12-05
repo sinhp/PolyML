@@ -78,16 +78,50 @@ def binaryCofan [MonoidalCategory C] [PNNO C] : BinaryCofan (𝟙_ C) N where
           | ⟨.left⟩ => zero
           | ⟨.right⟩ => succ
     naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
-      cases X  <;> cases Y <;> repeat (first | grind | aesop)
+      cases X  <;> cases Y <;> repeat (first | contradiction | aesop)
   }
 
 noncomputable def isNNOPlusOne [MonoidalCategory C] [PNNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
   rc {B} b g := coprod.desc b (rc (b ≫ g) g)
-  zero_rc := sorry
-  succ_rc := sorry
-  rc_uniq := sorry
-
+  zero_rc := by
+    intros A f g
+    simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+  succ_rc := by
+    intros B f g
+    simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+    unfold PNNO.rc
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [assoc]
+    rw [ PNNO.zero_prc]
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
+    rw [ PNNO.succ_prc]
+    simp only [← assoc]
+    rw [unitors_equal]
+    simp only [Iso.inv_hom_id, id_comp, assoc]
+  rc_uniq := by
+    intros B f g r hr1 hr2
+    unfold PNNO.rc
+    unfold PNNO.prc
+    refine coprod.hom_ext_iff.mpr ?_
+    · rw [hr1]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
+        true_and]
+      refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+      apply isPNNO.prc_uniq
+      · simp only [MonoidalCategory.whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+        rw [← hr1]
+        simp only [assoc]
+        rw [← hr2]
+        rw [unitors_equal]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+      · simp only [MonoidalCategory.whiskerRight_id, assoc, Iso.inv_hom_id_assoc,
+        Iso.cancel_iso_hom_left]
+        rw [← hr2]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
 
 
 
