@@ -172,7 +172,7 @@ def commMon : CommMon C := bag.Algebra.commMon (bagAlgebra α)
 This is a syntactic copy of `commMon`. -/
 def addCommMon : AddCommMon C := AddCommMon.fromCommMon (commMon α)
 
-instance addMonClass : AddMonObj α.A.A := (addCommMon α).toAddMon |>.mon
+instance addMonClass : AddMonObj α.A.A := (addCommMon α).toAddMon |>.addMon
 
 instance : IsAddCommMonObj α.A.A := addCommMon α |>.comm
 
