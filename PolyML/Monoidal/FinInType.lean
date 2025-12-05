@@ -18,11 +18,31 @@ def NNOType₀ : NNO (Type) where
   zero := fun _ => 0
   succ := Nat.succ
   isNNO := {
-    rc := fun {B} b g => Nat.rec (b ()) (fun n b => g b)
+    rc {B} b g := Nat.rec (b ()) (fun n b => g b)
     zero_rc := by aesop
     succ_rc := by aesop
     rc_uniq := by sorry
   }
+
+def PNNOType₀ : PNNO (Type) where
+  N := ℕ
+  zero := fun _ => 0
+  succ := Nat.succ
+  isPNNO := {
+    prc {P B} b g := sorry --Nat.rec (b ()) (fun n b => g b)
+    zero_prc := sorry
+    succ_prc := sorry
+    prc_uniq := sorry
+  }
+
+example : NNOType₀.one = fun _ => (1 : ℕ) := rfl
+
+#check list.nil_len_zero
+
+#check list.len (C:= Type)
+
+-- #eval list.len (C:= Type) ([1, 2, 3] : List ℕ)  -- fix this
+
 
 def NNOType : NNO (Type u) where
   N := ULift ℕ
