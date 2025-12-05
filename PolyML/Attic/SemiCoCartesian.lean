@@ -38,5 +38,3 @@ def inr (X Y : C) : Y ⟶ X ⊗ Y := (λ_ Y).inv ≫ (fromUnit X ▷ Y)
 end SemiCoCartesianMonoidalCategory
 
 end CategoryTheory
-
-#min_imports

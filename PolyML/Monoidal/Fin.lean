@@ -83,10 +83,14 @@ def binaryCofan [MonoidalCategory C] [PNNO C] : BinaryCofan (𝟙_ C) N where
 
 noncomputable def isNNOPlusOne [MonoidalCategory C] [PNNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
-  rc {B} b g := coprod.desc b (rc b g)
+  rc {B} b g := coprod.desc b (rc (b ≫ g) g)
   zero_rc := sorry
   succ_rc := sorry
   rc_uniq := sorry
+
+
+
+
 
 noncomputable def finZeroIso [MonoidalCategory C] [PNNO C] [HasInitial C] : fin zero ≅ ⊥_ C :=
   IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
