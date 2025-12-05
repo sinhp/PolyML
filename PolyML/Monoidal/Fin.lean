@@ -34,14 +34,23 @@ universe v u
 -- TODO: CocartesianMonoidalCategory
 
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C] [ChosenPullbacks C]
+variable {C : Type u} [Category.{v} C] [ChosenPullbacks C]
 
-open ChosenPullbacksAlong
+open ChosenPullbacksAlong IsPNNO PNNO
 
+section UnivMap
+
+variable [MonoidalCategory C] [PNNO C]
 
 variable (C) in
 /-- The universal map with finite fibres. -/
 def univFinMap : (N : C) ⊗ N ⟶ N := add ≫ succ
+
+end UnivMap
+
+section Fin
+
+open ChosenPullbacksAlong IsPNNO PNNO MonoidalCategory
 
 /-- The cardinal finite objects in a category with pullbacks and NNO.
 We think of `fin n` as the the "set" of pairs `(a, b)` where `a + b + 1 = n`; There are exactly `n` such pairs.
@@ -56,66 +65,95 @@ fin n ------------------> 1
 ```
 The left hand side vertical morphism is a monomorphism.
 -/
-def fin (n : 𝟙_ C ⟶ N) := pullbackObj n (univFinMap C)
+def fin [MonoidalCategory C] [PNNO C] (n : 𝟙_ C ⟶ N) := pullbackObj n (univFinMap C)
 
-def isInitialFinZero : IsInitial (fin zero : C) := by sorry
+
+def isInitialFinZero [MonoidalCategory C] [PNNO C] : IsInitial (fin zero : C) := by sorry
 
 @[simps pt]
-def binaryCofan : BinaryCofan (𝟙_ C) N where
+def binaryCofan [MonoidalCategory C] [PNNO C] : BinaryCofan (𝟙_ C) N where
   pt := N
   ι := {
     app := fun
           | ⟨.left⟩ => zero
           | ⟨.right⟩ => succ
     naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
-      cases X; cases Y
-      · dsimp [pair, BinaryCofan]
-        simp only [Discrete.functor_map_id, Discrete.functor_obj_eq_as, id_comp, comp_id]
-      · simp only [pair_obj_left, const_obj_obj, pair_obj_right, const_obj_map, comp_id]
-        grind only
-      · cases Y
-        · grind only
-        · simp only [pair_obj_right, const_obj_obj, Discrete.id_def', Discrete.functor_map_id,
-          id_comp, comp_id]
+      cases X  <;> cases Y <;> repeat (first | grind | aesop)
   }
 
-def isNNOPlusOne [HasBinaryCoproduct (𝟙_ C) N] :
+noncomputable def isNNOPlusOne [MonoidalCategory C] [PNNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
-  rc := sorry
-  zero_rc := sorry
-  succ_rc := sorry
-  rc_uniq := sorry
+  rc {B} b g := coprod.desc b (rc (b ≫ g) g)
+  zero_rc := by
+    intros A f g
+    simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+  succ_rc := by
+    intros B f g
+    simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+    unfold PNNO.rc
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [assoc]
+    rw [ PNNO.zero_prc]
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
+    rw [ PNNO.succ_prc]
+    simp only [← assoc]
+    rw [unitors_equal]
+    simp only [Iso.inv_hom_id, id_comp, assoc]
+  rc_uniq := by
+    intros B f g r hr1 hr2
+    unfold PNNO.rc
+    unfold PNNO.prc
+    refine coprod.hom_ext_iff.mpr ?_
+    · rw [hr1]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
+        true_and]
+      refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
+      apply isPNNO.prc_uniq
+      · simp only [MonoidalCategory.whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+        rw [← hr1]
+        simp only [assoc]
+        rw [← hr2]
+        rw [unitors_equal]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+      · simp only [MonoidalCategory.whiskerRight_id, assoc, Iso.inv_hom_id_assoc,
+        Iso.cancel_iso_hom_left]
+        rw [← hr2]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
 
 
-#check HasBinaryCoproduct
-
-noncomputable def finZeroIso [HasInitial C] : fin zero ≅ ⊥_ C :=
+noncomputable def finZeroIso [MonoidalCategory C] [PNNO C] [HasInitial C] : fin zero ≅ ⊥_ C :=
   IsInitial.uniqueUpToIso isInitialFinZero initialIsInitial
 
 /-- fin (n + 1) ≅ fin n + 1 -/
-def finSuccIso [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
+def finSuccIso [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
   sorry
 
 /-- fin 1 ≅ 1 -/
-def isTerminalFinOne : IsTerminal (fin one : C) := by sorry
+def isTerminalFinOne [MonoidalCategory C] [PNNO C] : IsTerminal (fin one : C) := by sorry
 
-def pairing (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
+def pairing [MonoidalCategory C] [PNNO C] (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ (m ⊗ₘ n)
 
 /-- fin (m + n ) ≅ fin m + fin n -/
-def finSumIso [HasBinaryCoproducts C] (m n : 𝟙_ C ⟶ N) :
-    fin (pairing m n ≫ NNO.add) ≅ fin m ⨿ fin n := by
+def finSumIso [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] (m n : 𝟙_ C ⟶ N) :
+    fin (pairing m n ≫ add) ≅ fin m ⨿ fin n := by
   sorry
 
 /-- fin (m . n) ≅ fin m ⊗ fin n -/
-def finProdIso [HasBinaryCoproducts C] (m n : 𝟙_ C ⟶ N) :
-    fin (pairing m n ≫ NNO.mul') ≅ fin m ⊗ fin n := by
+def finProdIso [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] (m n : 𝟙_ C ⟶ N) :
+    fin (pairing m n ≫ mul') ≅ fin m ⊗ fin n := by
   sorry
 
 /-- fin (m ^ n) ≅ fin m ^ fin n -/
-def finExpIso [CartesianClosed C] (m n : 𝟙_ C ⟶ N) :
+def finExpIso [CartesianMonoidalCategory C] [CartesianClosed C] [PNNO C] (m n : 𝟙_ C ⟶ N) :
     fin (pairing m n ≫ mul') ≅ (fin m) ^^ (fin n) := by
   sorry
+
+end Fin
+
 
 -- The universal map with finite fibres
 -- need to define the object `N<`  of pairs of natural numbers (m,n) where
@@ -135,15 +173,11 @@ finLt ------------------> 1
               lt
 ```
 -/
-noncomputable abbrev finLt [HasBinaryCoproducts C] := pullback (C:= C) bool.true NNO.lt
+noncomputable abbrev finLt [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] := pullbackObj (C:= C) bool.true lt
 
-def univFinMapIso [HasBinaryCoproducts C] :
-    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N) := by
+def univFinMapIso [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] :
+    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) bool.true lt ≫ fst N N) := by
   sorry
-
-variable (C) in
-noncomputable def univFinMap' [HasBinaryCoproducts C] : finLt ⟶ (N : C) :=
-  pullback.snd (C:= C) bool.true NNO.lt ≫ fst N N
 
 /--
 The following square is a pullback square:
@@ -157,7 +191,7 @@ The following square is a pullback square:
             fibCard
 ```
 -/
-class FiniteFibres [HasBinaryCoproducts C] {E B : C} (p : E ⟶ B) where
+class FiniteFibres [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] {E B : C} (p : E ⟶ B) where
   fibCard : B ⟶ N
   ext : E ⟶ N ⊗ N
   isPullback : IsPullback (ext) p (univFinMap C) (fibCard)
@@ -173,13 +207,14 @@ fin b ---->  E  --------------> finLt
       b            fibCard
 ```
 -/
-def fibre {E B : C} (p : E ⟶ B) (b : 𝟙_ C ⟶ B) : C :=
+def fibre [MonoidalCategory C] {E B : C} (p : E ⟶ B) (b : 𝟙_ C ⟶ B) : C :=
   pullbackObj (C:= C) p b
 
 /-- The tautological instance showing that `finLtToNNO` has finite fibres. -/
-instance [HasBinaryCoproducts C] : FiniteFibres (univFinMap C) := sorry
+instance [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] : FiniteFibres (univFinMap C) := sorry
 
-def fibreOfFiniteFibresIsCardinalFinite [HasBinaryCoproducts C] {E B : C} {p : E ⟶ B} [FiniteFibres p]
+def fibreOfFiniteFibresIsCardinalFinite [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C]
+    {E B : C} {p : E ⟶ B} [FiniteFibres p]
     (b :  𝟙_ C ⟶ B) :
     fibre p b  ≅ fin (b ≫ FiniteFibres.fibCard p) := by
   sorry
@@ -193,7 +228,7 @@ def fibreOfFiniteFibresIsCardinalFinite [HasBinaryCoproducts C] {E B : C} {p : E
 
 /-- For an object `X : C`, the structure `FinEnum X` consists of a natural number `n` and an
 isomorphism `X ≅ nno.fin n`. This means that `X` is finite and can be enumerated in some order. -/
-class FinEnum (X : C) where
+class FinEnum [MonoidalCategory C] [PNNO C] (X : C) where
   card : 𝟙_ C ⟶ N
   iso : X ≅ fin card
 
