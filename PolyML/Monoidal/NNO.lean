@@ -545,13 +545,19 @@ theorem num_succ (n : ℕ) :
 theorem num_one : num C (1 : ℕ) = one := by
   rw [num_succ, num_zero, one]
 
+variable (C) in
 def num_pair (m n : ℕ) : (𝟙_ C ⟶ N ⊗ N) :=
   (ρ_ _).inv ≫ (num C m ⊗ₘ num C n)
 
 @[simp]
-theorem num_add [MonoidalCategory C] [PNNO C] (m n : ℕ) :
-    num C (m + n) = num_pair m n ≫ add := by
+theorem num_add (m n : ℕ) :
+    num C (m + n) = num_pair C m n ≫ add := by
   sorry
+
+theorem num_add_comm (m n : ℕ) :
+    num_pair C m n ≫ add = num_pair C n m ≫ add := by
+  sorry
+
 
 end Num
 
