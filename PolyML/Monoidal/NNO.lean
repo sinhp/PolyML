@@ -524,6 +524,37 @@ instance [BraidedCategory C] : IsAddCommMonObj (N : C) where
 def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
 
+variable (C) in
+/-- The numerals as morphisms from the unit object to the NNO. -/
+def num [MonoidalCategory C] [PNNO C] : ℕ → (𝟙_ C ⟶ N)
+  | Nat.zero => zero
+  | Nat.succ m => num m ≫ succ
+
+section Num
+
+@[simp]
+theorem num_zero : num C (0 : ℕ) = zero := by
+  rfl
+
+@[simp]
+theorem num_succ (n : ℕ) :
+    num C (n + 1) = num C n ≫ succ := by
+  rfl
+
+@[simp]
+theorem num_one : num C (1 : ℕ) = one := by
+  rw [num_succ, num_zero, one]
+
+def num_pair (m n : ℕ) : (𝟙_ C ⟶ N ⊗ N) :=
+  (ρ_ _).inv ≫ (num C m ⊗ₘ num C n)
+
+@[simp]
+theorem num_add [MonoidalCategory C] [PNNO C] (m n : ℕ) :
+    num C (m + n) = num_pair m n ≫ add := by
+  sorry
+
+end Num
+
 end PNNO
 
 open PNNO
@@ -731,6 +762,37 @@ theorem fromBool_toBool [HasBinaryCoproducts C] :
   apply bool.ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
   · sorry
+
+variable (C) in
+/-- The numerals as morphisms from the unit object to the NNO. -/
+def num [MonoidalCategory C] [NNO C] : ℕ → (𝟙_ C ⟶ N)
+  | Nat.zero => zero
+  | Nat.succ m => num m ≫ succ
+
+section Num
+
+@[simp]
+theorem num_zero : num C (0 : ℕ) = zero := by
+  rfl
+
+@[simp]
+theorem num_succ (n : ℕ) :
+    num C (n + 1) = num C n ≫ succ := by
+  rfl
+
+@[simp]
+theorem num_one : num C (1 : ℕ) = one := by
+  rw [num_succ, num_zero, one]
+
+def num_pair (m n : ℕ) : (𝟙_ C ⟶ N ⊗ N) :=
+  (ρ_ _).inv ≫ (num C m ⊗ₘ num C n)
+
+@[simp]
+theorem num_add [MonoidalCategory C] [PNNO C] (m n : ℕ) :
+    num C (m + n) = num_pair m n ≫ add := by
+  sorry
+
+end Num
 
 end NNO
 
