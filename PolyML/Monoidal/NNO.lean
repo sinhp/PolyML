@@ -558,8 +558,14 @@ theorem num_add_comm (m n : ℕ) :
     num_pair C m n ≫ add = num_pair C n m ≫ add := by
   sorry
 
-
 end Num
+
+instance {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
+  ofNat := num C n
+
+#check (3 : 𝟙_ C ⟶ N)
+#reduce (3 : 𝟙_ C ⟶ N)
+
 
 end PNNO
 
