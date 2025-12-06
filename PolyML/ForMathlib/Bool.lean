@@ -16,71 +16,83 @@ noncomputable section
 
 namespace CategoryTheory
 
-open Category Limits MonoidalCategory
+open Limits
 
-variable {C : Type u} [Category.{v} C]
+-- section
 
-def boolOf (T : C) (_ : IsTerminal T := by aesop) [HasBinaryCoproducts C] := T ⨿ T
+-- variable {C : Type u} [Category.{v} C]
 
-namespace boolOf
+-- def boolOf (T : C) (_ : IsTerminal T := by aesop) [HasBinaryCoproducts C] := T ⨿ T
 
-variable {T : C} (h : IsTerminal T) [HasBinaryCoproducts C]
+-- variable {T : C} (h : IsTerminal T) [HasBinaryCoproducts C]
 
-def false : T ⟶ boolOf T := coprod.inl
+-- private def false : T ⟶ boolOf T := coprod.inl
 
-def true : T ⟶ boolOf T := coprod.inr
+-- private def true : T ⟶ boolOf T := coprod.inr
 
-def elim {X : C} (f : T ⟶ X) (g : T ⟶ X) : boolOf T ⟶ X := coprod.desc f g
+-- private def elim {X : C} (f : T ⟶ X) (g : T ⟶ X) : boolOf T ⟶ X := coprod.desc f g
 
-end boolOf
+-- end
 
 namespace MonoidalCategory
 
-variable [MonoidalCategory C] [HasBinaryCoproducts C]
+open Category Limits
 
-def bool := (𝟙_ C) ⨿ (𝟙_ C)
+class IsBool {C : Type u} [Category.{v} C] [MonoidalCategory C] (obj : C) (ff tt : 𝟙_ C ⟶ obj) where
+  elim {ff} {tt} {X : C} (a : 𝟙_ C ⟶ X) (b : 𝟙_ C ⟶ X) : obj ⟶ X
+  ff_elim {X : C} {a : 𝟙_ C ⟶ X} {b : 𝟙_ C ⟶ X} :
+    ff ≫ elim a b = a
+  tt_elim {X : C} {a : 𝟙_ C ⟶ X} {b : 𝟙_ C ⟶ X} :
+    tt ≫ elim a b = b
+  elim_uniq {X : C} {a : 𝟙_ C ⟶ X} {b : 𝟙_ C ⟶ X} (f : obj ⟶ X)
+    (h0 : ff ≫ f = a) (h1 : tt ≫ f = b) : f = elim a b
 
-namespace bool
+attribute [reassoc (attr := simp)] IsBool.ff_elim IsBool.tt_elim
 
-open coprod
+class Bool (C : Type u) [Category.{v} C] [MonoidalCategory C] where
+  /-- The object of booleans. -/
+  obj (C) : C
+  ff : 𝟙_ C ⟶ obj
+  tt : 𝟙_ C ⟶ obj
+  [isBool : IsBool obj ff tt]
 
-scoped notation "𝟮" => bool
+attribute [instance] Bool.isBool
 
-def false : 𝟙_ C ⟶ 𝟮 := inl
+scoped notation "𝟮_ " => Bool.obj
 
-def true : 𝟙_ C ⟶ 𝟮 := inr
+namespace Bool
 
-def elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮 ⟶ X := desc f g
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+
+open IsBool
+
+variable [Bool C]
+
+abbrev elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮_ C ⟶ X :=
+  IsBool.elim (ff := Bool.ff) (tt := Bool.tt)  f g
+
+lemma eta {X : C} (f : 𝟮_ C ⟶ X) : Bool.elim (Bool.ff ≫ f) (Bool.tt ≫ f) = f := by
+  sorry
 
 @[simp]
-lemma false_elim {X : C} (f0 f1 : 𝟙_ C ⟶ X) : false ≫ elim f0 f1 = f0 := by
-  dsimp [mk, bool.false, false, elim]
-  simp
+lemma elim_eta_left {X : C} (f : 𝟮_ C ⟶ X) :
+    Bool.ff ≫ Bool.elim (Bool.ff ≫ f) (Bool.tt ≫ f) = Bool.ff ≫ f := by
+  simp only [eta]
 
 @[simp]
-lemma true_elim {X : C} {f0 f1 : 𝟙_ C ⟶ X} : true ≫ bool.elim f0 f1 = f1 := by
-  dsimp [elim, bool.true, true]
-  simp
+lemma elim_eta_right {X : C} (f : 𝟮_ C ⟶ X) :
+    Bool.tt ≫ Bool.elim (Bool.ff ≫ f) (Bool.tt ≫ f) = Bool.tt ≫ f := by
+  simp only [eta]
 
-lemma ext {X : C} {f g : 𝟮 ⟶ X}
-    (h0 : false ≫ f = false ≫ g) (h1 : true ≫ f = true ≫ g) : f = g := by
-  apply coprod.hom_ext
-  · simpa [bool.false, false] using h0
-  · simpa [bool.true, true] using h1
-
-lemma eta {X : C} (f : 𝟮 ⟶ X) : elim (false ≫ f) (true ≫ f) = f := by
-  apply ext <;> simp [elim, true, false]
-
-@[simp]
-lemma elim_eta_left {X : C} (f : 𝟮 ⟶ X) : false ≫ elim (false ≫ f) (true ≫ f) = false ≫ f := by
-  simp
-
-@[simp] lemma elim_eta_right {X : C} (f : 𝟮 ⟶ X) :
-    true ≫ elim (false ≫ f) (true ≫ f) = true ≫ f := by
-  simp
+@[ext]
+lemma hom_ext {X : C} {f g : 𝟮_ C ⟶ X}
+    (h0 : Bool.ff ≫ f = Bool.ff ≫ g) (h1 : Bool.tt ≫ f = Bool.tt ≫ g) : f = g := by
+  rw [← eta f]
+  rw [← eta g]
+  grind
 
 /-- Two presentations with identical branch values are equal. -/
-lemma mk_congr {X : C} {a a' b b' : 𝟙_ C ⟶ X}
+lemma elim_congr {X : C} {a a' b b' : 𝟙_ C ⟶ X}
     (h0 : a = a') (h1 : b = b') : elim a b = elim a' b' := by
   subst h0 h1
   rfl
@@ -88,51 +100,77 @@ lemma mk_congr {X : C} {a a' b b' : 𝟙_ C ⟶ X}
 @[simp]
 lemma elim_comp {X : C} {a b : 𝟙_ C ⟶ X} {Y : C} (k : X ⟶ Y) :
     elim a b ≫ k = elim (a ≫ k) (b ≫ k) := by
-  apply ext <;> simp [elim]
+  apply hom_ext
+  simp [elim]
+  sorry
 
-lemma elim_iff {X : C} {f : 𝟮 ⟶ X} {a b : 𝟙_ C ⟶ X} : elim a b = f ↔ (false ≫ f = a ∧ true ≫ f = b) := by
+lemma elim_iff {X : C} {f : 𝟮_ C ⟶ X} {a b : 𝟙_ C ⟶ X} :
+    elim a b = f ↔ (Bool.ff ≫ f = a ∧ Bool.tt ≫ f = b) := by
   constructor
   · intro h; subst h; simp
   · intro h; rcases h with ⟨h0, h1⟩
-    apply ext
-    · rw [false_elim]
+    apply hom_ext
+    · rw [IsBool.ff_elim]
       exact h0.symm
-    · rw [true_elim]
+    · rw [IsBool.tt_elim]
       exact h1.symm
 
-def constTrue : (𝟮 : C) ⟶ 𝟮 := elim true true
+end Bool
 
-def constFalse : (𝟮 : C) ⟶ 𝟮 := elim false false
+open Bool
 
-def toUnit : (𝟮 : C) ⟶ 𝟙_ C := elim (𝟙 _) (𝟙 _)
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts C]
+
+/-- A monoidal caetegory with binary coproducts has booleans. -/
+@[simps]
+def boolOfBinaryCoproduct : Bool C where
+  obj := (𝟙_ C) ⨿ (𝟙_ C)
+  ff := coprod.inl
+  tt := coprod.inr
+  isBool := {
+    elim := fun {X} a b => coprod.desc a b
+    ff_elim := by simp [coprod.inl, coprod.desc]
+    tt_elim := by simp [coprod.inr, coprod.desc]
+    elim_uniq := by
+      intro X a b f h0 h1
+      apply coprod.hom_ext
+      · rw [coprod.inl_desc]; exact h0
+      · rw [coprod.inr_desc]; exact h1 }
+
+attribute [local instance] boolOfBinaryCoproduct
+
+def constTrue : 𝟮_ C ⟶ 𝟮_ C := elim tt tt
+
+def constFalse : 𝟮_ C ⟶ 𝟮_ C := elim ff ff
+
+def toUnit : 𝟮_ C ⟶ 𝟙_ C := elim (𝟙 _) (𝟙 _)
 
 theorem constTrue_toUnit : constTrue ≫ toUnit (C:= C) = toUnit := by
   simp only [constTrue, elim_comp, toUnit]
   congr 1
   all_goals
-  simp only [true_elim]
+  simp only [IsBool.tt_elim]
 
-theorem constTrue_eq_toUnit_true : constTrue (C:= C) = bool.toUnit ≫ bool.true := by
+theorem constTrue_eq_toUnit_true : constTrue (C:= C) = toUnit ≫ tt := by
   dsimp only [constTrue, toUnit, false, true]
   apply elim_iff.mpr
   simp
 
-def not : (𝟮 : C) ⟶ 𝟮 := elim true false
+def not : 𝟮_ C ⟶ 𝟮_ C := elim tt ff
 
-def and [IsMonoidalLeftDistrib C] : (𝟮 : C) ⊗ 𝟮 ⟶ 𝟮 := sorry
+-- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
+def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := sorry
 
-theorem false_and [IsMonoidalLeftDistrib C] :
-    (false ▷ (𝟮 : C)) ≫ and = (λ_ _).hom ≫ (desc inr inr) := by
+theorem false_and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] :
+    (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) tt tt) := by
   sorry
 
 -- theorem false_and' [SemiCartesianMonoidalCategory C] :
 --     (false ▷ (𝟮 : C)) ≫ and = SemiCartesianMonoidalCategory.constMorphism _ false := sorry
 
-theorem true_and [IsMonoidalLeftDistrib C] : (true ▷ (𝟮 : C)) ≫ and = (λ_ _).hom := sorry
+theorem true_and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := sorry
 
-variable {X : C}
 
-end bool
 
 end MonoidalCategory
 
