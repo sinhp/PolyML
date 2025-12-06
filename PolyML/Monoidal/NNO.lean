@@ -774,6 +774,78 @@ theorem fromBool_toBool [Bool C] :
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
   · sorry
 
+@[simps pt]
+def binaryCofanZeroSucc [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N where
+  pt := N
+  ι := {
+    app := fun
+          | ⟨.left⟩ => zero
+          | ⟨.right⟩ => succ
+    naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
+      cases X  <;> cases Y <;> repeat (first | contradiction | aesop)
+  }
+
+  /-- If `N` is an NNO then `1 + N` is also an NNO. -/
+noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
+  rc {B} b g := coprod.desc b (rc (b ≫ g) g)
+  zero_rc := by
+    intros A f g
+    simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+  succ_rc := by
+    intros B f g
+    simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+    unfold NNO.rc
+    rw [IsNNO.zero_rc]
+    rw [IsNNO.succ_rc]
+  rc_uniq := by
+    intros B f g r hr1 hr2
+    refine coprod.hom_ext_iff.mpr ?_
+    · rw [hr1]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
+        true_and]
+      apply isNNO.rc_uniq
+      · rw [← hr1]
+        simp only [assoc]
+        rw [← hr2]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+      · rw [assoc]
+        rw [← hr2]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+
+/-- `N` is isomorphic to `1 + N`. -/
+noncomputable def NNOIsoOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    NNO.N ≅ (𝟙_ C ⨿ N) := by
+  apply IsNNO.iso (NNO.isNNO) (isNNOOnePlus)
+
+theorem NNOIsoOnePlus_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    (NNOIsoOnePlus).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
+  --have := IsColimit.uniq _
+  --rw [coprod.desc, colimit.desc, colimit.isColimit]
+  -- rw [IsColimit.uniq]
+  sorry
+
+#check CategoryTheory.Limits.coprod.desc'
+
+/-- The diagram `𝟙_C ⟶ N ⟵ N`  is a coproduct diagram. -/
+noncomputable def colimitCocone [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+  ColimitCocone (pair (𝟙_ C) N) where
+    cocone := binaryCofanZeroSucc
+    isColimit := by
+      refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
+      · intro S a b
+        exact NNOIsoOnePlus.hom ≫ (coprod.desc a b)
+      · sorry
+      · sorry
+      · sorry
+
+/-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
+def BinaryCoproduct [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    HasBinaryCoproduct (𝟙_ C) N where
+  exists_colimit := by
+    constructor
+    exact colimitCocone
+
 variable (C) in
 /-- The numerals as morphisms from the unit object to the NNO. -/
 def num [MonoidalCategory C] [NNO C] : ℕ → (𝟙_ C ⟶ N)
