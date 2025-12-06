@@ -275,26 +275,24 @@ open bool coprod
 variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
-noncomputable
-def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prc inl constTrue
+def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := (ρ_ _).inv ≫ prc Bool.ff Bool.constTrue
 
-theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = toUnit := by
+theorem toBool_desc_eq_toUnit [Bool C] : toBool C ≫ Bool.toUnit = toUnit := by
   refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
   rw [iter]
   apply prc_uniq
   · dsimp [toBool]
-    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc inl constTrue) ≫ bool.toUnit =
-    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc inl constTrue) ≫ bool.toUnit := by
+    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit =
+    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
-    rw [this]; clear this
+    rw [this]
     simp only [ Iso.hom_inv_id, id_comp, comp_id]
     rw [zero_prc]
-    rw [unitors_equal, bool.toUnit, elim]
-    simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
-     BinaryCofan.ι_app_left, BinaryCofan.mk_inl, comp_id]
+    rw [unitors_equal, Bool.toUnit, Bool.elim]
+    simp_all only [assoc, IsBool.ff_elim, comp_id]
   · simp only [whiskerRight_id, assoc, comp_id]
-    have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ bool.toUnit =
-    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by
+    have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ Bool.toUnit =
+    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ Bool.toUnit) := by
       simp only [assoc, Iso.inv_hom_id_assoc]
     rw [this]; clear this
     rw [rightUnitor_inv_naturality]
@@ -304,8 +302,8 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [← assoc]
     rw [rightUnitor_inv_naturality]
     rw [assoc, assoc]
-    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc inl constTrue ≫ bool.toUnit=
-    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc inl constTrue) ≫ bool.toUnit := by
+    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.constTrue ≫ Bool.toUnit=
+    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
     rw [this]; clear this
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
@@ -315,28 +313,26 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [← assoc,succ_prc]
     rw [assoc]
     refine _ ≫= ?_
-    rw [constTrue_eq_toUnit_true]
-    dsimp [bool.toUnit,elim,bool.true]
-    simp only [desc_comp, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
-      BinaryCofan.mk_inr]
+    rw [Bool.constTrue_eq_toUnit_true]
+    dsimp [Bool.toUnit, Bool.elim, Bool.true]
+    simp_all only [Bool.elim_comp, id_comp, IsBool.tt_elim]
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
-noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
+def fromBool [Bool C] : 𝟮_ C ⟶ (N : C) := Bool.elim zero one
 
 variable {C}
 
-theorem zero_toBool [HasBinaryCoproducts C] :
-    zero ≫ toBool C = bool.false := by
+theorem zero_toBool [Bool C] :
+    zero ≫ toBool C = Bool.ff := by
   dsimp [toBool]
   rw [← assoc, rightUnitor_inv_naturality]
   rw [assoc, zero_prc]
-  dsimp [bool.false]
   refine (Iso.inv_comp_eq (ρ_ (𝟙_ C))).mpr ?_
   refine ?_ =≫ _
   exact unitors_equal
 
-theorem succ_toBool [HasBinaryCoproducts C] :
-    succ ≫ toBool C = toUnit ≫ bool.true := by
+theorem succ_toBool [Bool C] :
+    succ ≫ toBool C = toUnit ≫ Bool.tt := by
   rw [← toBool_desc_eq_toUnit]
   unfold toBool
   rw [← assoc, rightUnitor_inv_naturality, assoc, assoc, assoc]
@@ -344,19 +340,21 @@ theorem succ_toBool [HasBinaryCoproducts C] :
   rw [← assoc]
   rw [succ_prc, assoc]
   refine _ ≫= ?_
-  exact constTrue_eq_toUnit_true
+  exact Bool.constTrue_eq_toUnit_true
 
-theorem false_fromBool [HasBinaryCoproducts C] :
-    bool.false ≫ fromBool C = zero := by
-  simp only [fromBool, false_elim]
+@[simp]
+theorem false_fromBool [Bool C] :
+    Bool.ff ≫ fromBool C = zero := by
+  simp only [fromBool, IsBool.ff_elim]
 
-theorem true_fromBool [HasBinaryCoproducts C] :
-    bool.true ≫ fromBool C = one := by
-  simp only [fromBool, true_elim]
+@[simp]
+theorem true_fromBool [Bool C] :
+    Bool.tt ≫ fromBool C = one := by
+  simp only [fromBool, IsBool.tt_elim]
 
-theorem fromBool_toBool [HasBinaryCoproducts C] :
-    fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
-  apply bool.ext
+theorem fromBool_toBool [Bool C] :
+    fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
+  ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
   · simp only [← assoc, true_fromBool, one]
     rw [assoc]
@@ -743,35 +741,36 @@ open bool coprod
 variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
-noncomputable
-def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := rc inl constTrue
+def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := rc Bool.ff Bool.constTrue
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
-noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
+def fromBool [Bool C] : 𝟮_ C ⟶ N := Bool.elim zero one
 
 variable {C}
 
-theorem zero_toBool [HasBinaryCoproducts C] :
-    zero ≫ toBool C = bool.false := by
-  dsimp [toBool, bool.false]
+theorem zero_toBool [Bool C] :
+    zero ≫ toBool C = Bool.ff := by
+  dsimp [toBool, Bool.ff]
   rw [zero_rc]
 
-theorem succ_toBool [HasBinaryCoproducts C] :
-    succ ≫ toBool C = toUnit ≫ bool.true := by
-  rw [toUnit, toBool, succ_rc, constTrue, const]
+theorem succ_toBool [Bool C] :
+    succ ≫ toBool C = toUnit ≫ Bool.tt := by
+  rw [toUnit, toBool, succ_rc, Bool.constTrue, const]
   sorry
 
-theorem false_fromBool [HasBinaryCoproducts C] :
-    bool.false ≫ fromBool C = zero := by
-  simp only [fromBool, false_elim]
+@[simp]
+theorem false_fromBool [Bool C] :
+    Bool.ff ≫ fromBool C = zero := by
+  simp only [fromBool, IsBool.ff_elim]
 
-theorem true_fromBool [HasBinaryCoproducts C] :
-    bool.true ≫ fromBool C = one := by
-  simp only [fromBool, true_elim]
+@[simp]
+theorem true_fromBool [Bool C] :
+    Bool.tt ≫ fromBool C = one := by
+  simp only [fromBool, IsBool.tt_elim]
 
-theorem fromBool_toBool [HasBinaryCoproducts C] :
-    fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
-  apply bool.ext
+theorem fromBool_toBool [Bool C] :
+    fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
+  ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
   · sorry
 

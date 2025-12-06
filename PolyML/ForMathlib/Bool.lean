@@ -115,6 +115,25 @@ lemma elim_iff {X : C} {f : 𝟮_ C ⟶ X} {a b : 𝟙_ C ⟶ X} :
     · rw [IsBool.tt_elim]
       exact h1.symm
 
+def constTrue : 𝟮_ C ⟶ 𝟮_ C := elim tt tt
+
+def constFalse : 𝟮_ C ⟶ 𝟮_ C := elim ff ff
+
+def toUnit : 𝟮_ C ⟶ 𝟙_ C := elim (𝟙 _) (𝟙 _)
+
+theorem constTrue_toUnit : constTrue ≫ toUnit (C:= C) = toUnit := by
+  simp only [constTrue, elim_comp, toUnit]
+  congr 1
+  all_goals
+  simp only [IsBool.tt_elim]
+
+theorem constTrue_eq_toUnit_true : constTrue (C:= C) = toUnit ≫ tt := by
+  dsimp only [constTrue, toUnit, false, true]
+  apply elim_iff.mpr
+  simp
+
+def not : 𝟮_ C ⟶ 𝟮_ C := elim tt ff
+
 end Bool
 
 open Bool
@@ -138,25 +157,6 @@ def boolOfBinaryCoproduct : Bool C where
       · rw [coprod.inr_desc]; exact h1 }
 
 attribute [local instance] boolOfBinaryCoproduct
-
-def constTrue : 𝟮_ C ⟶ 𝟮_ C := elim tt tt
-
-def constFalse : 𝟮_ C ⟶ 𝟮_ C := elim ff ff
-
-def toUnit : 𝟮_ C ⟶ 𝟙_ C := elim (𝟙 _) (𝟙 _)
-
-theorem constTrue_toUnit : constTrue ≫ toUnit (C:= C) = toUnit := by
-  simp only [constTrue, elim_comp, toUnit]
-  congr 1
-  all_goals
-  simp only [IsBool.tt_elim]
-
-theorem constTrue_eq_toUnit_true : constTrue (C:= C) = toUnit ≫ tt := by
-  dsimp only [constTrue, toUnit, false, true]
-  apply elim_iff.mpr
-  simp
-
-def not : 𝟮_ C ⟶ 𝟮_ C := elim tt ff
 
 -- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
 def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := sorry
