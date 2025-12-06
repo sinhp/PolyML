@@ -117,11 +117,15 @@ noncomputable def NNOIsoPlusOne [MonoidalCategory C] [NNO C] [HasBinaryCoproduct
     NNO.N ≅ (𝟙_ C ⨿ N) := by
   apply IsNNO.iso (NNO.isNNO) (isNNOPlusOne)
 
+#check CategoryTheory.Limits.colimit.isColimit_desc
+
 theorem NNOIsoPlusOne_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     (NNOIsoPlusOne).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
-  --have := IsColimit.uniq _
-  --rw [coprod.desc, colimit.desc, colimit.isColimit]
-  -- rw [IsColimit.uniq]
+  rw [coprod.desc]
+  rw [← CategoryTheory.Limits.colimit.isColimit_desc]
+  rw [← IsColimit.uniq]
+  intros j
+  simp only [BinaryCofan.mk_pt, colimit.cocone_x, const_obj_obj, colimit.cocone_ι]
   sorry
 
 #check CategoryTheory.Limits.coprod.desc'

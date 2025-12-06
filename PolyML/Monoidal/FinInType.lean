@@ -21,7 +21,28 @@ def NNOType₀ : NNO (Type) where
     rc {B} b g := Nat.rec (b ()) (fun n b => g b)
     zero_rc := by aesop
     succ_rc := by aesop
-    rc_uniq := by sorry
+    rc_uniq := by
+      intros B f g r hzero hsucc
+      refine types_ext r (fun t ↦ Nat.rec (f ()) (fun n b ↦ g b) t) ?_
+      intros n
+      simp only
+      cases n
+      · rw [← hzero]
+        rfl
+      · rename_i n
+        rw [← Nat.succ_eq_add_one]
+        rw [← hzero]
+        simp only [Nat.succ_eq_add_one, types_comp_apply]
+        have :=types_ext r (fun t ↦ Nat.rec (f ()) (fun n b ↦ g b) t) ?_
+        simp only at this
+        rw [← hzero] at this
+        simp only [types_comp_apply] at this
+        rw [funext_iff] at this
+        have := this n.succ
+        nth_rw 1 [this]
+        simp only
+        intros m
+        sorry
   }
 
 def PNNOType₀ : PNNO (Type) where
