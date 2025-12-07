@@ -122,10 +122,10 @@ finLt ------------------> 1
               lt
 ```
 -/
-noncomputable abbrev finLt [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] := pullbackObj (C:= C) bool.true lt
+abbrev finLt [CartesianMonoidalCategory C] [PNNO C] [Bool C] := pullbackObj (C:= C) Bool.tt lt
 
-def univFinMapIso [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] :
-    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) bool.true lt ≫ fst N N) := by
+def univFinMapIso [CartesianMonoidalCategory C] [PNNO C] [Bool C] :
+    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) Bool.tt lt ≫ fst N N) := by
   sorry
 
 /--
