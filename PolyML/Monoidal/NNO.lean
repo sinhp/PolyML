@@ -516,11 +516,50 @@ instance addMon [BraidedCategory C] : AddMon C where
   X := N
   addMon := by infer_instance
 
-instance [BraidedCategory C] : IsAddCommMonObj (N : C) where
+instance isAddCommMonObj [BraidedCategory C] : IsAddCommMonObj (N : C) where
   add_comm := add_comm
 
 def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
+
+variable (C) in
+/-- The type of global elements of PNNO. -/
+abbrev GlobElem [MonoidalCategory C] [PNNO C] := 𝟙_ C ⟶ N
+
+namespace GlobalElement
+
+@[simps!]
+instance add : Add (𝟙_ C ⟶ N) where
+  add := fun m n => (ρ_ _).inv ≫ (m ⊗ₘ n) ≫ PNNO.add
+
+@[simp]
+instance addZeroClass : AddZeroClass (𝟙_ C ⟶ N) where
+  zero := zero
+  add := Add.add
+  zero_add := sorry
+  add_zero := sorry
+
+@[simp]
+instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
+  add := Add.add
+  add_assoc := sorry
+
+@[simp]
+def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
+  | .zero => fun _ => zero
+  | (.succ m) => fun a => Add.add a (nsmul m a)
+
+@[simp]
+instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
+  nsmul := nsmul
+  nsmul_zero := sorry
+  nsmul_succ := sorry
+
+@[simp]
+instance addCommMonoid : AddCommMonoid (𝟙_ C ⟶ N) where
+  add_comm := sorry
+
+end GlobalElement
 
 variable (C) in
 /-- The numerals as morphisms from the unit object to the NNO. -/
@@ -543,27 +582,33 @@ theorem num_succ (n : ℕ) :
 theorem num_one : num C (1 : ℕ) = one := by
   rw [num_succ, num_zero, one]
 
-variable (C) in
-def num_pair (m n : ℕ) : (𝟙_ C ⟶ N ⊗ N) :=
-  (ρ_ _).inv ≫ (num C m ⊗ₘ num C n)
-
 @[simp]
 theorem num_add (m n : ℕ) :
-    num C (m + n) = num_pair C m n ≫ add := by
+    num C m + num C n = num C (m + n) := by
   sorry
 
-theorem num_add_comm (m n : ℕ) :
-    num_pair C m n ≫ add = num_pair C n m ≫ add := by
+theorem add_num_comm (m n : ℕ) :
+    num C m + num C m = num C n + num C m := by
   sorry
 
 end Num
 
-instance {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
+@[simps]
+instance ofNat {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
   ofNat := num C n
 
 #check (3 : 𝟙_ C ⟶ N)
 #reduce (3 : 𝟙_ C ⟶ N)
 
+#check (3 : 𝟙_ C ⟶ N) + (3 : 𝟙_ C ⟶ N)
+
+#reduce (3 : 𝟙_ C ⟶ N) + (3 : 𝟙_ C ⟶ N)
+
+example : (1 : 𝟙_ C ⟶ N) + (1 : 𝟙_ C ⟶ N) = (2 : 𝟙_ C ⟶ N) := by
+  dsimp [num]
+  simp [add]
+  simp [iter]
+  sorry
 
 end PNNO
 
