@@ -80,8 +80,11 @@ noncomputable def finZeroIso [MonoidalCategory C] [PNNO C] [HasInitial C] : fin 
 def finSuccIso [MonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] (n : 𝟙_ C ⟶ N) : fin (n ≫ succ) ≅ 𝟙_ C ⨿ fin n := by
   sorry
 
-/-- fin 1 ≅ 1 -/
-def isTerminalFinOne [MonoidalCategory C] [PNNO C] : IsTerminal (fin one : C) := by sorry
+def finOneIso [MonoidalCategory C] [PNNO C] : fin one ≅ 𝟙_ C := by
+  sorry
+
+def finTwoIso [MonoidalCategory C] [PNNO C] [Bool C] : fin (2 : 𝟙_ C ⟶ N) ≅ 𝟮_ C := by
+  sorry
 
 def pairing [MonoidalCategory C] [PNNO C] (m n : 𝟙_ C ⟶ N) : 𝟙_ C ⟶ N ⊗ N :=
   (ρ_ _).inv ≫ (m ⊗ₘ n)
