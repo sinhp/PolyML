@@ -275,26 +275,24 @@ open bool coprod
 variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
-noncomputable
-def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := (ρ_ _).inv ≫ prc inl constTrue
+def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := (ρ_ _).inv ≫ prc Bool.ff Bool.constTrue
 
-theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit = toUnit := by
+theorem toBool_desc_eq_toUnit [Bool C] : toBool C ≫ Bool.toUnit = toUnit := by
   refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
   rw [iter]
   apply prc_uniq
   · dsimp [toBool]
-    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc inl constTrue) ≫ bool.toUnit =
-    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc inl constTrue) ≫ bool.toUnit := by
+    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit =
+    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
-    rw [this]; clear this
+    rw [this]
     simp only [ Iso.hom_inv_id, id_comp, comp_id]
     rw [zero_prc]
-    rw [unitors_equal, bool.toUnit, elim]
-    simp only [assoc, colimit.ι_desc, BinaryCofan.mk_pt,
-     BinaryCofan.ι_app_left, BinaryCofan.mk_inl, comp_id]
+    rw [unitors_equal, Bool.toUnit, Bool.elim]
+    simp_all only [assoc, IsBool.ff_elim, comp_id]
   · simp only [whiskerRight_id, assoc, comp_id]
-    have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ bool.toUnit =
-    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ bool.toUnit) := by
+    have : (ρ_ N).hom ≫ succ ≫ (ρ_ N).inv ≫ (ρ_ N).hom ≫ toBool C ≫ Bool.toUnit =
+    (((ρ_ N).hom ≫ succ) ≫ (ρ_ N).inv) ≫ (((ρ_ N).hom) ≫ toBool C ≫ Bool.toUnit) := by
       simp only [assoc, Iso.inv_hom_id_assoc]
     rw [this]; clear this
     rw [rightUnitor_inv_naturality]
@@ -304,8 +302,8 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [← assoc]
     rw [rightUnitor_inv_naturality]
     rw [assoc, assoc]
-    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc inl constTrue ≫ bool.toUnit=
-    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc inl constTrue) ≫ bool.toUnit := by
+    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.constTrue ≫ Bool.toUnit=
+    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
     rw [this]; clear this
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
@@ -315,28 +313,26 @@ theorem toBool_desc_eq_toUnit [HasBinaryCoproducts C] : toBool C ≫ bool.toUnit
     rw [← assoc,succ_prc]
     rw [assoc]
     refine _ ≫= ?_
-    rw [constTrue_eq_toUnit_true]
-    dsimp [bool.toUnit,elim,bool.true]
-    simp only [desc_comp, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
-      BinaryCofan.mk_inr]
+    rw [Bool.constTrue_eq_toUnit_true]
+    dsimp [Bool.toUnit, Bool.elim, Bool.true]
+    simp_all only [Bool.elim_comp, id_comp, IsBool.tt_elim]
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
-noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
+def fromBool [Bool C] : 𝟮_ C ⟶ (N : C) := Bool.elim zero one
 
 variable {C}
 
-theorem zero_toBool [HasBinaryCoproducts C] :
-    zero ≫ toBool C = bool.false := by
+theorem zero_toBool [Bool C] :
+    zero ≫ toBool C = Bool.ff := by
   dsimp [toBool]
   rw [← assoc, rightUnitor_inv_naturality]
   rw [assoc, zero_prc]
-  dsimp [bool.false]
   refine (Iso.inv_comp_eq (ρ_ (𝟙_ C))).mpr ?_
   refine ?_ =≫ _
   exact unitors_equal
 
-theorem succ_toBool [HasBinaryCoproducts C] :
-    succ ≫ toBool C = toUnit ≫ bool.true := by
+theorem succ_toBool [Bool C] :
+    succ ≫ toBool C = toUnit ≫ Bool.tt := by
   rw [← toBool_desc_eq_toUnit]
   unfold toBool
   rw [← assoc, rightUnitor_inv_naturality, assoc, assoc, assoc]
@@ -344,19 +340,21 @@ theorem succ_toBool [HasBinaryCoproducts C] :
   rw [← assoc]
   rw [succ_prc, assoc]
   refine _ ≫= ?_
-  exact constTrue_eq_toUnit_true
+  exact Bool.constTrue_eq_toUnit_true
 
-theorem false_fromBool [HasBinaryCoproducts C] :
-    bool.false ≫ fromBool C = zero := by
-  simp only [fromBool, false_elim]
+@[simp]
+theorem false_fromBool [Bool C] :
+    Bool.ff ≫ fromBool C = zero := by
+  simp only [fromBool, IsBool.ff_elim]
 
-theorem true_fromBool [HasBinaryCoproducts C] :
-    bool.true ≫ fromBool C = one := by
-  simp only [fromBool, true_elim]
+@[simp]
+theorem true_fromBool [Bool C] :
+    Bool.tt ≫ fromBool C = one := by
+  simp only [fromBool, IsBool.tt_elim]
 
-theorem fromBool_toBool [HasBinaryCoproducts C] :
-    fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
-  apply bool.ext
+theorem fromBool_toBool [Bool C] :
+    fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
+  ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
   · simp only [← assoc, true_fromBool, one]
     rw [assoc]
@@ -518,11 +516,65 @@ instance addMon [BraidedCategory C] : AddMon C where
   X := N
   addMon := by infer_instance
 
-instance [BraidedCategory C] : IsAddCommMonObj (N : C) where
+instance isAddCommMonObj [BraidedCategory C] : IsAddCommMonObj (N : C) where
   add_comm := add_comm
 
 def iterCurried {P : C} [Closed P] [BraidedCategory C] (f : P ⟶ P) : N ⟶ (P ⟶[C] P) :=
   (MonoidalClosed.curry <| (β_ _ _).hom ≫ iter f)
+
+variable (C) in
+/-- The type of global elements of PNNO. -/
+abbrev GlobElem [MonoidalCategory C] [PNNO C] := 𝟙_ C ⟶ N
+
+namespace GlobalElement
+
+@[simps!]
+instance add : Add (𝟙_ C ⟶ N) where
+  add := fun m n => (ρ_ _).inv ≫ (m ⊗ₘ n) ≫ PNNO.add
+
+@[simp]
+instance addZeroClass : AddZeroClass (𝟙_ C ⟶ N) where
+  zero := zero
+  add := Add.add
+  zero_add {a} := by
+    simp only [add_add]
+    rw [tensorHom_def']
+    simp only [id_whiskerLeft, assoc]
+    rw [unitors_equal]
+    simp only [Iso.inv_hom_id_assoc]
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [id_whiskerLeft, Iso.inv_hom_id_assoc, assoc]
+    rw [addMonObj.zero_add]
+
+
+
+
+    rw [zero_iter]
+
+  add_zero := sorry
+
+@[simp]
+instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
+  add := Add.add
+  add_assoc := sorry
+
+@[simp]
+def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
+  | .zero => fun _ => zero
+  | (.succ m) => fun a => Add.add a (nsmul m a)
+
+@[simp]
+instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
+  nsmul := nsmul
+  nsmul_zero := sorry
+  nsmul_succ := sorry
+
+@[simp]
+instance addCommMonoid : AddCommMonoid (𝟙_ C ⟶ N) where
+  add_comm := sorry
+
+end GlobalElement
 
 variable (C) in
 /-- The numerals as morphisms from the unit object to the NNO. -/
@@ -545,52 +597,58 @@ theorem num_succ (n : ℕ) :
 theorem num_one : num C (1 : ℕ) = one := by
   rw [num_succ, num_zero, one]
 
-variable (C) in
-def num_pair (m n : ℕ) : (𝟙_ C ⟶ N ⊗ N) :=
-  (ρ_ _).inv ≫ (num C m ⊗ₘ num C n)
-
 @[simp]
 theorem num_add (m n : ℕ) :
-    num C (m + n) = num_pair C m n ≫ add := by {
+    num C m + num C n = num C (m + n) := by {
       unfold num
       split
       · rename_i k hmn
-        dsimp [num_pair]
-        simp only [assoc, add]
         unfold num
         split
         · rename_i y
-          split
+          simp only [GlobalElement.add_add]
+          rw [tensorHom_def']
+          simp only [assoc]
+          simp only [id_whiskerLeft, assoc]
+          rw [unitors_equal]
+          simp only [Iso.inv_hom_id_assoc]
           · rename_i o p
-            rw [tensorHom_def']
-            simp only [assoc]
-            simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
-            rw [unitors_equal]
-            simp only [Iso.inv_hom_id_assoc]
-          · rename_i o p
-            rw [tensorHom_def']
-            contradiction
+            simp only [zero_add, Iso.inv_hom_id, comp_id]
         · rename_i o p
           split
           · rename_i u
-            contradiction
+            simp only [GlobalElement.add_add]
+            rw [tensorHom_def']
+            simp only [assoc]
+            simp only [id_whiskerLeft, assoc]
+            rw [unitors_equal]
+            simp only [Iso.inv_hom_id_assoc]
+            simp only [zero_add, Iso.inv_hom_id, comp_id]
           · rename_i s t
-            contradiction
+            simp only [assoc, GlobalElement.add_add, Nat.zero_eq, Nat.add_eq, _root_.zero_add]
+            rw [tensorHom_def']
+            simp only [assoc]
+            simp only [id_whiskerLeft, assoc]
+            rw [unitors_equal]
+            simp only [zero_add, Iso.inv_hom_id, comp_id, Iso.inv_hom_id_assoc]
       · rename_i i j hmn
-        dsimp [num_pair]
-        simp only [assoc, add]
         unfold num
         split
         · rename_i k l
           split
           · rename_i u m
             split
-            · rw [tensorHom_def']
+            · simp only [GlobalElement.add_add]
+              rw [tensorHom_def']
               simp only [assoc]
-              simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
+              simp only [id_whiskerLeft, assoc]
               rw [unitors_equal]
-              contradiction
+              simp only [comp_whiskerRight, assoc, Iso.inv_hom_id_assoc]
+              unfold add
+              rw [succ_iter]
+              simp only [zero_iter_assoc, Iso.inv_hom_id_assoc]
             · rename_i u v
+              simp only [GlobalElement.add_add, assoc]
               rw [tensorHom_def]
               simp only [assoc]
               simp only [whiskerRight_id, assoc]
@@ -598,12 +656,37 @@ theorem num_add (m n : ℕ) :
               simp only [← assoc]
               rw [rightUnitor_inv_naturality]
               simp only [assoc]
-              simp only [whiskerRight_id, whiskerLeft_comp, assoc, iter_prc, Iso.inv_hom_id_assoc]
-              unfold num
-              · rename_i u v
-                split
+              simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+              simp only [← assoc]
+              unfold add
+              simp only [assoc, iter_prc]
+              simp only [← assoc]
+              rw [rightUnitor_inv_naturality]
+              simp only [assoc]
+              rw [comp_whiskerRight]
+              simp only [assoc]
+              rw [succ_prc]
+              simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+              simp only [← assoc]
+              rw [rightUnitor_inv_naturality]
+              nth_rw 2 [assoc]
+              rw [zero_prc]
+              rw [unitors_equal]
+              rw [← num_succ]
+              simp only [Iso.inv_hom_id_assoc, num_succ, assoc]
 
-                · sorry
+
+
+
+
+
+
+
+
+
+
+
+
 
 
           · rename_i u
@@ -616,18 +699,28 @@ theorem num_add (m n : ℕ) :
             sorry
     }
 
-theorem num_add_comm (m n : ℕ) :
-    num_pair C m n ≫ add = num_pair C n m ≫ add := by
+theorem add_num_comm (m n : ℕ) :
+    num C m + num C m = num C n + num C m := by
   sorry
 
 end Num
 
-instance {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
+@[simps]
+instance ofNat {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
   ofNat := num C n
 
 #check (3 : 𝟙_ C ⟶ N)
 #reduce (3 : 𝟙_ C ⟶ N)
 
+#check (3 : 𝟙_ C ⟶ N) + (3 : 𝟙_ C ⟶ N)
+
+#reduce (3 : 𝟙_ C ⟶ N) + (3 : 𝟙_ C ⟶ N)
+
+example : (1 : 𝟙_ C ⟶ N) + (1 : 𝟙_ C ⟶ N) = (2 : 𝟙_ C ⟶ N) := by
+  dsimp [num]
+  simp [add]
+  simp [iter]
+  sorry
 
 end PNNO
 
@@ -805,37 +898,110 @@ open bool coprod
 variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
-noncomputable
-def toBool [HasBinaryCoproducts C] : (N : C) ⟶ 𝟮 := rc inl constTrue
+def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := rc Bool.ff Bool.constTrue
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
-noncomputable def fromBool [HasBinaryCoproducts C] : 𝟮 ⟶ (N : C) := bool.elim zero one
+def fromBool [Bool C] : 𝟮_ C ⟶ N := Bool.elim zero one
 
 variable {C}
 
-theorem zero_toBool [HasBinaryCoproducts C] :
-    zero ≫ toBool C = bool.false := by
-  dsimp [toBool, bool.false]
+theorem zero_toBool [Bool C] :
+    zero ≫ toBool C = Bool.ff := by
+  dsimp [toBool, Bool.ff]
   rw [zero_rc]
 
-theorem succ_toBool [HasBinaryCoproducts C] :
-    succ ≫ toBool C = toUnit ≫ bool.true := by
-  rw [toUnit, toBool, succ_rc, constTrue, const]
+theorem succ_toBool [Bool C] :
+    succ ≫ toBool C = toUnit ≫ Bool.tt := by
+  rw [toUnit, toBool, succ_rc, Bool.constTrue, const]
   sorry
 
-theorem false_fromBool [HasBinaryCoproducts C] :
-    bool.false ≫ fromBool C = zero := by
-  simp only [fromBool, false_elim]
+@[simp]
+theorem false_fromBool [Bool C] :
+    Bool.ff ≫ fromBool C = zero := by
+  simp only [fromBool, IsBool.ff_elim]
 
-theorem true_fromBool [HasBinaryCoproducts C] :
-    bool.true ≫ fromBool C = one := by
-  simp only [fromBool, true_elim]
+@[simp]
+theorem true_fromBool [Bool C] :
+    Bool.tt ≫ fromBool C = one := by
+  simp only [fromBool, IsBool.tt_elim]
 
-theorem fromBool_toBool [HasBinaryCoproducts C] :
-    fromBool C ≫ toBool C = 𝟙 (𝟮 : C) := by
-  apply bool.ext
+theorem fromBool_toBool [Bool C] :
+    fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
+  ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
   · sorry
+
+@[simps pt]
+def binaryCofanZeroSucc [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N where
+  pt := N
+  ι := {
+    app := fun
+          | ⟨.left⟩ => zero
+          | ⟨.right⟩ => succ
+    naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
+      cases X  <;> cases Y <;> repeat (first | contradiction | aesop)
+  }
+
+  /-- If `N` is an NNO then `1 + N` is also an NNO. -/
+noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
+  rc {B} b g := coprod.desc b (rc (b ≫ g) g)
+  zero_rc := by
+    intros A f g
+    simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+  succ_rc := by
+    intros B f g
+    simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+    unfold NNO.rc
+    rw [IsNNO.zero_rc]
+    rw [IsNNO.succ_rc]
+  rc_uniq := by
+    intros B f g r hr1 hr2
+    refine coprod.hom_ext_iff.mpr ?_
+    · rw [hr1]
+      simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
+        true_and]
+      apply isNNO.rc_uniq
+      · rw [← hr1]
+        simp only [assoc]
+        rw [← hr2]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+      · rw [assoc]
+        rw [← hr2]
+        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+
+/-- `N` is isomorphic to `1 + N`. -/
+noncomputable def NNOIsoOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    NNO.N ≅ (𝟙_ C ⨿ N) := by
+  apply IsNNO.iso (NNO.isNNO) (isNNOOnePlus)
+
+theorem NNOIsoOnePlus_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    (NNOIsoOnePlus).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
+  --have := IsColimit.uniq _
+  --rw [coprod.desc, colimit.desc, colimit.isColimit]
+  -- rw [IsColimit.uniq]
+  sorry
+
+#check CategoryTheory.Limits.coprod.desc'
+
+/-- The diagram `𝟙_C ⟶ N ⟵ N`  is a coproduct diagram. -/
+noncomputable def colimitCocone [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+  ColimitCocone (pair (𝟙_ C) N) where
+    cocone := binaryCofanZeroSucc
+    isColimit := by
+      refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
+      · intro S a b
+        exact NNOIsoOnePlus.hom ≫ (coprod.desc a b)
+      · sorry
+      · sorry
+      · sorry
+
+/-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
+def BinaryCoproduct [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+    HasBinaryCoproduct (𝟙_ C) N where
+  exists_colimit := by
+    constructor
+    exact colimitCocone
 
 variable (C) in
 /-- The numerals as morphisms from the unit object to the NNO. -/

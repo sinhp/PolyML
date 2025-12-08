@@ -76,6 +76,17 @@ def NNOType : NNO (Type u) where
     rc_uniq := sorry
   }
 
+def PNNOType : PNNO (Type u) where
+  N := ULift ℕ
+  zero := fun _ => ULift.up 0
+  succ := fun n => ULift.up (Nat.succ n.down)
+  isPNNO := {
+    prc := fun {P B} b g => sorry
+    zero_prc := sorry
+    succ_prc := sorry
+    prc_uniq := sorry
+  }
+
 /-- The NNO in presheaf categories. -/
 def NNOPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
   N := (Functor.const (J:= C)).obj ℕ
@@ -90,6 +101,12 @@ def NNOPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
     succ_rc := sorry
     rc_uniq := sorry
   }
+
+
+-- We want to prove that categorical fin operations correspond to the arithmetical ones in Types.
+
+
+
 
 
 end CategoryTheory

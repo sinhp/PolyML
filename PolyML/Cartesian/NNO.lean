@@ -157,13 +157,13 @@ def min' : (N : C) ⊗ N ⟶ N := (lift add max') ≫ sub'
 theorem max'_min'_add : lift max' min' ≫ add = add (C:= C) := by
   sorry
 
--- theorem sub_toBool [HasBinaryCoproducts C] :
+-- theorem sub_toBool [Bool C] :
 --     sub ≫ toBool C = (toBool C ▷ (toBool C)) ≫ bool.and := by
 --   sorry
 
 def eqZero' : N ⟶ (N : C) := (λ_ _).inv ≫ (one ▷ N) ≫ sub'
 
-theorem eqZero'_toBool_eq_toBool [HasBinaryCoproducts C] : eqZero' ≫ toBool C = toBool C := by
+theorem eqZero'_toBool_eq_toBool [Bool C] : eqZero' ≫ toBool C = toBool C := by
   simp [eqZero']
   sorry
 
@@ -182,23 +182,21 @@ def eq'Aux : (N : C) ⊗ N ⟶ N :=  lift (sub' ≫ eqZero') (twist₁ N ≫ sub
 -- from co-cartesian monoidal. Lean is confused which one applies to `N`. IT should be the first one
 -- and the second one should give computable coproducts.
 -- this needs thinking.
-noncomputable
-def eq' [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) := eq'Aux ≫ toBool C
 
-noncomputable def le [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
+def eq' [Bool C] : N ⊗ N ⟶ 𝟮_ C := eq'Aux ≫ toBool C
+
+def le [Bool C] : N ⊗ N ⟶ 𝟮_ C :=
   (λ_ _).inv ≫ (zero ▷ (N ⊗ N)) ≫ (N ◁ sub') ≫ eq'
 
 /-- `lt m n` iff `le (succ m) n` .-/
-noncomputable def lt [HasBinaryCoproducts C] : N ⊗ N ⟶ (𝟮 : C) :=
+def lt [Bool C] : N ⊗ N ⟶ 𝟮_ C :=
   (succ ▷ N) ≫ le
 
-theorem zero_lt [HasBinaryCoproducts C] : zero ▷ (N : C) ≫ lt = fst _ _ ≫ true := by
+theorem zero_lt [Bool C] : zero ▷ (N : C) ≫ lt = fst _ _ ≫ Bool.tt := by
   sorry
 
-theorem zero_le [HasBinaryCoproducts C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ true := by
+theorem zero_le [Bool C] : (zero ▷ (N : C)) ≫ le = fst _ _ ≫ Bool.tt := by
   sorry
-
-
 
 end operations
 

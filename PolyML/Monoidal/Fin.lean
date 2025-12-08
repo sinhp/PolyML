@@ -67,86 +67,8 @@ The left hand side vertical morphism is a monomorphism.
 -/
 def fin [MonoidalCategory C] [PNNO C] (n : 𝟙_ C ⟶ N) := pullbackObj n (univFinMap C)
 
-
 def isInitialFinZero [MonoidalCategory C] [PNNO C] : IsInitial (fin zero : C) := by sorry
 
-@[simps pt]
-def binaryCofan [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N where
-  pt := N
-  ι := {
-    app := fun
-          | ⟨.left⟩ => zero
-          | ⟨.right⟩ => succ
-    naturality := fun ⟨X⟩ ⟨Y⟩ ⟨⟨u⟩⟩ => by
-      cases X  <;> cases Y <;> repeat (first | contradiction | aesop)
-  }
-
-  /-- If `N` is an NNO then `1 + N` is also an NNO. -/
-noncomputable def isNNOPlusOne [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
-    IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
-  rc {B} b g := coprod.desc b (rc (b ≫ g) g)
-  zero_rc := by
-    intros A f g
-    simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
-  succ_rc := by
-    intros B f g
-    simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
-    unfold NNO.rc
-    rw [IsNNO.zero_rc]
-    rw [IsNNO.succ_rc]
-  rc_uniq := by
-    intros B f g r hr1 hr2
-    -- unfold IsNNO.rc
-    -- unfold NNO.prc
-    refine coprod.hom_ext_iff.mpr ?_
-    · rw [hr1]
-      simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
-        true_and]
-      -- refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
-      apply isNNO.rc_uniq
-      · rw [← hr1]
-        simp only [assoc]
-        rw [← hr2]
-        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
-      · rw [assoc]
-        rw [← hr2]
-        simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
-
-/-- `N` is isomorphic to `1 + N`. -/
-noncomputable def NNOIsoPlusOne [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
-    NNO.N ≅ (𝟙_ C ⨿ N) := by
-  apply IsNNO.iso (NNO.isNNO) (isNNOPlusOne)
-
-#check CategoryTheory.Limits.colimit.isColimit_desc
-
-theorem NNOIsoPlusOne_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
-    (NNOIsoPlusOne).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
-  rw [coprod.desc]
-  rw [← CategoryTheory.Limits.colimit.isColimit_desc]
-  rw [← IsColimit.uniq]
-  intros j
-  simp only [BinaryCofan.mk_pt, colimit.cocone_x, const_obj_obj, colimit.cocone_ι]
-  sorry
-
-#check CategoryTheory.Limits.coprod.desc'
-
-/-- The diagram `𝟙_C ⟶ N ⟵ N`  is a coproduct diagram. -/
-noncomputable def colimitCocone [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
-  ColimitCocone (pair (𝟙_ C) N) where
-    cocone := binaryCofan
-    isColimit := by
-      refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
-      · intro S a b
-        exact NNOIsoPlusOne.hom ≫ (coprod.desc a b)
-      · sorry
-      · sorry
-      · sorry
-
-/-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
-def BinaryCoproduct [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] : HasBinaryCoproduct (𝟙_ C) N where
-  exists_colimit := by
-    constructor
-    exact colimitCocone
 
 #check CartesianMonoidalCategory
 
@@ -200,10 +122,10 @@ finLt ------------------> 1
               lt
 ```
 -/
-noncomputable abbrev finLt [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] := pullbackObj (C:= C) bool.true lt
+abbrev finLt [CartesianMonoidalCategory C] [PNNO C] [Bool C] := pullbackObj (C:= C) Bool.tt lt
 
-def univFinMapIso [CartesianMonoidalCategory C] [PNNO C] [HasBinaryCoproducts C] :
-    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) bool.true lt ≫ fst N N) := by
+def univFinMapIso [CartesianMonoidalCategory C] [PNNO C] [Bool C] :
+    Over.mk (univFinMap C) ≅ Over.mk (pullback.snd (C:= C) Bool.tt lt ≫ fst N N) := by
   sorry
 
 /--
