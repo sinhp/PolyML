@@ -551,8 +551,70 @@ def num_pair (m n : ℕ) : (𝟙_ C ⟶ N ⊗ N) :=
 
 @[simp]
 theorem num_add (m n : ℕ) :
-    num C (m + n) = num_pair C m n ≫ add := by
-  sorry
+    num C (m + n) = num_pair C m n ≫ add := by {
+      unfold num
+      split
+      · rename_i k hmn
+        dsimp [num_pair]
+        simp only [assoc, add]
+        unfold num
+        split
+        · rename_i y
+          split
+          · rename_i o p
+            rw [tensorHom_def']
+            simp only [assoc]
+            simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
+            rw [unitors_equal]
+            simp only [Iso.inv_hom_id_assoc]
+          · rename_i o p
+            rw [tensorHom_def']
+            contradiction
+        · rename_i o p
+          split
+          · rename_i u
+            contradiction
+          · rename_i s t
+            contradiction
+      · rename_i i j hmn
+        dsimp [num_pair]
+        simp only [assoc, add]
+        unfold num
+        split
+        · rename_i k l
+          split
+          · rename_i u m
+            split
+            · rw [tensorHom_def']
+              simp only [assoc]
+              simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
+              rw [unitors_equal]
+              contradiction
+            · rename_i u v
+              rw [tensorHom_def]
+              simp only [assoc]
+              simp only [whiskerRight_id, assoc]
+              simp only [Iso.inv_hom_id_assoc]
+              simp only [← assoc]
+              rw [rightUnitor_inv_naturality]
+              simp only [assoc]
+              simp only [whiskerRight_id, whiskerLeft_comp, assoc, iter_prc, Iso.inv_hom_id_assoc]
+              unfold num
+              · rename_i u v
+                split
+
+                · sorry
+
+
+          · rename_i u
+            sorry
+        · rename_i o p
+          split
+          · rename_i u
+            sorry
+          · rename_i s t
+            sorry
+    }
 
 theorem num_add_comm (m n : ℕ) :
     num_pair C m n ≫ add = num_pair C n m ≫ add := by
