@@ -404,7 +404,14 @@ theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _
   · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
 theorem twist₁_swap : twist₁ N = prc ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
-  sorry
+  apply prc_uniq
+  · simp [twist₁]
+    --refine (Iso.eq_inv_comp (λ_ N)).mp ?_
+    rw [← leftUnitor_naturality]
+    simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, id_whiskerLeft, assoc, Iso.inv_hom_id,
+      comp_id]
+
+  · sorry
 
 theorem twist₁_braiding [BraidedCategory C] {P : C} :
     twist₁ P = (β_ N P).hom := by
@@ -544,7 +551,7 @@ instance addZeroClass [BraidedCategory C] : AddZeroClass (𝟙_ C ⟶ N) where
     simp only [Iso.inv_hom_id_assoc]
     simp only [← assoc]
     rw [leftUnitor_inv_naturality]
-    have  :  a ≫ 𝟙 N  = a := by simp
+    have  :  a ≫ 𝟙 N  = a := by simp only [comp_id]
     simp only [id_whiskerLeft, Iso.inv_hom_id_assoc, assoc]
     nth_rw 2 [← this]
     congr
@@ -587,26 +594,6 @@ instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
     simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.hom_inv_id, comp_id,
       Iso.inv_hom_id_assoc]
     sorry
-
-
-
-
-
-
-
-
-
-
-
-
-    --nth_rw 1 [← assoc]
-    --RW
-
-
-
-
-    --simp only [Iso.inv_hom_id_assoc]
-
 
   }
 
@@ -664,7 +651,20 @@ instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
 
 @[simp]
 instance addCommMonoid : AddCommMonoid (𝟙_ C ⟶ N) where
-  add_comm := sorry
+  add_comm a b := by {
+    simp only [addMonoid, addSemigroup, add_add, Iso.cancel_iso_inv_left]
+    rw [tensorHom_def']
+    rw [tensorHom_def']
+    simp only [id_whiskerLeft, assoc, Iso.cancel_iso_hom_left]
+    simp only [← assoc]
+    refine ?_ =≫_
+    rw [leftUnitor_inv_naturality]
+    rw [leftUnitor_inv_naturality]
+    nth_rw 2 [unitors_inv_equal]
+    simp only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+    --nth_rw  3 [← assoc]
+    sorry
+  }
 
 end GlobalElement
 
