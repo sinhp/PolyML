@@ -533,7 +533,7 @@ instance add : Add (𝟙_ C ⟶ N) where
   add := fun m n => (ρ_ _).inv ≫ (m ⊗ₘ n) ≫ PNNO.add
 
 @[simp]
-instance addZeroClass : AddZeroClass (𝟙_ C ⟶ N) where
+instance addZeroClass [BraidedCategory C] : AddZeroClass (𝟙_ C ⟶ N) where
   zero := zero
   add := Add.add
   zero_add {a} := by
@@ -544,20 +544,71 @@ instance addZeroClass : AddZeroClass (𝟙_ C ⟶ N) where
     simp only [Iso.inv_hom_id_assoc]
     simp only [← assoc]
     rw [leftUnitor_inv_naturality]
+    have  :  a ≫ 𝟙 N  = a := by simp
     simp only [id_whiskerLeft, Iso.inv_hom_id_assoc, assoc]
-    rw [addMonObj.zero_add]
-
-
-
-
-    rw [zero_iter]
-
-  add_zero := sorry
+    nth_rw 2 [← this]
+    congr
+    (expose_names; exact (Iso.inv_comp_eq_id (λ_ N)).mpr (PNNO.zero_add (C:=C)))
+  add_zero {a} := by
+    simp only [add_add]
+    rw [tensorHom_def]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+    have  :  a ≫ 𝟙 N  = a := by simp
+    nth_rw 2 [← this]
+    congr
+    have := PNNO.add_zero (C:=C)
+    exact (Iso.inv_comp_eq_id (ρ_ N)).mpr this
 
 @[simp]
 instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
   add := Add.add
-  add_assoc := sorry
+  add_assoc {a b c} := by {
+    simp only [add_add, Iso.cancel_iso_inv_left]
+    have := add_assoc (C:=C)
+    rw [tensorHom_def',tensorHom_def',tensorHom_def',tensorHom_def']
+    simp only [id_whiskerLeft, assoc]
+    rw [unitors_equal]
+    simp only [Iso.inv_hom_id_assoc, comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc,
+      Iso.cancel_iso_hom_left]
+    refine _ ≫= ?_
+    refine _ ≫= ?_
+    refine _ ≫= ?_
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [ assoc]
+    refine _ ≫= ?_
+    rw [this]
+    refine (Iso.inv_comp_eq (α_ (𝟙_ C) N N)).mpr ?_
+    simp only [← assoc]
+    refine ?_ =≫ _
+    simp only [assoc, id_whiskerLeft]
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.hom_inv_id, comp_id,
+      Iso.inv_hom_id_assoc]
+    sorry
+
+
+
+
+
+
+
+
+
+
+
+
+    --nth_rw 1 [← assoc]
+    --RW
+
+
+
+
+    --simp only [Iso.inv_hom_id_assoc]
+
+
+  }
 
 @[simp]
 def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
@@ -566,9 +617,50 @@ def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
 
 @[simp]
 instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
+  zero := zero
   nsmul := nsmul
-  nsmul_zero := sorry
-  nsmul_succ := sorry
+  nsmul_zero x := rfl
+  nsmul_succ n x := by {
+    simp only [nsmul, addSemigroup, add_add]
+    rw [tensorHom_def']
+    simp only [id_whiskerLeft, assoc]
+    rw [unitors_equal]
+    simp only [Iso.inv_hom_id_assoc]
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [assoc]
+    unfold nsmul
+    split
+    · rename_i n
+      simp only [id_whiskerLeft, zero_add, assoc, Iso.inv_hom_id, comp_id, Iso.inv_hom_id_assoc]
+      dsimp [add]
+      sorry
+
+    · rename_i n m
+      simp only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+      dsimp [add]
+      rw [tensorHom_def']
+      simp only [← assoc]
+      rw [leftUnitor_inv_naturality]
+      simp only [assoc]
+      rw [← unitors_inv_equal]
+      refine _ ≫= ?_
+      have := add_assoc (C:=C)
+      simp only [whiskerLeft_comp, id_whiskerLeft, Iso.hom_inv_id_assoc, assoc,
+        Iso.inv_hom_id_assoc, comp_whiskerRight, leftUnitor_inv_whiskerRight]
+      rw [this]
+      simp only [← assoc]
+      rw [← leftUnitor_naturality]
+      simp only [assoc]
+      nth_rw 5 [← assoc]
+      sorry
+
+
+
+  }
+  zero_add := sorry
+  add_zero := sorry
+
 
 @[simp]
 instance addCommMonoid : AddCommMonoid (𝟙_ C ⟶ N) where
@@ -625,7 +717,8 @@ theorem num_add (m n : ℕ) :
             simp only [Iso.inv_hom_id_assoc]
             simp only [zero_add, Iso.inv_hom_id, comp_id]
           · rename_i s t
-            simp only [assoc, GlobalElement.add_add, Nat.zero_eq, Nat.add_eq, _root_.zero_add]
+            simp only [assoc, GlobalElement.add_add,
+              Nat.zero_eq, Nat.add_eq, _root_.zero_add]
             rw [tensorHom_def']
             simp only [assoc]
             simp only [id_whiskerLeft, assoc]
@@ -674,6 +767,8 @@ theorem num_add (m n : ℕ) :
               rw [unitors_equal]
               rw [← num_succ]
               simp only [Iso.inv_hom_id_assoc, num_succ, assoc]
+              sorry
+
 
 
 
@@ -690,7 +785,12 @@ theorem num_add (m n : ℕ) :
 
 
           · rename_i u
-            sorry
+            congr
+            simp only [GlobalElement.add_add, Nat.zero_eq, Nat.succ_eq_add_one, _root_.zero_add,
+              Nat.add_eq]
+            split
+            · sorry
+            · sorry
         · rename_i o p
           split
           · rename_i u
