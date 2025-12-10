@@ -153,7 +153,7 @@ def PList.act [MonoidalCategory C] (A : C) [PList A] (P : C) : Act A where
   str := (α_ _ _ _).inv ≫ PList.cons ▷ P
 
 /-- A list object provides recursion. -/
-instance withRecursionOfPlist [MonoidalCategory C] {A : C} [PList A] : WithRecursion A where
+instance withRecursionOfPList [MonoidalCategory C] {A : C} [PList A] : WithRecursion A where
   freeActionFunctor := {
     obj P := PList.act A P
     map {P Q} φ := {
