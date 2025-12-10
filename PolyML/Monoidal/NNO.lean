@@ -1078,8 +1078,11 @@ noncomputable def NNOIsoOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct
 theorem NNOIsoOnePlus_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     (NNOIsoOnePlus).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
   --have := IsColimit.uniq _
-  --rw [coprod.desc, colimit.desc, colimit.isColimit]
-  -- rw [IsColimit.uniq]
+  rw [coprod.desc]
+
+  have := IsColimit.uniq (C:=C) (F:=(pair (𝟙_ C) N)) (s:=(BinaryCofan.mk zero succ))
+  rw [← CategoryTheory.Limits.colimit.isColimit_desc]
+
   sorry
 
 #check CategoryTheory.Limits.coprod.desc'
