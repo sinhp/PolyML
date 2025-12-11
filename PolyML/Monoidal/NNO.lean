@@ -843,7 +843,7 @@ theorem zero_toBool [Bool C] :
 
 theorem succ_toBool [Bool C] :
     succ ≫ toBool C = toUnit ≫ Bool.tt := by
-  rw [toUnit, toBool, succ_rc, Bool.constTrue, const]
+  rw [toBool, succ_rc]
   sorry
 
 @[simp]

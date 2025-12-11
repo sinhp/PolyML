@@ -72,7 +72,10 @@ abbrev elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮_ C ⟶ X :=
   IsBool.elim (ff := Bool.ff) (tt := Bool.tt)  f g
 
 lemma eta {X : C} (f : 𝟮_ C ⟶ X) : Bool.elim (Bool.ff ≫ f) (Bool.tt ≫ f) = f := by
-  sorry
+  symm
+  apply elim_uniq
+  · rfl
+  · rfl
 
 @[simp]
 lemma elim_eta_left {X : C} (f : 𝟮_ C ⟶ X) :
@@ -102,7 +105,10 @@ lemma elim_comp {X : C} {a b : 𝟙_ C ⟶ X} {Y : C} (k : X ⟶ Y) :
     elim a b ≫ k = elim (a ≫ k) (b ≫ k) := by
   apply hom_ext
   simp [elim]
-  sorry
+  congr
+  apply elim_uniq
+  · simp only [ff_elim_assoc]
+  · simp only [tt_elim_assoc]
 
 lemma elim_iff {X : C} {f : 𝟮_ C ⟶ X} {a b : 𝟙_ C ⟶ X} :
     elim a b = f ↔ (Bool.ff ≫ f = a ∧ Bool.tt ≫ f = b) := by
@@ -159,11 +165,25 @@ def boolOfBinaryCoproduct : Bool C where
 attribute [local instance] boolOfBinaryCoproduct
 
 -- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
-def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := sorry
+def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := by {
+  simp only [boolOfBinaryCoproduct_obj]
+  have := leftDistrib ( C:=C) (X:=(𝟙_ C ⨿ 𝟙_ C)) (Y:= (𝟙_ C )) (Z:= (𝟙_ C ))
+  refine Iso.inv ?_
+  symm
+  trans
+  apply this.symm
+  sorry
+
+
+
+}
 
 theorem false_and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] :
     (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) tt tt) := by
-  sorry
+  refine (Iso.inv_comp_eq (λ_ (𝟮_ C))).mp ?_
+  apply IsBool.elim_uniq
+  · sorry
+  · sorry
 
 -- theorem false_and' [SemiCartesianMonoidalCategory C] :
 --     (false ▷ (𝟮 : C)) ≫ and = SemiCartesianMonoidalCategory.constMorphism _ false := sorry
