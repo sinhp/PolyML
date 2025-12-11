@@ -11,9 +11,32 @@ import Mathlib.CategoryTheory.Monoidal.FunctorCategory
 
 namespace CategoryTheory
 
+open  MonoidalCategory
+
+def boolType₀ : Bool (Type) where
+  obj := Bool
+  ff := fun _ => false
+  tt := fun _ => true
+  isBool := {
+    elim x y := fun b => ite b (x ()) (y ())
+    ff_elim := by sorry
+    tt_elim := by sorry
+    elim_uniq := by sorry
+  }
+
+def boolType : Bool (Type u) where
+  obj := ULift Bool
+  ff := fun _ => ULift.up false
+  tt := fun _ => ULift.up true
+  isBool := {
+    elim x y := fun b => if b.down then x ⟨⟩ else y ⟨⟩
+    ff_elim := by sorry
+    tt_elim := by sorry
+    elim_uniq := by sorry
+  }
 
 /-- The natural numbers object in the category `Type`. -/
-def NNOType₀ : NNO (Type) where
+def nnoType₀ : NNO (Type) where
   N := ℕ
   zero := fun _ => 0
   succ := Nat.succ
@@ -24,7 +47,7 @@ def NNOType₀ : NNO (Type) where
     rc_uniq := by sorry
   }
 
-def PNNOType₀ : PNNO (Type) where
+def pnnoType₀ : PNNO (Type) where
   N := ℕ
   zero := fun _ => 0
   succ := Nat.succ
@@ -35,7 +58,7 @@ def PNNOType₀ : PNNO (Type) where
     prc_uniq := sorry
   }
 
-example : NNOType₀.one = fun _ => (1 : ℕ) := rfl
+example : pnnoType₀.one = fun _ => (1 : ℕ) := rfl
 
 #check list.nil_len_zero
 
@@ -44,7 +67,7 @@ example : NNOType₀.one = fun _ => (1 : ℕ) := rfl
 -- #eval list.len (C:= Type) ([1, 2, 3] : List ℕ)  -- fix this
 
 
-def NNOType : NNO (Type u) where
+def nnoType : NNO (Type u) where
   N := ULift ℕ
   zero := fun _ => ULift.up 0
   succ := fun n => ULift.up (Nat.succ n.down)
@@ -55,7 +78,7 @@ def NNOType : NNO (Type u) where
     rc_uniq := sorry
   }
 
-def PNNOType : PNNO (Type u) where
+def pnnoType : PNNO (Type u) where
   N := ULift ℕ
   zero := fun _ => ULift.up 0
   succ := fun n => ULift.up (Nat.succ n.down)
@@ -67,7 +90,7 @@ def PNNOType : PNNO (Type u) where
   }
 
 /-- The NNO in presheaf categories. -/
-def NNOPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
+def nnoPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
   N := (Functor.const (J:= C)).obj ℕ
   zero := (Functor.const (J:= C)).map (fun _ => 0)
   succ := (Functor.const (J:= C)).map Nat.succ
