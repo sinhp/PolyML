@@ -56,10 +56,10 @@ attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMono
 
 open Endofunctor Algebra
 
-variable {C : Type u} [Category.{v} C]
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
-class IsPList [MonoidalCategory C] (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
-  prc {nil cons} {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) : L ⊗ P ⟶ B
+class IsPList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
+  prc {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) : L ⊗ P ⟶ B
   nil_prc {P B : C} {f : P ⟶ B} {g : A ⊗ B ⟶ B} :
     (nil ▷ P) ≫ prc f g = (λ_ P).hom ≫ f
   cons_prc {P B : C} {f : P ⟶ B} {g : A ⊗ B ⟶ B} :
@@ -70,14 +70,18 @@ class IsPList [MonoidalCategory C] (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons :
 
 attribute [reassoc (attr := simp)] IsPList.nil_prc IsPList.cons_prc
 
-class PList [MonoidalCategory C] (A : C) where
+class PList (A : C) where
   L : C
   nil : 𝟙_ C ⟶ L
-  cons : A ⊗ L ⟶ L
+  cons (A) : A ⊗ L ⟶ L
   /-- The parameterized list object satisfies the properties of a left parameterized natural number object. -/
   [isPList : IsPList A L nil cons]
 
 attribute [instance] PList.isPList
+
+abbrev PList.prc {A : C} [PList A] {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
+    PList.L A ⊗ P ⟶ B :=
+  IsPList.prc PList.nil (PList.cons A) f g
 
 /-
 For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a
@@ -88,8 +92,6 @@ category as state-changing alphabet `A` acting on sets of states `S`.
 abbrev Act [MonoidalCategory C] (A : C) := Algebra <| tensorLeft A
 
 namespace Act
-
-variable [MonoidalCategory C]
 
 @[simp]
 theorem hom {A : C} {σ σ' : Act A} {f : σ ⟶ σ'} : A ◁ f.1 ≫ σ'.str = σ.str ≫ f.1 := f.h
@@ -142,18 +144,18 @@ open IsPList
 
 /-- An object `A` in a category `C` is said to have **recursion** if there is a functor from `C` to
 the category of left `A`-actions which is left adjoint to the forgetful functor. -/
-class WithRecursion [MonoidalCategory C] (A : C) where
-  freeActionFunctor : C ⥤ Act A
-  freeForgetAdj : freeActionFunctor ⊣ Act.forget
+class WithRecursion (A : C) where
+  freeActionFunctor (A) : C ⥤ Act A
+  freeForgetAdj (A) : freeActionFunctor ⊣ Act.forget
 
 /-- The left `A`-action on `PList A ⊗ P`. -/
 @[simps! +simpRhs a str]
-def PList.act [MonoidalCategory C] (A : C) [PList A] (P : C) : Act A where
+def PList.act (A : C) [PList A] (P : C) : Act A where
   a := PList.L A ⊗ P
-  str := (α_ _ _ _).inv ≫ PList.cons ▷ P
+  str := (α_ _ _ _).inv ≫ PList.cons A ▷ P
 
-/-- A list object provides recursion. -/
-instance withRecursionOfPList [MonoidalCategory C] {A : C} [PList A] : WithRecursion A where
+/-- A list object provides a left adjoint to the forgetful functor from `Act A` to `C`. -/
+instance withRecursionOfPList {A : C} [PList A] : WithRecursion A where
   freeActionFunctor := {
     obj P := PList.act A P
     map {P Q} φ := {
@@ -165,11 +167,62 @@ instance withRecursionOfPList [MonoidalCategory C] {A : C} [PList A] : WithRecur
   }
   freeForgetAdj.unit.app P := (λ_ _).inv ≫ (PList.nil) ▷ P
   freeForgetAdj.counit.app β := {
-    f := prc (C:= C) (𝟙 (β.a)) β.str
-    h := by simp; symm; apply cons_prc (nil := PList.nil) (f := 𝟙 _) (g:= β.str) }
+    f := prc (nil := PList.nil) (cons := PList.cons A) (𝟙 (β.a)) β.str
+    h := by simp }
   freeForgetAdj.unit.naturality P Q φ := by
     simp
     sorry
   freeForgetAdj.counit.naturality β γ f := by
     simp
     sorry
+
+section
+
+open PList
+
+variable {A : C} [PList A] {P : C}
+
+open WithRecursion
+
+@[simp]
+theorem withRecursionOfPList.freeActionFunctor_forget_obj :
+    (freeActionFunctor A ⋙ Act.forget).obj P = PList.L A ⊗ P :=
+  rfl
+
+@[simp]
+theorem withRecursionOfPList.freeForgetAdj_unit_app :
+    (freeForgetAdj A |>.unit).app P = (λ_ _).inv ≫ (PList.nil) ▷ P :=
+  rfl
+
+@[simp]
+theorem withRecursionOfPList.freeActionFunctor_obj_str :
+    (freeActionFunctor A |>.obj P).str = (α_ _ _ _).inv ≫ PList.cons A ▷ P :=
+  rfl
+
+@[simp]
+theorem withRecursionOfPList.forgetMap_freeForgetAdj_homEquiv {B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
+    (Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨B, g⟩ |>.invFun f) =
+    prc f g := by
+  sorry
+
+@[simp]
+theorem withRecursionOfPList.freeActionFunctor_map {Q : C} (φ : P ⟶ Q) :
+    (freeActionFunctor A |>.map φ).f =
+      prc (φ ≫ (λ_ Q).inv ≫ PList.nil ▷ Q) ((α_ _ _ _).inv ≫ PList.cons A ▷ Q) := by
+  sorry
+
+end
+
+namespace PList
+
+open IsPList
+
+variable {A : C} [PList A] {P : C}
+
+theorem prc_nil_cons_id : prc ((λ_ P).inv ≫ PList.nil ▷ P) ((α_ _ _ _).inv ≫ PList.cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
+  sorry
+
+
+end PList
+
+end CategoryTheory
