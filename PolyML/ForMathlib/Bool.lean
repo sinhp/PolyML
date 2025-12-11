@@ -146,7 +146,7 @@ open Bool
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts C]
 
-/-- A monoidal caetegory with binary coproducts has booleans. -/
+/-- A monoidal category with binary coproducts has booleans. -/
 @[simps]
 def boolOfBinaryCoproduct : Bool C where
   obj := (𝟙_ C) ⨿ (𝟙_ C)
@@ -166,13 +166,35 @@ attribute [local instance] boolOfBinaryCoproduct
 
 -- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
 def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := by {
-  simp only [boolOfBinaryCoproduct_obj]
-  have := leftDistrib ( C:=C) (X:=(𝟙_ C ⨿ 𝟙_ C)) (Y:= (𝟙_ C )) (Z:= (𝟙_ C ))
-  refine Iso.inv ?_
-  symm
-  trans
-  apply this.symm
-  sorry
+  -- simp only [boolOfBinaryCoproduct_obj]
+  -- have := leftDistrib (C:=C) (X:=(𝟙_ C ⨿ 𝟙_ C)) (Y:= (𝟙_ C )) (Z:= (𝟙_ C ))
+  -- refine Iso.inv ?_
+  -- symm
+  -- trans
+  -- apply this.symm
+  -- have := leftDistrib (C:=C) (X:=(𝟙_ C)) (Y:= (𝟙_ C )) (Z:= (𝟙_ C ))
+  -- refine coprod.mapIso ?_ ?_
+  -- · have h1 :=ff (C:=C)
+  --   have h2 :=tt (C:=C)
+  --   simp only [boolOfBinaryCoproduct_obj] at h2
+  --   simp only [boolOfBinaryCoproduct_obj] at h1
+  --   constructor
+  --   · sorry
+  --   · sorry
+  --   · sorry
+  --   · sorry
+
+
+
+  · sorry
+
+
+
+
+
+
+
+
 
 
 

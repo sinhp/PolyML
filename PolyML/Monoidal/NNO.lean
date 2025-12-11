@@ -841,27 +841,77 @@ theorem zero_toBool [Bool C] :
   dsimp [toBool, Bool.ff]
   rw [zero_rc]
 
-theorem succ_toBool [Bool C] :
-    succ ≫ toBool C = toUnit ≫ Bool.tt := by
-  rw [toBool, succ_rc]
-  sorry
-
-@[simp]
-theorem false_fromBool [Bool C] :
-    Bool.ff ≫ fromBool C = zero := by
-  simp only [fromBool, IsBool.ff_elim]
+open Bool
+#check constTrue_toUnit
+#check constTrue_eq_toUnit_true
+#check elim_eta_right
+#check elim_eta_left
+#check IsBool.ff_elim
+#check IsBool.tt_elim
 
 @[simp]
 theorem true_fromBool [Bool C] :
     Bool.tt ≫ fromBool C = one := by
   simp only [fromBool, IsBool.tt_elim]
 
+@[simp]
+theorem false_fromBool [Bool C] :
+    Bool.ff ≫ fromBool C = zero := by
+  simp only [fromBool, IsBool.ff_elim]
+
+theorem succ_toBool [Bool C] :
+    succ ≫ toBool C = toUnit ≫ Bool.tt := by
+  --rw [toBool, succ_rc]
+  dsimp [toUnit]
+  dsimp [toBool]
+  rw [succ_rc]
+  dsimp [const]
+  nth_rw 2 [constTrue_eq_toUnit_true]
+  --rw [← constTrue_toUnit]
+  simp only [← assoc]
+  congr
+  apply rc_uniq
+  · simp only [← assoc]
+    rw [zero_rc]
+    dsimp [Bool.toUnit]
+    simp only [IsBool.ff_elim]
+  · simp only [comp_id, ← assoc]
+    congr
+    rw [succ_rc]
+    have : rc ff constTrue ≫ 𝟙 (𝟮_ C) = rc ff constTrue := by simp
+    nth_rw 2 [← this]
+    congr
+    dsimp [constTrue]
+    symm
+    ext
+    sorry
+    sorry
+
+
+
+
+
+
+
+
+
+
 theorem fromBool_toBool [Bool C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
   ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
-  · simp only [← assoc]
-    sorry
+  · congr
+    dsimp [fromBool, toBool]
+    simp only [elim_comp, zero_rc]
+    symm
+    apply IsBool.elim_uniq
+    simp only [comp_id]
+    simp only [comp_id]
+    dsimp [one]
+    simp only [assoc]
+    rw [succ_rc,← assoc,zero_rc]
+    dsimp [constTrue]
+    simp only [IsBool.ff_elim]
 
 @[simps pt]
 def binaryCofanZeroSucc [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N where
@@ -893,7 +943,7 @@ noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct 
     refine coprod.hom_ext_iff.mpr ?_
     · rw [hr1]
       simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
-        true_and]
+        _root_.true_and]
       apply isNNO.rc_uniq
       · rw [← hr1]
         simp only [assoc]
