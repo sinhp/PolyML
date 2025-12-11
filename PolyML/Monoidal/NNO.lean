@@ -410,6 +410,8 @@ theorem twist₁_swap : twist₁ N = prc ((λ_ _).inv ≫ (zero ▷ (N : C))) (N
     rw [← leftUnitor_naturality]
     simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, id_whiskerLeft, assoc, Iso.inv_hom_id,
       comp_id]
+    simp only [← assoc]
+    sorry
 
   · sorry
 
@@ -572,28 +574,37 @@ instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
   add_assoc {a b c} := by {
     simp only [add_add, Iso.cancel_iso_inv_left]
     have := add_assoc (C:=C)
-    rw [tensorHom_def',tensorHom_def',tensorHom_def',tensorHom_def']
+    rw [tensorHom_def,tensorHom_def,tensorHom_def,tensorHom_def]
     simp only [id_whiskerLeft, assoc]
-    rw [unitors_equal]
-    simp only [Iso.inv_hom_id_assoc, comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc,
-      Iso.cancel_iso_hom_left]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, whiskerLeft_comp,
+      whiskerLeft_rightUnitor_inv, Iso.cancel_iso_hom_left]
     refine _ ≫= ?_
     refine _ ≫= ?_
     refine _ ≫= ?_
-    simp only [← assoc]
-    rw [leftUnitor_inv_naturality]
-    simp only [ assoc]
-    refine _ ≫= ?_
-    rw [this]
-    refine (Iso.inv_comp_eq (α_ (𝟙_ C) N N)).mpr ?_
-    simp only [← assoc]
-    refine ?_ =≫ _
-    simp only [assoc, id_whiskerLeft]
-    simp only [← assoc]
-    rw [leftUnitor_inv_naturality]
-    simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.hom_inv_id, comp_id,
-      Iso.inv_hom_id_assoc]
     sorry
+    -- simp only [← assoc]
+    -- simp only [ assoc]
+    -- refine _ ≫= ?_
+    -- rw [this]
+    -- refine (Iso.inv_comp_eq (α_ (𝟙_ C) N N)).mpr ?_
+    -- simp only [← assoc]
+    -- refine ?_ =≫ _
+    -- simp only [assoc, id_whiskerLeft]
+    -- simp only [← assoc]
+    -- rw [leftUnitor_inv_naturality]
+    -- simp only [assoc, whiskerLeft_comp, id_whiskerLeft, Iso.hom_inv_id, comp_id,
+    --   Iso.inv_hom_id_assoc]
+    -- simp only [← assoc]
+
+    -- rw [leftUnitor_inv_naturality]
+    -- rw [whiskerLeft_comp]
+    -- rw [whiskerLeft_comp]
+    -- simp only [assoc]
+
+
+
+
+
 
   }
 
@@ -641,8 +652,6 @@ instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
       simp only [assoc]
       nth_rw 5 [← assoc]
       sorry
-
-
 
   }
   zero_add := sorry
