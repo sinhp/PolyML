@@ -1051,7 +1051,8 @@ def binaryCofanZeroSucc [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N w
       cases X  <;> cases Y <;> repeat (first | contradiction | aesop)
   }
 
-  /-- If `N` is an NNO then `1 + N` is also an NNO. -/
+/-- If `N` is an NNO then `1 + N` is also an NNO. -/
+@[simps]
 noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
   rc {B} b g := coprod.desc b (rc (b ≫ g) g)
@@ -1078,6 +1079,34 @@ noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct 
       · rw [assoc]
         rw [← hr2]
         simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+
+#check isNNOOnePlus.rc
+
+theorem inl_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+    {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
+    inl ≫ isNNOOnePlus.rc b g = b := by
+  simp
+
+theorem inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+    {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
+    zero ≫ inr ≫ isNNOOnePlus.rc b g = b ≫ g := by
+  simp
+
+@[simp]
+theorem succ_inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+    {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
+    succ ≫ inr ≫ isNNOOnePlus.rc b g = isNNO.rc b g ≫ g ≫ g := by
+  simp
+  sorry
+
+@[simp]
+theorem zero_succ_inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+    {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
+    zero ≫ succ ≫ inr ≫ isNNOOnePlus.rc b g = b ≫ g ≫ g  := by
+  rw [succ_inr_isNNOOnePlus_rc]
+  rw [← assoc]
+  rw [IsNNO.zero_rc]
+
 
 /-- `N` is isomorphic to `1 + N`. -/
 noncomputable def NNOIsoOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
