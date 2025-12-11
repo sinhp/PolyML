@@ -1061,7 +1061,6 @@ noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
         initOfCoprodTensorEndofunctorAlgebra,initOfCoprodTensorEndofunctorAlgebra]
       simp only [coprod.desc_comp, plist.nil_rc,actionOfcoprodTensorEndofunctorAlgebra]
       unfold coprodTensorEndofunctor
-      simp only
       rw [plist.cons_rc]
       ext : 1
       · simp_all only [coprod.inl_map_assoc, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
@@ -1080,7 +1079,6 @@ noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
         initOfCoprodTensorEndofunctorAlgebra,initOfCoprodTensorEndofunctorAlgebra]
       simp only [coprod.desc_comp, plist.nil_rc,actionOfcoprodTensorEndofunctorAlgebra]
       unfold coprodTensorEndofunctor
-      simp only
       rw [plist.cons_rc]
       ext : 1
       · simp_all only [coprod.inl_map_assoc, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
