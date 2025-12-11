@@ -275,15 +275,15 @@ open bool coprod
 variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
-def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := (ρ_ _).inv ≫ prc Bool.ff Bool.constTrue
+def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := (ρ_ _).inv ≫ prc Bool.ff Bool.ttConst
 
 theorem toBool_desc_eq_toUnit [Bool C] : toBool C ≫ Bool.toUnit = toUnit := by
   refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
   rw [iter]
   apply prc_uniq
   · dsimp [toBool]
-    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit =
-    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit := by
+    have : zero ▷ 𝟙_ C ≫ (ρ_ N).hom ≫ ((ρ_ N).inv ≫ prc Bool.ff Bool.ttConst) ≫ Bool.toUnit =
+    (zero ▷ 𝟙_ C ≫ ((ρ_ N).hom ≫ (ρ_ N).inv) ≫ prc Bool.ff Bool.ttConst) ≫ Bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.hom_inv_id_assoc]
     rw [this]
     simp only [ Iso.hom_inv_id, id_comp, comp_id]
@@ -302,8 +302,8 @@ theorem toBool_desc_eq_toUnit [Bool C] : toBool C ≫ Bool.toUnit = toUnit := by
     rw [← assoc]
     rw [rightUnitor_inv_naturality]
     rw [assoc, assoc]
-    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.constTrue ≫ Bool.toUnit=
-    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.constTrue) ≫ Bool.toUnit := by
+    have : (ρ_ N).inv ≫ succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.ttConst ≫ Bool.toUnit=
+    (ρ_ N).inv ≫ (succ ▷ 𝟙_ C ≫ prc Bool.ff Bool.ttConst) ≫ Bool.toUnit := by
       simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
     rw [this]; clear this
     simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
@@ -313,7 +313,7 @@ theorem toBool_desc_eq_toUnit [Bool C] : toBool C ≫ Bool.toUnit = toUnit := by
     rw [← assoc,succ_prc]
     rw [assoc]
     refine _ ≫= ?_
-    rw [Bool.constTrue_eq_toUnit_true]
+    rw [Bool.ttConst_eq_toUnit_tt]
     dsimp [Bool.toUnit, Bool.elim, Bool.true]
     simp_all only [Bool.elim_comp, id_comp, IsBool.tt_elim]
 
@@ -340,7 +340,7 @@ theorem succ_toBool [Bool C] :
   rw [← assoc]
   rw [succ_prc, assoc]
   refine _ ≫= ?_
-  exact Bool.constTrue_eq_toUnit_true
+  exact Bool.ttConst_eq_toUnit_tt
 
 @[simp]
 theorem false_fromBool [Bool C] :
@@ -786,7 +786,7 @@ open bool coprod
 variable (C)
 
 /-- Decides if a natural number is zero or not, if zero returns `bool.false` else it returns `bool.true`. -/
-def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := rc Bool.ff Bool.constTrue
+def toBool [Bool C] : (N : C) ⟶ 𝟮_ C := rc Bool.ff Bool.ttConst
 
 /-- Converts a boolean value to a natural number, sending `bool.false` to `0` and `bool.true` to `1`. -/
 def fromBool [Bool C] : 𝟮_ C ⟶ N := Bool.elim zero one
@@ -800,7 +800,7 @@ theorem zero_toBool [Bool C] :
 
 theorem succ_toBool [Bool C] :
     succ ≫ toBool C = toUnit ≫ Bool.tt := by
-  rw [toUnit, toBool, succ_rc, Bool.constTrue, const]
+  rw [toUnit, toBool, succ_rc, const]
   sorry
 
 @[simp]
