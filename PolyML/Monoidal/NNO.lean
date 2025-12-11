@@ -11,6 +11,8 @@ import PolyML.ForMathlib.Monoidal.AddMon_
 import PolyML.ForMathlib.Monoidal.Powers
 import PolyML.Monoidal.ListArithmetic
 
+set_option linter.unusedSectionVars false
+
 universe u v
 
 namespace CategoryTheory
@@ -588,7 +590,27 @@ instance addMonoid [BraidedCategory C]: AddMonoid (𝟙_ C ⟶ N) where
   nsmul := nsmul
   add_assoc a b c := CategoryTheory.PNNO.GlobalElement.addSemigroup.add_assoc a b c
   nsmul_zero x := rfl
-  nsmul_succ n x := sorry
+  nsmul_succ n x := by {
+    simp only [nsmul, add_add]
+    dsimp [Add.add]
+    simp only [Iso.cancel_iso_inv_left]
+    rw [tensorHom_def]
+    rw [tensorHom_def]
+    simp only [whiskerRight_id, assoc, Iso.cancel_iso_hom_left]
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [rightUnitor_inv_naturality]
+    nth_rw 1 [← unitors_inv_equal]
+    refine ?_ =≫ _
+    simp only [assoc]
+    rw [← whisker_exchange]
+    rw [← whisker_exchange]
+    sorry
+
+
+
+
+  }
   zero_add a := CategoryTheory.PNNO.GlobalElement.addZeroClass.zero_add a
   add_zero a := CategoryTheory.PNNO.GlobalElement.addZeroClass.add_zero a
 
