@@ -547,7 +547,7 @@ instance add : Add (𝟙_ C ⟶ N) where
 instance addZeroClass [BraidedCategory C] : AddZeroClass (𝟙_ C ⟶ N) where
   zero := zero
   add := Add.add
-  zero_add {a} := by
+  zero_add a := by
     simp only [add_add]
     rw [tensorHom_def']
     simp only [id_whiskerLeft, assoc]
@@ -574,56 +574,57 @@ instance addZeroClass [BraidedCategory C] : AddZeroClass (𝟙_ C ⟶ N) where
 instance addSemigroup [BraidedCategory C] : AddSemigroup (𝟙_ C ⟶ N) where
   add := Add.add
   add_assoc {a b c} := by
-    have := add_assoc  (C:=C)
-    simp only [add_add]
-    simp only [Iso.cancel_iso_inv_left]
     sorry
 
 @[simp]
 def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
   | .zero => fun _ => zero
-  | .succ m => fun a => Add.add a (nsmul m a)
+  | .succ m => fun a => Add.add (nsmul m a) a
 
 @[simp]
 instance addMonoid [BraidedCategory C]: AddMonoid (𝟙_ C ⟶ N) where
   zero := zero
   nsmul := nsmul
-  add_assoc a b c := CategoryTheory.PNNO.GlobalElement.addSemigroup.add_assoc a b c
+  add_assoc a b c := addSemigroup.add_assoc a b c
   nsmul_zero x := rfl
   nsmul_succ n x := by {
+    unfold nsmul
+    split
     simp only [nsmul, add_add]
     dsimp [Add.add]
-    simp only [Iso.cancel_iso_inv_left]
-    rw [tensorHom_def]
-    rw [tensorHom_def]
-    simp only [whiskerRight_id, assoc, Iso.cancel_iso_hom_left]
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    rw [rightUnitor_inv_naturality]
-    nth_rw 1 [← unitors_inv_equal]
-    refine ?_ =≫ _
-    simp only [assoc]
-    rw [← whisker_exchange]
-    rw [← whisker_exchange]
+
+    -- simp only [nsmul, add_add]
+    -- dsimp [Add.add]
+    -- simp only [Iso.cancel_iso_inv_left]
+    -- rw [tensorHom_def]
+    -- rw [tensorHom_def]
+    -- simp only [whiskerRight_id, assoc, Iso.cancel_iso_hom_left]
+    -- simp only [← assoc]
+    -- rw [rightUnitor_inv_naturality]
+    -- nth_rw 1 [← unitors_inv_equal]
+    -- refine ?_ =≫ _
+    -- simp only [assoc]
+    -- rw [← whisker_exchange]
+    -- simp only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+    -- refine _ ≫= ?_
+    -- dsimp [PNNO.add]
+    -- refine (Iso.inv_comp_eq (λ_ N)).mpr ?_
     sorry
-
-
-
-
   }
-  zero_add a := CategoryTheory.PNNO.GlobalElement.addZeroClass.zero_add a
-  add_zero a := CategoryTheory.PNNO.GlobalElement.addZeroClass.add_zero a
+  zero_add a := addZeroClass.zero_add a
+  add_zero a := addZeroClass.add_zero a
 
 @[simp]
 instance addCommMonoid [BraidedCategory C] : AddCommMonoid (𝟙_ C ⟶ N) where
   zero := zero
   zero_add a := CategoryTheory.PNNO.GlobalElement.addZeroClass.zero_add a
   add_zero a := CategoryTheory.PNNO.GlobalElement.addZeroClass.add_zero a
-  add_comm a b := sorry
   add_assoc a b c := CategoryTheory.PNNO.GlobalElement.addSemigroup.add_assoc a b c
   nsmul := nsmul
   nsmul_zero x := rfl
-  nsmul_succ := sorry
+  nsmul_succ n f :=CategoryTheory.PNNO.GlobalElement.addMonoid.nsmul_succ n f
+  add_comm a b := sorry
+
 
 end GlobalElement
 
