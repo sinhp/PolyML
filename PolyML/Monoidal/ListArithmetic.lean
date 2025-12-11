@@ -1056,8 +1056,17 @@ noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
     f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
-    h := by sorry
-  }
+    h := by
+      dsimp [plistAlgebra, coprodTensorEndofunctorAlgebraMk,
+        initOfCoprodTensorEndofunctorAlgebra,initOfCoprodTensorEndofunctorAlgebra]
+      simp only [coprod.desc_comp, plist.nil_rc,actionOfcoprodTensorEndofunctorAlgebra]
+      unfold coprodTensorEndofunctor
+      simp only
+      rw [plist.cons_rc]
+      ext : 1
+      · simp_all only [coprod.inl_map_assoc, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+      · simp_all only [coprod.inr_map_assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
+    }
   · sorry
 
 /-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
@@ -1066,7 +1075,16 @@ noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
     f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
-    h := by sorry
+    h := by
+      dsimp [listAlgebra,plistAlgebra, coprodTensorEndofunctorAlgebraMk,
+        initOfCoprodTensorEndofunctorAlgebra,initOfCoprodTensorEndofunctorAlgebra]
+      simp only [coprod.desc_comp, plist.nil_rc,actionOfcoprodTensorEndofunctorAlgebra]
+      unfold coprodTensorEndofunctor
+      simp only
+      rw [plist.cons_rc]
+      ext : 1
+      · simp_all only [coprod.inl_map_assoc, id_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
+      · simp_all only [coprod.inr_map_assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
   }
   · sorry
 
