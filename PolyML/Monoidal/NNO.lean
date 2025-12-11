@@ -406,16 +406,7 @@ theorem twist₁_eq_rightUnitor_hom_leftUnitor_inv : twist₁ (𝟙_ C) = (ρ_ _
   · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, id_whiskerLeft]
 
 theorem twist₁_swap : twist₁ N = prc ((λ_ _).inv ≫ (zero ▷ (N : C))) (N ◁ succ) := by
-  apply prc_uniq
-  · simp [twist₁]
-    --refine (Iso.eq_inv_comp (λ_ N)).mp ?_
-    rw [← leftUnitor_naturality]
-    simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, id_whiskerLeft, assoc, Iso.inv_hom_id,
-      comp_id]
-    simp only [← assoc]
-    sorry
-
-  · sorry
+  sorry
 
 theorem twist₁_braiding [BraidedCategory C] {P : C} :
     twist₁ P = (β_ N P).hom := by
@@ -587,30 +578,7 @@ instance addMonoid [BraidedCategory C]: AddMonoid (𝟙_ C ⟶ N) where
   nsmul := nsmul
   add_assoc a b c := addSemigroup.add_assoc a b c
   nsmul_zero x := rfl
-  nsmul_succ n x := by {
-    unfold nsmul
-    split
-    simp only [nsmul, add_add]
-    dsimp [Add.add]
-
-    -- simp only [nsmul, add_add]
-    -- dsimp [Add.add]
-    -- simp only [Iso.cancel_iso_inv_left]
-    -- rw [tensorHom_def]
-    -- rw [tensorHom_def]
-    -- simp only [whiskerRight_id, assoc, Iso.cancel_iso_hom_left]
-    -- simp only [← assoc]
-    -- rw [rightUnitor_inv_naturality]
-    -- nth_rw 1 [← unitors_inv_equal]
-    -- refine ?_ =≫ _
-    -- simp only [assoc]
-    -- rw [← whisker_exchange]
-    -- simp only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
-    -- refine _ ≫= ?_
-    -- dsimp [PNNO.add]
-    -- refine (Iso.inv_comp_eq (λ_ N)).mpr ?_
-    sorry
-  }
+  nsmul_succ n x := by sorry
   zero_add a := addZeroClass.zero_add a
   add_zero a := addZeroClass.add_zero a
 
@@ -865,12 +833,6 @@ theorem zero_toBool [Bool C] :
   rw [zero_rc]
 
 open Bool
-#check constTrue_toUnit
-#check constTrue_eq_toUnit_true
-#check elim_eta_right
-#check elim_eta_left
-#check IsBool.ff_elim
-#check IsBool.tt_elim
 
 @[simp]
 theorem true_fromBool [Bool C] :
@@ -884,40 +846,7 @@ theorem false_fromBool [Bool C] :
 
 theorem succ_toBool [Bool C] :
     succ ≫ toBool C = toUnit ≫ Bool.tt := by
-  --rw [toBool, succ_rc]
-  dsimp [toUnit]
-  dsimp [toBool]
-  rw [succ_rc]
-  dsimp [const]
-  nth_rw 2 [constTrue_eq_toUnit_true]
-  --rw [← constTrue_toUnit]
-  simp only [← assoc]
-  congr
-  apply rc_uniq
-  · simp only [← assoc]
-    rw [zero_rc]
-    dsimp [Bool.toUnit]
-    simp only [IsBool.ff_elim]
-  · simp only [comp_id, ← assoc]
-    congr
-    rw [succ_rc]
-    have : rc ff constTrue ≫ 𝟙 (𝟮_ C) = rc ff constTrue := by simp
-    nth_rw 2 [← this]
-    congr
-    dsimp [constTrue]
-    symm
-    ext
-    sorry
-    sorry
-
-
-
-
-
-
-
-
-
+  sorry
 
 theorem fromBool_toBool [Bool C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
@@ -976,8 +905,6 @@ noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct 
         rw [← hr2]
         simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
 
-#check isNNOOnePlus.rc
-
 theorem inl_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
     {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
     inl ≫ isNNOOnePlus.rc b g = b := by
@@ -1014,7 +941,6 @@ theorem zero_succ_inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCop
   rw [succ_inr_isNNOOnePlus_rc]
   rw [← assoc]
   rw [IsNNO.zero_rc]
-
 
 /-- `N` is isomorphic to `1 + N`. -/
 noncomputable def NNOIsoOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
