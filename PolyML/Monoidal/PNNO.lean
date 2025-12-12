@@ -9,7 +9,6 @@ import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
 import PolyML.ForMathlib.Monoidal.AddMon_
 import PolyML.ForMathlib.Monoidal.Powers
-import PolyML.Monoidal.NNO
 import PolyML.Monoidal.ListArithmetic
 
 universe u v
@@ -30,84 +29,6 @@ class IsPNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N
   succ_prc {P B : C} {f : P ⟶ B} {g : B ⟶ B} : (succ ▷ P) ≫ prc f g = prc f g ≫ g
   prc_uniq {P B : C} {f : P ⟶ B} {g : B ⟶ B} (r : N ⊗ P ⟶ B)
     (h_zero : (zero ▷ P) ≫ r = (λ_ P).hom ≫ f) (h_succ: (succ ▷ P) ≫ r = r ≫ g) : r = prc f g
-
-/-- Every parameterized natural number object in a monoidal closed category is a natural number object. -/
-def IsPNNO.toIsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
-    [IsPNNO N zero succ] : IsNNO N zero succ where
-  rc := fun {B} f g => (ρ_ N).inv ≫ IsPNNO.prc zero succ f g
-  zero_rc := by
-    intros B f g
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    simp only [assoc]
-    rw [zero_prc]
-    rw [unitors_equal]
-    simp only [Iso.inv_hom_id_assoc]
-  succ_rc := by
-    intros B f g
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    simp only [assoc]
-    rw [succ_prc]
-  rc_uniq := by
-    intros B f g r h_zero h_succ
-    refine (Iso.eq_inv_comp (ρ_ N)).mpr ?_
-    apply prc_uniq
-    · rw [unitors_equal]
-      simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
-      exact h_zero
-    · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, Iso.cancel_iso_hom_left]
-      exact h_succ
-
-/- In monoidal closed categories, every natural number object is a parameterized natural number object. -/
-def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (N : C) (zero : 𝟙_ C ⟶ N)
-(succ : N ⟶ N)
-    (nno : IsNNO N zero succ) : IsPNNO N zero succ where
-  prc := fun {P B} f g => (β_ N P).hom ≫
-      (MonoidalClosed.uncurry <| nno.rc ((MonoidalClosed.curry (ρ_ P).hom) ≫ (ihom P).map f) ((ihom P).map g))
-  zero_prc := by
-    intros A B f g
-    simp only [BraidedCategory.braiding_naturality_left_assoc, braiding_tensorUnit_left,
-      Category.assoc, Iso.cancel_iso_hom_left]
-    rw [← MonoidalClosed.curry_natural_right]
-    rw [MonoidalClosed.uncurry_eq]
-    nth_rw 2 [← assoc]
-    rw [← whiskerLeft_comp A, IsNNO.zero_rc]
-    simp only [MonoidalClosed.whiskerLeft_curry_ihom_ev_app, Iso.inv_hom_id_assoc]
-  succ_prc := by
-    intros A B f g
-    simp only [BraidedCategory.braiding_naturality_left_assoc,
-      Category.assoc, Iso.cancel_iso_hom_left]
-    rw [← MonoidalClosed.curry_natural_right]
-    rw [MonoidalClosed.uncurry_eq]
-    nth_rw 1 [← assoc]
-    rw [← whiskerLeft_comp A, IsNNO.succ_rc]
-    simp only [whiskerLeft_comp, assoc, ihom.ev_naturality, Functor.comp_obj, curriedTensor_obj_obj,
-      Functor.id_obj]
-  prc_uniq := by
-    intros A B f g r hz hs
-    refine (Iso.inv_comp_eq (β_ N A)).mp ?_
-    rw [← MonoidalClosed.curry_eq_iff]
-    apply IsNNO.rc_uniq
-    · simp [MonoidalClosed.curry_eq]
-      refine _ ≫= ?_
-      rw [← Functor.map_comp]
-      rw [← Functor.map_comp]
-      rw [← Functor.map_comp]
-      simp only [← assoc]
-      rw [BraidedCategory.braiding_inv_naturality_right]
-      simp only [assoc]
-      rw [hz]
-      simp only [braiding_inv_tensorUnit_left, assoc, Iso.inv_hom_id_assoc, Functor.map_comp]
-    · simp [MonoidalClosed.curry_eq]
-      refine _ ≫= ?_
-      rw [← Functor.map_comp]
-      rw [← Functor.map_comp]
-      rw [← Functor.map_comp]
-      rw [← Functor.map_comp]
-      simp only [← assoc, BraidedCategory.braiding_inv_naturality_right]
-      simp only [assoc]
-      rw [hs]
 
 open IsPNNO
 
@@ -728,13 +649,6 @@ theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : 
 end const
 
 end PNNO
-
-@[simps]
-def toNNO [MonoidalCategory C] [PNNO C] : NNO C where
-  N := N
-  zero := zero
-  succ := succ
-  isNNO := IsPNNO.toIsNNO N zero succ
 
 end MonoidalCategory
 
