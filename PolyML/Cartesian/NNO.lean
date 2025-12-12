@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sina Hazratpour
 -/
 
-import PolyML.Monoidal.NNO
-import PolyML.ForMathlib.Monad.Distrib
+import PolyML.Monoidal.PNNO
+-- import PolyML.ForMathlib.Monad.Distrib
 import PolyML.ForMathlib.ConstantMorphism
 -- import PolyML.ForMathlib.Monoidal.CoCartesian.Basic
 
@@ -23,6 +23,8 @@ namespace CategoryTheory
 open Category Opposite MonoidalCategory Limits IsPNNO CartesianMonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
+
+namespace MonoidalCategory
 
 namespace PNNO
 
@@ -216,5 +218,7 @@ def BinaryCoproduct (X : C) (h : IsTerminal X): HasBinaryCoproduct X N where
     exact colimitCocone X h
 
 end PNNO
+
+end MonoidalCategory
 
 end CategoryTheory
