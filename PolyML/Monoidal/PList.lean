@@ -78,6 +78,22 @@ class IsPList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
 
 attribute [reassoc (attr := simp)] IsPList.nil_prc IsPList.cons_prc
 
+class IsList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
+  /-- The recursor morphism for the list object. -/
+  rc {B : C} (f : 𝟙_ C ⟶ B) (g : A ⊗ B ⟶ B) : L ⟶ B
+  /-- The nil case of the recursor. -/
+  nil_rc {B : C} {f : 𝟙_ C ⟶ B} {g : A ⊗ B ⟶ B} :
+    nil ≫ rc f g = f
+  /-- The cons case of the recursor. -/
+  cons_rc {B : C} {f : 𝟙_ C ⟶ B} {g : A ⊗ B ⟶ B} :
+    cons ≫ rc f g = (A ◁ rc f g) ≫ g
+  /-- The uniqueness of the recursor. -/
+  rc_uniq {B : C} {f : 𝟙_ C ⟶ B} {g : A ⊗ B ⟶ B} (r : L ⟶ B)
+    (h_nil : nil ≫ r = f)
+    (h_cons: cons ≫ r = A ◁ r ≫ g) : r = rc f g
+
+attribute [reassoc (attr := simp)] IsList.nil_rc IsList.cons_rc
+
 class PList (A : C) where
   /-- The underlying list object on `A`. -/
   L : C
@@ -106,34 +122,42 @@ theorem prc_nil_cons_id {A : C} [PList A] {P : C} :
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
-def map {A A' : C} [PList A] [PList A'] {P : C} (f : A ⟶ A') :
+def map' {A A' : C} [PList A] [PList A'] (P : C) (f : A ⟶ A') :
     PList.L A ⊗ P ⟶ PList.L A' ⊗ P :=
   prc ((λ_ P).inv ≫ nil ▷ P) (f ▷ (L A' ⊗ P) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P)
 
+/-- Covariant action of `PList` on morphisms of the first argument.
+A morphism `f : A ⟶ B` induces a morphism `PList.map f ▷ P : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
+def map {A A' : C} [PList A] [PList A'] (f : A ⟶ A') :
+    PList.L A ⟶ PList.L A' :=
+  (ρ_ _).inv ≫ map' (𝟙_ C) f ≫ (ρ_ _).hom
+
+theorem map'_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
+    map' P f = map f ▷ P := by
+  dsimp [map, map']
+  sorry
+
 @[reassoc (attr := simp)]
 theorem nil_map {A A' : C} [PList A] [PList A'] {P : C} (f : A ⟶ A') :
-    (nil ▷ P) ≫ map f = (nil ▷ P) := by
-  simp [map]
+    (nil ▷ P) ≫ (map f ▷ P) = (nil ▷ P) := by
+  rw [← map'_map]
+  simp only [map', whiskerRight_tensor, assoc, Iso.hom_inv_id_assoc, nil_prc]
 
 @[reassoc (attr := simp)]
 theorem cons_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
-    cons A ▷ P ≫ map f =
-    (α_ _ _ _).hom ≫ (f ⊗ₘ map f) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
+    cons A ▷ P ≫ (map f ▷ P) =
+    (α_ _ _ _).hom ≫ (f ⊗ₘ (map f ▷ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
   sorry
 
-theorem map_id {A : C} [PList A] {P : C} :
-    map (𝟙 A) = 𝟙 (PList.L A ⊗ P) := by
+theorem map_id {A : C} [PList A] :
+    map (𝟙 A) = 𝟙 (PList.L A) := by
   sorry
 
 @[reassoc (attr := simp)]
-theorem map_comp {A A' A'' : C} [PList A] [PList A'] [PList A'']
-    {P : C} (f : A ⟶ A') (g : A' ⟶ A'') :
-    map (P:= P) (f ≫ g) = map f ≫ map g := by
-  dsimp [map, prc]
-  rw [← IsPList.prc_uniq]
-  · rw [← assoc, nil_prc]
-    simp [nil_prc]
-  · sorry
+theorem map_comp {A A' A'' : C} [PList A] [PList A'] [PList A''] (f : A ⟶ A') (g : A' ⟶ A'') :
+    map (f ≫ g) = (map f ≫ map g) := by
+  dsimp [map, prc, map']
+  rw [← IsPList.prc_uniq] <;> sorry
 
 /-- The `foldr` morphism. In types, `[a, b, c].foldr g init  = g a (g b (g c init))`. -/
 def foldr {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
@@ -151,6 +175,13 @@ theorem foldr_cons {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B
     cons A ≫ foldr g init = (A ◁ foldr g init) ≫ g := by
   dsimp [foldr]
   sorry
+
+/-- The singleton list morphism. In types, `singleton a = [a]`. -/
+def singleton {A : C} [PList A] : A ⟶ L A :=
+  (ρ_ _).inv ≫ (A ◁ nil) ≫ cons A
+
+
+
 
 end PList
 
@@ -299,7 +330,7 @@ theorem ofPList.forget_freeActionFunctor_map {Q : C} (φ : P ⟶ Q) :
 
 @[simp]
 theorem ofPList.forgetMap_freeActionFrunctorTrianlge_app {A' : C} [PList A'] {f : A ⟶ A'}  :
-    (Act.forget.map <| freeActionFunctorMapTriangle f |>.app P) = map f := by
+    (Act.forget.map <| freeActionFunctorMapTriangle f |>.app P) = map f ▷ P := by
   dsimp [Adjunction.homEquiv, freeActionFunctorMapTriangle]
   simp only [Act.mapForgetTwoSquare,Act.mapForgetIsoSquare,Act.mapForgetIso]
   simp only [Functor.map_id, comp_id, id_comp]
