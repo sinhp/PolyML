@@ -121,6 +121,10 @@ theorem cons_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
     (α_ _ _ _).hom ≫ (f ⊗ₘ map f) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
   sorry
 
+theorem map_id {A : C} [PList A] {P : C} :
+    map (𝟙 A) = 𝟙 (PList.L A ⊗ P) := by
+  sorry
+
 @[reassoc (attr := simp)]
 theorem map_comp {A A' A'' : C} [PList A] [PList A'] [PList A'']
     {P : C} (f : A ⟶ A') (g : A' ⟶ A'') :
@@ -130,6 +134,23 @@ theorem map_comp {A A' A'' : C} [PList A] [PList A'] [PList A'']
   · rw [← assoc, nil_prc]
     simp [nil_prc]
   · sorry
+
+/-- The `foldr` morphism. In types, `[a, b, c].foldr g init  = g a (g b (g c init))`. -/
+def foldr {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
+    PList.L A ⟶ B :=
+  (ρ_ _).inv ≫ prc init g
+
+@[reassoc (attr := simp)]
+theorem foldr_nil {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
+    nil ≫ foldr g init = init := by
+  dsimp [foldr]
+  sorry
+
+@[simp]
+theorem foldr_cons {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
+    cons A ≫ foldr g init = (A ◁ foldr g init) ≫ g := by
+  dsimp [foldr]
+  sorry
 
 end PList
 
@@ -261,8 +282,7 @@ theorem withRecursionOfPList.freeActionFunctor_obj_str :
 
 @[simp]
 theorem ofPList.forgetMap_freeForgetAdj_homEquiv {B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
-    (Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨B, g⟩ |>.invFun f) =
-    prc f g := by
+    (Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨B, g⟩ |>.invFun f) = prc f g := by
   sorry
 
 @[simp]
@@ -276,6 +296,16 @@ theorem ofPList.forget_freeActionFunctor_map {Q : C} (φ : P ⟶ Q) :
     (Act.forget.map <| freeActionFunctor A |>.map φ) =
       PList.L A ◁ φ := by
   rfl
+
+@[simp]
+theorem ofPList.forgetMap_freeActionFrunctorTrianlge_app {A' : C} [PList A'] {f : A ⟶ A'}  :
+    (Act.forget.map <| freeActionFunctorMapTriangle f |>.app P) = map f := by
+  dsimp [Adjunction.homEquiv, freeActionFunctorMapTriangle]
+  simp only [Act.mapForgetTwoSquare,Act.mapForgetIsoSquare,Act.mapForgetIso]
+  simp only [Functor.map_id, comp_id, id_comp]
+  dsimp [Act.forget, forget_map, Act.map]
+  simp only [Functor.map_id, id_f, id_comp]
+  sorry
 
 end
 
