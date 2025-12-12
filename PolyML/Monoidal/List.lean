@@ -79,9 +79,48 @@ class PList (A : C) where
 
 attribute [instance] PList.isPList
 
-abbrev PList.prc {A : C} [PList A] {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
+namespace PList
+
+open IsPList
+
+abbrev prc {A : C} [PList A] {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
     PList.L A ⊗ P ⟶ B :=
   IsPList.prc PList.nil (PList.cons A) f g
+
+/-- Covariant action of `PList` on morphisms of the first argument.
+A morphism `f : A ⟶ B` induces a morphism `PList.map f : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
+def map {A A' : C} [PList A] [PList A'] {P : C} (f : A ⟶ A') :
+    PList.L A ⊗ P ⟶ PList.L A' ⊗ P :=
+  prc ((λ_ P).inv ≫ nil ▷ P) (f ▷ (L A' ⊗ P) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P)
+
+@[reassoc (attr := simp)]
+theorem nil_map {A A' : C} [PList A] [PList A'] {P : C} (f : A ⟶ A') :
+    (nil ▷ P) ≫ map f = (nil ▷ P) := by
+  simp [map]
+
+@[reassoc (attr := simp)]
+theorem cons_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
+    cons A ▷ P ≫ map f =
+    (α_ _ _ _).hom ≫ (A ◁ map f) ≫ (f ▷ (L A' ⊗ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
+  sorry
+
+@[reassoc (attr := simp)]
+theorem cons_map' {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
+    cons A ▷ P ≫ map f =
+    (α_ _ _ _).hom ≫ (f ⊗ₘ map f) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
+  sorry
+
+@[reassoc (attr := simp)]
+theorem map_comp {A A' A'' : C} [PList A] [PList A'] [PList A'']
+    {P : C} (f : A ⟶ A') (g : A' ⟶ A'') :
+    map (P:= P) (f ≫ g) = map f ≫ map g := by
+  dsimp [map, prc]
+  rw [← IsPList.prc_uniq]
+  · rw [← assoc, nil_prc]
+    simp [nil_prc]
+  · sorry
+
+end PList
 
 /-
 For an object `A` of a finite product product category `C`, an action of `A` on an object `S` is a
