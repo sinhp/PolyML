@@ -10,6 +10,7 @@ import PolyML.ForMathlib.Bool
 import PolyML.ForMathlib.Monoidal.AddMon_
 import PolyML.ForMathlib.Monoidal.Powers
 import PolyML.Monoidal.ListArithmetic
+import PolyML.Monoidal.PList
 
 universe u v
 
@@ -525,6 +526,22 @@ example : (1 : 𝟙_ C ⟶ N) + (1 : 𝟙_ C ⟶ N) = (2 : 𝟙_ C ⟶ N) := by
 end PNNO
 
 open PNNO
+
+
+instance PNNO.ofPListUnit [MonoidalCategory C] [PList (𝟙_ C)] : PNNO C where
+  N := PList.L (𝟙_ C)
+  zero := PList.nil
+  succ := (λ_ _).inv ≫ PList.cons (𝟙_ C)
+  isPNNO := {
+    prc {P B} f g := PList.prc f ((λ_ _).hom ≫ g)
+    zero_prc {P B f g} := by simp
+    succ_prc {P B f g} := by simp
+    prc_uniq {P B f g r h_nil h_cons} := by
+      apply IsPList.prc_uniq r h_nil
+      rw [comp_whiskerRight, assoc] at h_cons
+      rw [leftUnitor_inv_whiskerRight, assoc, Iso.inv_comp_eq] at h_cons
+      simpa using h_cons
+  }
 
 /-- Every list-arithmetic category has a natural number object. -/
 @[simps]
