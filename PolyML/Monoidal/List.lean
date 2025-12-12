@@ -140,13 +140,7 @@ def mapForgetTwoSquare {A B : C} (f : A ⟶ B) :
 
 end Act
 
-open IsPList
-
-/-- An object `A` in a category `C` is said to have **recursion** if there is a functor from `C` to
-the category of left `A`-actions which is left adjoint to the forgetful functor. -/
-class WithRecursion (A : C) where
-  freeActionFunctor (A) : C ⥤ Act A
-  freeForgetAdj (A) : freeActionFunctor ⊣ Act.forget
+open IsPList PList
 
 /-- The left `A`-action on `PList A ⊗ P`. -/
 @[simps! +simpRhs a str]
@@ -154,8 +148,26 @@ def PList.act (A : C) [PList A] (P : C) : Act A where
   a := PList.L A ⊗ P
   str := (α_ _ _ _).inv ≫ PList.cons A ▷ P
 
+/-- An object `A` in a category `C` is said to have **recursion** if there is a functor from `C` to
+the category of left `A`-actions which is left adjoint to the forgetful functor. -/
+class WithRecursion (A : C) where
+  freeActionFunctor (A) : C ⥤ Act A
+  freeForgetAdj (A) : freeActionFunctor ⊣ Act.forget
+
+namespace WithRecursion
+
+/-- The mate of natural transformation `forget ⟶ map f ⋙ forget`. -/
+def freeActionFunctorMapTriangle {A B : C} [WithRecursion A]
+    [WithRecursion B] (f : A ⟶ B) :
+    freeActionFunctor A ⟶ freeActionFunctor B ⋙ Act.map f :=
+  mateEquiv (freeForgetAdj B) (freeForgetAdj A) |>.invFun <| Act.mapForgetTwoSquare f
+
+theorem freeActionFunctorMapTriangle_id {A : C} [WithRecursion A] :
+    IsIso <| freeActionFunctorMapTriangle (𝟙 A) := by
+  sorry
+
 /-- A list object provides a left adjoint to the forgetful functor from `Act A` to `C`. -/
-instance withRecursionOfPList {A : C} [PList A] : WithRecursion A where
+instance ofPList (A : C) [PList A] : WithRecursion A where
   freeActionFunctor := {
     obj P := PList.act A P
     map {P Q} φ := {
@@ -182,15 +194,13 @@ open PList
 
 variable {A : C} [PList A] {P : C}
 
-open WithRecursion
-
 @[simp]
-theorem withRecursionOfPList.freeActionFunctor_forget_obj :
+theorem ofPList.freeActionFunctor_forget_obj :
     (freeActionFunctor A ⋙ Act.forget).obj P = PList.L A ⊗ P :=
   rfl
 
 @[simp]
-theorem withRecursionOfPList.freeForgetAdj_unit_app :
+theorem ofPList.freeForgetAdj_unit_app :
     (freeForgetAdj A |>.unit).app P = (λ_ _).inv ≫ (PList.nil) ▷ P :=
   rfl
 
@@ -200,18 +210,26 @@ theorem withRecursionOfPList.freeActionFunctor_obj_str :
   rfl
 
 @[simp]
-theorem withRecursionOfPList.forgetMap_freeForgetAdj_homEquiv {B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
+theorem ofPList.forgetMap_freeForgetAdj_homEquiv {B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
     (Act.forget.map <| freeForgetAdj A |>.homEquiv P ⟨B, g⟩ |>.invFun f) =
     prc f g := by
   sorry
 
 @[simp]
-theorem withRecursionOfPList.freeActionFunctor_map {Q : C} (φ : P ⟶ Q) :
+theorem ofPList.freeActionFunctor_map_forget {Q : C} (φ : P ⟶ Q) :
     (freeActionFunctor A |>.map φ).f =
       prc (φ ≫ (λ_ Q).inv ≫ PList.nil ▷ Q) ((α_ _ _ _).inv ≫ PList.cons A ▷ Q) := by
   sorry
 
+@[simp]
+theorem ofPList.forget_freeActionFunctor_map {Q : C} (φ : P ⟶ Q) :
+    (Act.forget.map <| freeActionFunctor A |>.map φ) =
+      PList.L A ◁ φ := by
+  rfl
+
 end
+
+end WithRecursion
 
 namespace PList
 
@@ -221,7 +239,6 @@ variable {A : C} [PList A] {P : C}
 
 theorem prc_nil_cons_id : prc ((λ_ P).inv ≫ PList.nil ▷ P) ((α_ _ _ _).inv ≫ PList.cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
   sorry
-
 
 end PList
 
