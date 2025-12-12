@@ -28,7 +28,8 @@ class IsNNO [MonoidalCategory C] (N : C) (zero : 𝟙_ C ⟶ N) (succ : N ⟶ N)
     (h_zero : zero ≫ r = f) (h_succ : succ ≫ r = r ≫ g) : r = rc f g
 
 /-- Any two natural number objects in a monoidal category are isomorphic. -/
-def IsNNO.iso [MonoidalCategory C] (N N' : C) {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
+def IsNNO.iso [MonoidalCategory C] (N N' : C) {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N}
+    {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
     [IsNNO N zero succ] [IsNNO N' zero' succ'] : N ≅ N' where
   hom := rc zero succ zero' succ'
   inv := rc zero' succ' zero succ
@@ -141,6 +142,10 @@ def PNNO.toNNO [MonoidalCategory C] [PNNO C] : NNO C where
   zero := zero
   succ := succ
   isNNO := IsPNNO.toIsNNO N zero succ
+
+/-- Any parameterized natural number object is isomorphic to any natural number object. -/
+def PNNO.isoNNO [MonoidalCategory C] [PNNO C] [NNO C]: PNNO.N (C:= C) ≅ NNO.N  :=
+  @IsNNO.iso _ _ _ PNNO.N NNO.N _ _ _ _  (IsPNNO.toIsNNO N zero succ) (NNO.isNNO)
 
 namespace NNO
 
