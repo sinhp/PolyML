@@ -628,7 +628,7 @@ simp only [id_whiskerLeft, assoc, Iso.inv_hom_id, comp_id]
 have := triangle (C:=C) (X:=𝟙_ C) (Y:=𝟙_ C)
 simp only [id_whiskerLeft, Iso.hom_inv_id, comp_id, whiskerRight_id] at this
 rw [tensorHom_def']
-simp only [whiskerRight_id, assoc]
+simp only [assoc]
 dsimp [add]
 unfold num
 split
@@ -636,28 +636,49 @@ split
   split
   · rename_i N k
     · simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
-      simp only [iter_prc]
-      simp only [← assoc]
-      rw [rightUnitor_inv_naturality]
-      rw [comp_whiskerRight]
-      simp only [assoc]
-      rw [zero_prc]
-      simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id_assoc]
+      -- simp only [iter_prc]
+      -- simp only [← assoc]
+      -- rw [rightUnitor_inv_naturality]
+      -- rw [comp_whiskerRight]
+      -- simp only [assoc]
+      -- rw [zero_prc]
+      -- simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id_assoc]
   · rename_i k l
     rw [comp_whiskerRight]
     simp only [assoc]
     rw [succ_iter]
     simp only [← assoc]
-    -- simp only [whiskerLeft_comp, assoc, iter_prc, Nat.zero_eq,
-    --   Nat.add_eq, _root_.zero_add]
-    -- simp only [← assoc]
-    -- rw [rightUnitor_inv_naturality]
-    -- simp only [assoc]
-    -- rw [comp_whiskerRight]
-    -- simp?
-
-
-
+    refine ?_ =≫ _
+    simp only [id_whiskerLeft, assoc, Iso.cancel_iso_hom_left]
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [assoc]
+    simp only [id_whiskerLeft, assoc]
+    have:
+    (λ_ (𝟙_ C)).inv ≫ (λ_ (𝟙_ C)).hom ≫ zero ≫
+        (λ_ PNNO.N).inv ≫ num C l ▷ PNNO.N ≫ iter succ
+    = (λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).hom ≫ (zero ≫
+        (λ_ PNNO.N).inv)) ≫ num C l ▷ PNNO.N≫ iter succ := by {simp only [assoc]}
+    rw [this];clear this
+    rw [← leftUnitor_naturality]
+    simp only [whiskerLeft_comp]
+    simp only [assoc]
+    have :(λ_ (𝟙_ C ⊗ PNNO.N)).hom ≫ num C l ▷ PNNO.N ≫ iter succ=
+    ((λ_ (𝟙_ C ⊗ PNNO.N)).hom ≫ num C l ▷ PNNO.N) ≫ iter succ := by simp
+    rw [this]; clear this
+    rw [← leftUnitor_naturality]
+    simp only [assoc]
+    have : (λ_ (𝟙_ C)).inv ≫
+    𝟙_ C ◁ zero ≫ 𝟙_ C ◁ (λ_ PNNO.N).inv ≫
+     𝟙_ C ◁ num C l ▷ PNNO.N ≫ (λ_ (PNNO.N ⊗ PNNO.N)).hom ≫ iter succ
+     = (λ_ (𝟙_ C)).inv ≫
+    (𝟙_ C ◁ zero ≫ 𝟙_ C ◁ (λ_ PNNO.N).inv ≫
+    𝟙_ C ◁ num C l ▷ PNNO.N) ≫ (λ_ (PNNO.N ⊗ PNNO.N)).hom ≫ iter succ := by simp
+    rw [this]
+    rw [← whiskerLeft_comp]
+    rw [← whiskerLeft_comp]
+    simp only [whiskerLeft_comp, id_whiskerLeft, Iso.hom_inv_id_assoc, Iso.inv_hom_id_assoc, assoc]
+    sorry
 · sorry
 
 theorem add_num_comm (m n : ℕ) :
@@ -885,7 +906,25 @@ theorem false_fromBool [Bool C] :
 
 theorem succ_toBool [Bool C] :
     succ ≫ toBool C = toUnit ≫ Bool.tt := by
-  sorry
+  dsimp [toBool]
+  rw [succ_rc]
+  nth_rw 2
+  [constTrue_eq_toUnit_true]
+  dsimp [toUnit]
+  dsimp [const]
+  simp only [← assoc]
+  congr
+  apply rc_uniq
+  · simp only [← assoc]
+    simp only [zero_rc]
+    dsimp [Bool.toUnit]
+    simp only [IsBool.ff_elim]
+  · simp only [comp_id]
+    simp only [← assoc]
+    rw [succ_rc]
+    simp only [assoc]
+    congr
+    exact constTrue_toUnit
 
 theorem fromBool_toBool [Bool C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
