@@ -565,7 +565,15 @@ instance addZeroClass [BraidedCategory C] : AddZeroClass (𝟙_ C ⟶ N) where
 instance addSemigroup [BraidedCategory C] : AddSemigroup (𝟙_ C ⟶ N) where
   add := Add.add
   add_assoc {a b c} := by
-    sorry
+    dsimp
+    simp only [Iso.cancel_iso_inv_left]
+    rw [tensorHom_def']
+    rw [tensorHom_def]
+    simp?
+
+
+
+
 
 @[simp]
 def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
