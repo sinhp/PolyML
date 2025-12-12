@@ -54,16 +54,24 @@ open Category Opposite Limits MonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
+-- open Endofunctor Algebra
+
+namespace MonoidalCategory
+
 open Endofunctor Algebra
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
 class IsPList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
+  /-- The recursor morphism for the parameterized list object. -/
   prc {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) : L ⊗ P ⟶ B
+  /-- The nil case of the recursor. -/
   nil_prc {P B : C} {f : P ⟶ B} {g : A ⊗ B ⟶ B} :
     (nil ▷ P) ≫ prc f g = (λ_ P).hom ≫ f
+  /-- The cons case of the recursor. -/
   cons_prc {P B : C} {f : P ⟶ B} {g : A ⊗ B ⟶ B} :
     (α_ _ _ _).inv ≫ (cons ▷ P) ≫ prc f g = (A ◁ prc f g) ≫ g
+  /-- The uniqueness of the recursor. -/
   prc_uniq {P B : C} {f : P ⟶ B} {g : A ⊗ B ⟶ B} (r : L ⊗ P ⟶ B)
     (h_nil : (nil ▷ P) ≫ r = (λ_ P).hom ≫ f)
     (h_cons: (α_ _ _ _).inv ≫ (cons ▷ P) ≫ r =  A ◁ r ≫ g) : r = prc f g
@@ -71,10 +79,13 @@ class IsPList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
 attribute [reassoc (attr := simp)] IsPList.nil_prc IsPList.cons_prc
 
 class PList (A : C) where
+  /-- The underlying list object on `A`. -/
   L : C
+  /-- The nil morphism for the list object `L A`. -/
   nil : 𝟙_ C ⟶ L
+  /-- The cons morphism for the list object `L A`. -/
   cons (A) : A ⊗ L ⟶ L
-  /-- The parameterized list object satisfies the properties of a left parameterized natural number object. -/
+  /-- The universal property of the parameterized list object. -/
   [isPList : IsPList A L nil cons]
 
 attribute [instance] PList.isPList
@@ -83,9 +94,15 @@ namespace PList
 
 open IsPList
 
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+
 abbrev prc {A : C} [PList A] {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
     PList.L A ⊗ P ⟶ B :=
   IsPList.prc PList.nil (PList.cons A) f g
+
+theorem prc_nil_cons_id {A : C} [PList A] {P : C} :
+    prc ((λ_ P).inv ≫ PList.nil ▷ P) ((α_ _ _ _).inv ≫ PList.cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
+  sorry
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
@@ -100,12 +117,6 @@ theorem nil_map {A A' : C} [PList A] [PList A'] {P : C} (f : A ⟶ A') :
 
 @[reassoc (attr := simp)]
 theorem cons_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
-    cons A ▷ P ≫ map f =
-    (α_ _ _ _).hom ≫ (A ◁ map f) ≫ (f ▷ (L A' ⊗ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
-  sorry
-
-@[reassoc (attr := simp)]
-theorem cons_map' {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
     cons A ▷ P ≫ map f =
     (α_ _ _ _).hom ≫ (f ⊗ₘ map f) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
   sorry
@@ -270,15 +281,18 @@ end
 
 end WithRecursion
 
-namespace PList
+end MonoidalCategory
 
-open IsPList
+namespace SemiCartesianMonoidalCategory
 
-variable {A : C} [PList A] {P : C}
+open PList
 
-theorem prc_nil_cons_id : prc ((λ_ P).inv ≫ PList.nil ▷ P) ((α_ _ _ _).inv ≫ PList.cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
+variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] {A : C} [PList A] {P : C}
+
+theorem prc_id_snd_snd : prc (𝟙 P) (snd A P) = snd (L A) P := by
   sorry
 
-end PList
+end SemiCartesianMonoidalCategory
+
 
 end CategoryTheory
