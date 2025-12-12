@@ -164,20 +164,81 @@ def boolOfBinaryCoproduct : Bool C where
 
 attribute [local instance] boolOfBinaryCoproduct
 
--- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
-def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := sorry
+macro_rules
+  |`(coprod.desc₄' $f1 $f2 $f3 $f4) => `(coprod.desc (coprod.desc $f1 $f2) (coprod.desc $f3 $f4))
 
-theorem false_and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] :
+/-- The boolean "and" operation in a monoidal distributive category. -/
+def and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C  :=
+  (leftDistrib (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
+  coprod.map
+    (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv
+    (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
+  coprod.desc₄'
+    ((λ_ _).hom ≫ Bool.ff)
+    ((λ_ _).hom ≫ Bool.ff)
+    ((λ_ _).hom ≫ Bool.ff)
+    ((λ_ _).hom ≫ Bool.tt)
+-- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
+--def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := sorry
+#check coprod_inl_leftDistrib_hom
+#check whiskerRight_coprod_inr_rightDistrib_inv
+#check whiskerLeft_coprod_inl_leftDistrib_inv
+theorem false_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) tt tt) := by
   refine (Iso.inv_comp_eq (λ_ (𝟮_ C))).mp ?_
   apply IsBool.elim_uniq
-  · sorry
+  · simp only [boolOfBinaryCoproduct_obj, boolOfBinaryCoproduct_ff,
+      boolOfBinaryCoproduct_tt]
+
+    dsimp [and]
+    simp only [← assoc]
+    --nth_rw 3 [← assoc]
+
+    rw [leftUnitor_inv_naturality]
+    simp only [assoc]
+    refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mpr ?_
+    simp only [id_whiskerLeft, coprod.desc_comp_inl_comp_inr, coprod.map_desc, assoc,
+      Iso.cancel_iso_hom_left]
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [assoc]
+    rw [← leftUnitor_naturality]
+    refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mpr ?_
+    rw [← leftUnitor_naturality]
+    sorry
+
+
+
+
+
+
+
+
+    --rw [← coprod_inr_leftDistrib_hom]
+    --rw [← whiskerLeft_coprod_inl_leftDistrib_inv]
+    --simp only [coprod.desc_comp_inl_comp_inr, coprod.map_desc, assoc]
+    --simp only [coprod.desc_comp_inl_comp_inr, coprod.map_desc]
+
+
+
   · sorry
 
 -- theorem false_and' [SemiCartesianMonoidalCategory C] :
 --     (false ▷ (𝟮 : C)) ≫ and = SemiCartesianMonoidalCategory.constMorphism _ false := sorry
 
-theorem true_and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := sorry
+theorem true_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+  (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := by {
+    simp only [boolOfBinaryCoproduct_obj, boolOfBinaryCoproduct_tt]
+    dsimp [and]
+    simp only [coprod.desc_comp_inl_comp_inr, coprod.map_desc]
+    sorry
+
+
+
+
+    --rw [← coprod_inl_leftDistrib_hom]
+
+  }
 
 
 

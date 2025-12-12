@@ -619,11 +619,50 @@ theorem num_one : num C (1 : ℕ) = one := by
 
 @[simp]
 theorem num_add (m n : ℕ) :
-    num C m + num C n = num C (m + n) := by sorry
+    num C m + num C n = num C (m + n) := by
+dsimp [num]
+nth_rw 1 [← unitors_inv_equal]
+refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mpr ?_
+rw [← leftUnitor_naturality]
+simp only [id_whiskerLeft, assoc, Iso.inv_hom_id, comp_id]
+have := triangle (C:=C) (X:=𝟙_ C) (Y:=𝟙_ C)
+simp only [id_whiskerLeft, Iso.hom_inv_id, comp_id, whiskerRight_id] at this
+rw [tensorHom_def']
+simp only [whiskerRight_id, assoc]
+dsimp [add]
+unfold num
+split
+· rename_i N m
+  split
+  · rename_i N k
+    · simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
+      simp only [iter_prc]
+      simp only [← assoc]
+      rw [rightUnitor_inv_naturality]
+      rw [comp_whiskerRight]
+      simp only [assoc]
+      rw [zero_prc]
+      simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id_assoc]
+  · rename_i k l
+    rw [comp_whiskerRight]
+    simp only [assoc]
+    rw [succ_iter]
+    simp only [← assoc]
+    -- simp only [whiskerLeft_comp, assoc, iter_prc, Nat.zero_eq,
+    --   Nat.add_eq, _root_.zero_add]
+    -- simp only [← assoc]
+    -- rw [rightUnitor_inv_naturality]
+    -- simp only [assoc]
+    -- rw [comp_whiskerRight]
+    -- simp?
+
+
+
+· sorry
 
 theorem add_num_comm (m n : ℕ) :
-    num C m + num C m = num C n + num C m := by
-  sorry
+    num C m + num C n = num C n + num C m := by
+  rw [num_add, num_add, Nat.add_comm]
 
 end Num
 
