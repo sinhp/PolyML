@@ -110,78 +110,148 @@ namespace PList
 
 open IsPList
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C] {A : C} [PList A]
 
-abbrev prc {A : C} [PList A] {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
+abbrev prc {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
     PList.L A ⊗ P ⟶ B :=
   IsPList.prc PList.nil (PList.cons A) f g
 
-theorem prc_nil_cons_id {A : C} [PList A] {P : C} :
+theorem prc_nil_cons_id {P : C} :
     prc ((λ_ P).inv ≫ PList.nil ▷ P) ((α_ _ _ _).inv ≫ PList.cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
   sorry
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
-def map' {A A' : C} [PList A] [PList A'] (P : C) (f : A ⟶ A') :
+def map' {A' : C} [PList A'] (P : C) (f : A ⟶ A') :
     PList.L A ⊗ P ⟶ PList.L A' ⊗ P :=
   prc ((λ_ P).inv ≫ nil ▷ P) (f ▷ (L A' ⊗ P) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P)
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f ▷ P : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
-def map {A A' : C} [PList A] [PList A'] (f : A ⟶ A') :
+def map {A' : C} [PList A'] (f : A ⟶ A') :
     PList.L A ⟶ PList.L A' :=
-  (ρ_ _).inv ≫ map' (𝟙_ C) f ≫ (ρ_ _).hom
+  (ρ_ _).inv ≫ prc (nil) (f ▷ (L A') ≫ cons A')
 
-theorem map'_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
+theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
+    map f = (ρ_ _).inv ≫ map' (𝟙_ C) f ≫ (ρ_ _).hom := by
+  sorry
+
+theorem map'_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     map' P f = map f ▷ P := by
   dsimp [map, map']
   sorry
 
 @[reassoc (attr := simp)]
-theorem nil_map {A A' : C} [PList A] [PList A'] {P : C} (f : A ⟶ A') :
+theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
     (nil ▷ P) ≫ (map f ▷ P) = (nil ▷ P) := by
   rw [← map'_map]
   simp only [map', whiskerRight_tensor, assoc, Iso.hom_inv_id_assoc, nil_prc]
 
 @[reassoc (attr := simp)]
-theorem cons_map {A A' : C} [PList A] [PList A'] {P : C} {f : A ⟶ A'} :
-    cons A ▷ P ≫ (map f ▷ P) =
-    (α_ _ _ _).hom ≫ (f ⊗ₘ (map f ▷ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
+theorem cons_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
+  cons A ▷ P ≫ (map f ▷ P) =
+  (α_ _ _ _).hom ≫ (f ⊗ₘ (map f ▷ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
   sorry
 
-theorem map_id {A : C} [PList A] :
-    map (𝟙 A) = 𝟙 (PList.L A) := by
+theorem map_id : map (𝟙 A) = 𝟙 (PList.L A) := by
   sorry
 
 @[reassoc (attr := simp)]
-theorem map_comp {A A' A'' : C} [PList A] [PList A'] [PList A''] (f : A ⟶ A') (g : A' ⟶ A'') :
-    map (f ≫ g) = (map f ≫ map g) := by
+theorem map_comp {A' A'' : C} [PList A'] [PList A''] (f : A ⟶ A') (g : A' ⟶ A'') :
+  map (f ≫ g) = (map f ≫ map g) := by
   dsimp [map, prc, map']
   rw [← IsPList.prc_uniq] <;> sorry
 
 /-- The `foldr` morphism. In types, `[a, b, c].foldr g init  = g a (g b (g c init))`. -/
-def foldr {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
-    PList.L A ⟶ B :=
-  (ρ_ _).inv ≫ prc init g
+def foldr {B : C} (g : A ⊗ B ⟶ B) : L A ⊗ B ⟶ B := prc (𝟙 B) g
 
 @[reassoc (attr := simp)]
-theorem foldr_nil {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
-    nil ≫ foldr g init = init := by
+theorem foldr_nil {B : C} (g : A ⊗ B ⟶ B) :
+  nil ▷ B ≫ foldr g = (λ_ B).hom := by
   dsimp [foldr]
   sorry
 
 @[simp]
-theorem foldr_cons {A B : C} [PList A] (g : A ⊗ B ⟶ B) (init : 𝟙_ C ⟶ B) :
-    cons A ≫ foldr g init = (A ◁ foldr g init) ≫ g := by
+theorem foldr_cons {B : C} (g : A ⊗ B ⟶ B) :
+  cons A ▷ B ≫ foldr g = (α_ _ _ _).hom ≫ (A ◁ foldr g) ≫ g := by
   dsimp [foldr]
   sorry
 
 /-- The singleton list morphism. In types, `singleton a = [a]`. -/
-def singleton {A : C} [PList A] : A ⟶ L A :=
+def singleton : A ⟶ L A :=
   (ρ_ _).inv ≫ (A ◁ nil) ≫ cons A
 
+/-- Appends two lists. -/
+def append : L A ⊗ L A ⟶ L A := foldr (cons A)
+
+theorem append_prc : append = prc (𝟙 _) (cons A) := by
+  simp only [append, foldr]
 
 
+@[reassoc (attr := simp)]
+theorem nil_append : nil ▷ (L A) ≫ append = (λ_ (L A)).hom := by
+  simp [append]
+
+--xs ++ [] = xs
+theorem append_nil : (L A) ◁ nil ≫ append = (ρ_ (L A)).hom := by
+  sorry
+
+-- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
+theorem append_assoc :
+    append ▷ (L A) ≫ append = (α_ _ _ _).hom ≫ ((L A) ◁ append) ≫ append := by
+  sorry
+
+-- map f (xs ++ ys) = map f xs ++ map f ys
+theorem append_map {A' : C} [PList A'] {f : A ⟶ A'} :
+    append ≫ map f = ((map f) ⊗ₘ (map f)) ≫ append := by
+  sorry
+
+-- [x] ++ xs = x :: xs
+@[reassoc (attr := simp)]
+theorem singleton_append : (singleton ▷ L A) ≫ append = cons A := by
+  dsimp [append, singleton]
+  simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc, foldr]
+  rw [cons_prc]
+  sorry
+
+def snoc {A : C} [PList A] : L A ⊗ A ⟶ L A := (L A ◁ singleton) ≫ append
+
+theorem braiding_list_unit_hom [BraidedCategory C] [PList (𝟙_ C)] {P : C} :
+    (β_ (L (𝟙_ C)) P).hom = prc ((ρ_ P).inv ≫ P ◁ nil) (λ_ _).hom := by
+  sorry
+
+/-- Reverses a list, i.e. the list with the elements in reverse order. -/
+def rev [BraidedCategory C] : L A ⟶ L A :=
+  (ρ_ _).inv ≫ prc nil ((singleton ▷ L A) ≫ (β_ _ _).hom ≫ append)
+
+/- rev_nil [] = [] -/
+theorem nil_rev [BraidedCategory C] {A : C} [PList A] : nil ≫ rev = nil (A := A) := by
+  dsimp [rev, nil, prc]
+  sorry
+
+/- rev [x] = [x] -/
+theorem singleton_rev_eq_singleton [BraidedCategory C] {A : C} [PList A] : singleton ≫ rev (A := A) = singleton := by
+  simp only [rev, singleton]
+  sorry
+
+/- rev (xs ++ ys) = rev ys ++ rev xs -/
+theorem rev_append [BraidedCategory C] {A : C} [PList A] :
+    append ≫ rev (A:= A) = (rev ⊗ₘ rev) ≫ append := by
+  sorry
+
+/- rev (rev xs ++ [x]) = [x] ++ xs -/
+theorem singleton_braiding_append_rev_eq_singleton_append [BraidedCategory C] {A : C} [PList A] :
+    ((singleton ▷ L A) ≫ (β_ _ _).hom ≫ append ≫ rev) =
+    (singleton ▷ L A) ≫ append  := by
+  sorry
+
+/-- rev is an involution, i.e. `rev ≫ rev = 𝟙`. -/
+theorem rev_rev [BraidedCategory C] {A : C} [PList A] : rev ≫ rev = 𝟙 (L A) :=
+  sorry
+
+/-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
+def flatten {A : C} [PList A] [PList (L A)] : L (L A) ⟶ L A :=
+  (ρ_ _).inv ≫ prc nil append
 
 end PList
 
@@ -354,6 +424,29 @@ theorem prc_id_snd_snd : prc (𝟙 P) (snd A P) = snd (L A) P := by
   sorry
 
 end SemiCartesianMonoidalCategory
+
+abbrev WithPList (C : Type u) [Category.{v} C] [MonoidalCategory C] := Π (A : C), PList A
+
+@[simps!]
+instance : WithPList (Type u) := fun A => {
+  L := List A
+  nil := fun _ => []
+  cons := fun x => List.cons x.1 x.2
+  isPList := {
+    prc {P B} f g := fun x => List.foldr (g.curry) (f x.2) x.1
+    nil_prc := by aesop
+    cons_prc := by aesop
+    prc_uniq {P B} f g r h_nil h_cons := by
+      ext ⟨l, p⟩
+      cases l with
+      | nil =>
+        simp
+        symm
+        simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
+      | cons head tail =>
+        sorry
+  }
+}
 
 
 end CategoryTheory
