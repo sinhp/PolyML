@@ -9,8 +9,6 @@ import Mathlib.Tactic.CategoryTheory.Coherence
 import PolyML.ForMathlib.Bool
 import PolyML.ForMathlib.Monoidal.AddMon_
 import PolyML.ForMathlib.Monoidal.Powers
-import PolyML.Monoidal.ListArithmetic
-import PolyML.Monoidal.PList
 
 universe u v
 
@@ -457,7 +455,9 @@ namespace GlobalElement
 
 @[simps!]
 instance add : Add (𝟙_ C ⟶ N) where
-  add := fun m n => (ρ_ _).inv ≫ (m ⊗ₘ n) ≫ PNNO.add
+  add := fun m n => (λ_ _).inv ≫ (m ⊗ₘ n) ≫ PNNO.add
+
+instance : Add (𝟙_ C ⟶ N) := by infer_instance
 
 @[simp]
 instance addZeroClass : AddZeroClass (𝟙_ C ⟶ N) where
@@ -486,12 +486,10 @@ instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
 instance addCommMonoid : AddCommMonoid (𝟙_ C ⟶ N) where
   add_comm := sorry
 
-end GlobalElement
-
 variable (C) in
-/-- The numerals as morphisms from the unit object to the NNO. -/
+/-- The numerals as morphisms from a comonoid object to the NNO. -/
 def num [MonoidalCategory C] [PNNO C] : ℕ → (𝟙_ C ⟶ N)
-  | Nat.zero => zero
+  | Nat.zero => addMonoid.zero
   | Nat.succ m => num m ≫ succ
 
 section Num
@@ -520,6 +518,8 @@ theorem add_num_comm (m n : ℕ) :
 
 end Num
 
+
+
 @[simps]
 instance ofNat {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
   ofNat := num C n
@@ -534,152 +534,26 @@ instance ofNat {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
 example : (1 : 𝟙_ C ⟶ N) + (1 : 𝟙_ C ⟶ N) = (2 : 𝟙_ C ⟶ N) := by
   dsimp [num]
   simp [add]
-  simp [iter]
   sorry
+
+end GlobalElement
 
 end PNNO
 
-open PNNO
-
-
-instance PNNO.ofPListUnit [MonoidalCategory C] [PList (𝟙_ C)] : PNNO C where
-  N := PList.L (𝟙_ C)
-  zero := PList.nil
-  succ := (λ_ _).inv ≫ PList.cons (𝟙_ C)
-  isPNNO := {
-    prc {P B} f g := PList.prc f ((λ_ _).hom ≫ g)
-    zero_prc {P B f g} := by simp
-    succ_prc {P B f g} := by simp
-    prc_uniq {P B f g r h_nil h_cons} := by
-      apply IsPList.prc_uniq r h_nil
-      rw [comp_whiskerRight, assoc] at h_cons
-      rw [leftUnitor_inv_whiskerRight, assoc, Iso.inv_comp_eq] at h_cons
-      simpa using h_cons
-  }
-
-/-- Every list-arithmetic category has a natural number object. -/
-@[simps]
-instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : PNNO C where
-  N := list (𝟙_ C)
-  zero := list.nil
-  succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
-  isPNNO := {
-    prc {P B} e a := list.prc e ((λ_ _).hom ≫ a)
-    zero_prc {A B f g} := by rw [list.nil_prc]
-    succ_prc {A B f g} := by
-      rw [comp_whiskerRight, assoc]
-      refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
-      rw [list.cons_prc, ← assoc, ← assoc, ← assoc]
-      refine ?_ =≫ g
-      simp only [id_whiskerLeft, assoc,
-        Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
-        IsIso.inv_comp, IsIso.Iso.inv_inv]
-    prc_uniq {A B f g r hnil hcons} := by
-     apply list.prc_uniq r hnil
-     simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
-     refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
-     simp_all only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
-     rw [← assoc]
-     refine (Iso.inv_comp_eq (λ_ (list (𝟙_ C) ⊗ A))).mp ?_
-     simpa only [assoc]
-  }
-
-/-- In a list-arithmetic category, the natural number object is isomorphic to the list object
-on the unit. -/
-def listUnitIsoNNO [MonoidalCategory C] [ListArithmetic C] : list (𝟙_ C) ≅ N := Iso.refl _
-
-namespace list
-
-open Limits
-
-variable {C} [SemiCartesianMonoidalCategory C] [ListArithmetic C]
-
-/-- The length of a list. -/
-def len {A : C} : list A ⟶ N :=
-  list.map <| SemiCartesianMonoidalCategory.toUnit A
-
-section length
-
-open SemiCartesianMonoidalCategory IsPNNO PNNO
-
-variable {A : C}
-
-theorem len_eq_rc_zero_snd_succ {A : C} :
-    list.len (A:= A) = list.rc zero (snd A N ≫ succ) := by
-  dsimp [list.rc]
-  apply plist.rc_uniq
-  · dsimp [list.nil, len, list.map, list.map]
-    simp only [plist.nil_map]
-  . dsimp [len, list.map, list.cons]
-    simp only [plist.cons_map]
-    refine _ ≫= ?_
-    dsimp [snd,list]
-    sorry
-    --simp only [assoc, Iso.hom_inv_id_assoc]
-
-theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
-    A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
-  dsimp [list.len, list.cons, list.map]
-  rw [plist.cons_map]
-  rfl
-
-@[reassoc (attr := simp)]
-theorem nil_len_zero : list.nil (A:= A) ≫ list.len = zero := by
-  simp [len]
-  rfl
-
--- len (a :: xs) = succ (len xs)
-theorem cons_len_succ :
-    list.cons ≫ list.len = (toUnit A ⊗ₘ list.len) ≫ (λ_ N).hom ≫ succ := by
-  dsimp [list.len]
-  rw [list.cons_map]
-  rw [← Category.assoc]
-  rw [tensorHom_def']
-  congr 1
-  simp_all only [Iso.hom_inv_id_assoc]
-
-theorem append_len_add : list.append (A:= A) ≫ list.len = (list.len ⊗ₘ list.len) ≫ add := by
-  sorry
-
-set_option diagnostics true in
--- len ([x]) = 1
-theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit A ≫ one := by
-  sorry
-
-attribute [local instance] CategoryTheory.AddMonObj.toMonObj
-
-/-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
-instance isMonHomLen [BraidedCategory C] : IsMonHom (list.len (A:= A)) where
-  one_hom := nil_len_zero
-  mul_hom := append_len_add
-
-/-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
-def list.lenMonHom [BraidedCategory C] {A : C} :
-    Mon.Hom (List.mon A) (addMon.toMon) where
-  hom := list.len
-  isMonHom_hom := by infer_instance
-
-end length
-
-end list
-
-namespace PNNO
-
 section const
 
-variable {C} [SemiCartesianMonoidalCategory C] [PNNO C]
+open PNNO
+
+variable [SemiCartesianMonoidalCategory C] [PNNO C]
 
 open SemiCartesianMonoidalCategory MorphismProperty
 
 /-- `∀ n, f (succ n, a) = f (n, a)` implies `∀ n, f (n, a) = f (0, a)`. -/
-theorem const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : succ ▷ P ≫ r = r) {n : 𝟙_ C ⟶ N} :
+theorem PNNO.const_of_no_change_succ {P B : C} (r : N ⊗ P ⟶ B) (no_change_succ : succ ▷ P ≫ r = r) {n : 𝟙_ C ⟶ N} :
     r = constMorphismFrom (𝟙_ C) (isTerminalTensorUnit) N n ▷ P ≫ r := by
   sorry
 
 end const
-
-end PNNO
 
 end MonoidalCategory
 
