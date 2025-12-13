@@ -564,16 +564,7 @@ instance addZeroClass [BraidedCategory C] : AddZeroClass (𝟙_ C ⟶ N) where
 @[simp]
 instance addSemigroup [BraidedCategory C] : AddSemigroup (𝟙_ C ⟶ N) where
   add := Add.add
-  add_assoc {a b c} := by
-    dsimp
-    simp only [Iso.cancel_iso_inv_left]
-    rw [tensorHom_def']
-    rw [tensorHom_def]
-    simp?
-
-
-
-
+  add_assoc {a b c} := by sorry
 
 @[simp]
 def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
@@ -586,7 +577,7 @@ instance addMonoid [BraidedCategory C]: AddMonoid (𝟙_ C ⟶ N) where
   nsmul := nsmul
   add_assoc a b c := addSemigroup.add_assoc a b c
   nsmul_zero x := rfl
-  nsmul_succ n x := by sorry
+  nsmul_succ n x := by dsimp [add]
   zero_add a := addZeroClass.zero_add a
   add_zero a := addZeroClass.add_zero a
 
@@ -644,13 +635,6 @@ split
   split
   · rename_i N k
     · simp only [id_whiskerLeft, zero_iter, assoc, Iso.inv_hom_id, comp_id]
-      -- simp only [iter_prc]
-      -- simp only [← assoc]
-      -- rw [rightUnitor_inv_naturality]
-      -- rw [comp_whiskerRight]
-      -- simp only [assoc]
-      -- rw [zero_prc]
-      -- simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id_assoc]
   · rename_i k l
     rw [comp_whiskerRight]
     simp only [assoc]
@@ -773,7 +757,11 @@ theorem len_eq_rc_zero_snd_succ {A : C} :
     simp only [plist.cons_map]
     refine _ ≫= ?_
     dsimp [snd,list]
+    simp only [← assoc]
+    refine ?_ =≫ _
     sorry
+
+
     --simp only [assoc, Iso.hom_inv_id_assoc]
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
