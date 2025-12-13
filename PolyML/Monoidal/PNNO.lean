@@ -74,7 +74,11 @@ attribute [instance] PNNO.isPNNO
 
 namespace PNNO
 
-variable {C} [MonoidalCategory C] [PNNO C] {P B : C}
+variable {C} [MonoidalCategory C] [PNNO C]
+
+section
+
+variable {P B : C}
 
 def prc (f : P ⟶ B) (g : B ⟶ B) : N ⊗ P ⟶ B :=
   IsPNNO.prc zero succ f g
@@ -144,6 +148,8 @@ lemma prc_zero_succ_eq_rightUnitor : prc (P := 𝟙_ C) (B := N) zero succ = (ρ
   · coherence
   · apply rightUnitor_naturality succ
 
+end
+
 /-- The morphism for number one, i.e. the successor of zero. -/
 def one : 𝟙_ C ⟶ N := zero ≫ succ
 
@@ -165,7 +171,7 @@ theorem succ_toUnit : succ ≫ toUnit = toUnit (C:= C) := by
   rw [toUnit, ← assoc, rightUnitor_inv_naturality, assoc, succ_iter, comp_id]
 
 @[simp]
-theorem iter_id : iter (𝟙 P) = toUnit ▷ P ≫ (λ_ _).hom := by
+theorem iter_id {P : C} : iter (𝟙 P) = toUnit ▷ P ≫ (λ_ _).hom := by
   simp [iter, prc]
   symm
   apply prc_uniq
@@ -294,7 +300,7 @@ instance comonClass : ComonObj (N : C) where
   comul_counit := sorry
   comul_assoc := sorry
 
-variable (P)
+variable (P : C)
 
 /-- The type of twists maps of monoidal powers of `N`. -/
 def Twist : ℕ → Type v := fun k => (N^[k] ⊗ P ⟶ P ⊗ N^[k])
@@ -416,6 +422,15 @@ theorem add_assoc :
     Iso.cancel_iso_inv_left]
     rw [← assoc, ← comp_whiskerRight, succ_iter, comp_whiskerRight]
     rw [assoc, succ_iter]
+
+ -- g^(m + n) x = g^m (g^n x)
+@[simp]
+theorem iter_add {P : C} {g : P ⟶ P} :
+    (add ▷ P) ≫ iter g = (α_ _ _ _).hom ≫ (N ◁ iter g) ≫ iter g := by
+  dsimp [add, iter]
+  rw [prc_prcompose]
+  simp only [comp_id]
+  sorry
 
 /-- The monoid structure on the natural number object. -/
 instance addMonObj [BraidedCategory C] : AddMonObj (N : C) where
