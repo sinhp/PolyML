@@ -408,8 +408,7 @@ theorem add_zero [BraidedCategory C] : (N : C) ◁ zero ≫ add = (ρ_ N).hom :=
   aesop
 
 -- associativity of addition
-theorem add_assoc :
-    add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
+theorem add_assoc : add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) ≫ add := by
   dsimp [add]
   simp only [iter_prc]
   rw [← IsIso.inv_comp_eq]
