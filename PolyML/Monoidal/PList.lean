@@ -221,16 +221,16 @@ theorem singleton_append : (singleton ▷ L A) ≫ append = cons A := by
   sorry
 
 /-- The monoid object structure on the list object given by `nil` and `append`. -/
-instance monObj : MonObj (L A) where
-  one := nil A
-  mul := append
-  one_mul := nil_append
-  mul_one := append_nil
-  mul_assoc := append_assoc
+instance addMonObj : AddMonObj (L A) where
+  zero := nil A
+  add := append
+  zero_add := nil_append
+  add_zero := append_nil
+  add_assoc := append_assoc
 
 variable (A) in
 @[simps]
-def mon : Mon C := Mon.mk (L A)
+def addMon : AddMon C := AddMon.mk (L A)
 
 def snoc {A : C} [PList A] : L A ⊗ A ⟶ L A := (L A ◁ singleton) ≫ append
 
@@ -573,16 +573,14 @@ theorem singleton_len_one :
     singleton ≫ len = toUnit A ≫ one := by
   sorry
 
-attribute [local instance] CategoryTheory.AddMonObj.toMonObj
-
 /-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
-instance isMonHomLen [BraidedCategory C] : IsMonHom (len (A:= A)) where
-  one_hom := nil_len_zero
-  mul_hom := append_len_add
+instance isAddMonHomLen [BraidedCategory C] : IsAddMonHom (len (A:= A)) where
+  zero_hom := nil_len_zero
+  add_hom := append_len_add
 
 /-- Promoting the length morphism to an internal monoid homomorphism from `L A` to `N`. -/
 def lenMonHom [BraidedCategory C] :
-    Mon.Hom (PList.mon A) (addMon.toMon) where
+    AddMon.Hom (PList.addMon A) (PNNO.addMon) where
   hom := len
   isMonHom_hom := by infer_instance
 
