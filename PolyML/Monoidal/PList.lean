@@ -272,39 +272,40 @@ def flatten [PList (L A)] : L (L A) ⟶ L A :=
   rc (nil A) append
 
 /-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
-noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
-  rc (coprod.inl) ((𝟙 A ⊗ₘ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
+noncomputable def split {P : C} [HasBinaryCoproducts C] : L A ⊗ P ⟶ P ⨿ (A ⊗ L A) ⊗ P :=
+  prc (coprod.inl) ((A ◁ coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P)) ≫ (α_ _ _ _).inv ≫ coprod.inr)
 
 -- split [] = inl ()
 @[reassoc (attr := simp)]
-theorem nil_split [HasBinaryCoproducts C] :
-    nil A ≫ split = coprod.inl := by
+theorem nil_split {P : C} [HasBinaryCoproducts C] :
+    (nil A ▷ P) ≫ split = (λ_ _).hom ≫ coprod.inl := by
   dsimp [split]
   sorry
 
 -- `fun (a, as) => split (a :: as) = fun (a, as) => inr (a, as)`
 @[reassoc (attr := simp)]
-theorem cons_split [HasBinaryCoproducts C] :
-    cons A ≫ split = coprod.inr := by
+theorem cons_split {P : C} [HasBinaryCoproducts C] :
+    (cons A ▷ P) ≫ split = coprod.inr := by
   dsimp [split]
   sorry
 
 -- `fun as => if split (as) = inl (nil) return nil else cons split as = fun as => as`
 @[reassoc (attr := simp)]
-theorem split_nil_cons [HasBinaryCoproducts C] :
-    split ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
+theorem split_nil_cons {P : C} [HasBinaryCoproducts C] :
+    split ≫ coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P) = 𝟙 (L A ⊗ P) := by
   dsimp [split]
   sorry
 
 @[simps]
-noncomputable def splitIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L A where
+noncomputable def splitIso [HasBinaryCoproducts C] {P : C} : L A ⊗ P ≅ P ⨿ (A ⊗ L A) ⊗ P where
   hom := split
-  inv := coprod.desc (nil A) (cons A)
+  inv := coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P)
   hom_inv_id := split_nil_cons
   inv_hom_id := by
     refine coprod.hom_ext ?_ ?_
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
       BinaryCofan.mk_inl, comp_id]
+      rw [assoc, Iso.inv_comp_eq]
       exact nil_split
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
       BinaryCofan.mk_inr, comp_id]
@@ -519,22 +520,6 @@ open PList SemiCartesianMonoidalCategory
 variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] {A : C} [PList A] {P : C}
 
 theorem prc_id_snd_snd : prc (𝟙 P) (snd A P) = snd (L A) P := by
-  sorry
-
-noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
-  split ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
-
-theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail = coprod.inl := by
-  dsimp [tail, split]
-  rw [← assoc]
-  dsimp [rc]
-  sorry
-
-theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd _ _ ≫ coprod.inr := by
-  sorry
-
-theorem singleton_tail [HasBinaryCoproducts C] :
-    singleton ≫ tail = toUnit A ≫ nil A ≫ coprod.inr := by
   sorry
 
 /-- The length of a list. -/

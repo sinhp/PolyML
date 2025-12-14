@@ -191,7 +191,7 @@ end
 
 namespace List
 
-open NNO
+open NNO SemiCartesianMonoidalCategory
 
 variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 
@@ -199,6 +199,23 @@ variable {A : C} [List A]
 
 noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
   split ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
+
+@[reassoc (attr := simp)]
+theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail = coprod.inl := by
+  dsimp [tail, split]
+  rw [← assoc]
+  dsimp [rc]
+  sorry
+
+@[simp]
+theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd A (L A) ≫ coprod.inr := by
+  sorry
+
+@[simp]
+theorem singleton_tail [HasBinaryCoproducts C] :
+    singleton ≫ tail = toUnit A ≫ nil A ≫ coprod.inr := by
+  sorry
+
 
 attribute [local instance] NNO.ofListUnit
 
