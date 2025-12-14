@@ -5,6 +5,8 @@ Authors: Sina Hazratpour
 -/
 
 import PolyML.Monoidal.PList
+import PolyML.Monoidal.NNO
+
 
 /-! # Non-parameterized list object in a monoidal category -/
 
@@ -17,11 +19,11 @@ open Category Opposite Limits MonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
 
--- open Endofunctor Algebra
-
 namespace MonoidalCategory
 
 open Endofunctor Algebra
+
+section
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
@@ -74,7 +76,12 @@ def List.ofPList (A : C) [PList A] : List A where
   cons := PList.cons A
   isList := IsList.ofIsPList
 
+end
+
+
 namespace List
+
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
 open IsList
 
@@ -93,9 +100,29 @@ def map {A' : C} [List A'] (f : A ⟶ A') : L A ⟶ L A' :=
   rc (nil) (f ▷ (L A') ≫ cons A')
 
 @[reassoc (attr := simp)]
-theorem nil_map {A' : C} [List A'] {P : C} (f : A ⟶ A') :
+theorem nil_map {A' : C} [List A'] (f : A ⟶ A') :
     nil ≫ map f = nil := by
   simp only [map, rc, nil_rc]
+
+@[reassoc (attr := simp)]
+theorem cons_map {A' : C} [List A'] {f : A ⟶ A'} :
+    cons A ≫ map f = (f ⊗ₘ map f) ≫ cons A' := by
+  sorry
+
+@[simp]
+theorem map_id : map (𝟙 A) = 𝟙 (L A) := by
+  dsimp [map]
+  symm
+  apply IsList.rc_uniq <;> simp
+
+@[reassoc (attr := simp)]
+theorem map_comp {A' A'' : C} [List A'] [List A''] (f : A ⟶ A') (g : A' ⟶ A'') :
+  map (f ≫ g) = map f ≫ map g := by
+  dsimp [map]
+  symm
+  apply IsList.rc_uniq
+  · aesop
+  · sorry
 
 /-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
 noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
@@ -137,6 +164,86 @@ noncomputable def splitIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L
       exact cons_split
 
 end List
+
+section
+
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+
+@[simps]
+def IsNNO.ofListUnitNilCons [List (𝟙_ C)] :
+    IsNNO (List.L (𝟙_ C)) List.nil ((λ_ _).inv ≫ List.cons (𝟙_ C)) where
+  rc {B} f g := List.rc f ((λ_ B).hom ≫ g )
+  zero_rc {B f g} := by simp
+  succ_rc {B f g} := by simp
+  rc_uniq {B f g r} h_nil h_cons := by
+    apply IsList.rc_uniq r h_nil
+    sorry
+
+@[simps]
+def NNO.ofListUnit [List (𝟙_ C)] : NNO C where
+  N := List.L (𝟙_ C)
+  zero := List.nil
+  succ := (λ_ _).inv ≫ List.cons (𝟙_ C)
+  isNNO := IsNNO.ofListUnitNilCons
+
+end
+
+namespace List
+
+open NNO
+
+variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
+
+variable {A : C} [List A]
+
+noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
+  split ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
+
+attribute [local instance] NNO.ofListUnit
+
+/-- The length of a list. -/
+abbrev len [List (𝟙_ C)] : L A ⟶ ofListUnit.N :=
+  List.map <| SemiCartesianMonoidalCategory.toUnit A
+
+section length
+
+open SemiCartesianMonoidalCategory
+
+variable [List (𝟙_ C)]
+
+attribute [local instance] ofListUnit
+
+theorem len_eq_rc_zero_snd_succ :
+    len (A := A) = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
+  sorry
+
+@[reassoc (attr := simp)]
+theorem nil_len_zero : nil (A := A) ≫ len = NNO.zero := by
+  sorry
+
+theorem cons_len_succ :
+    cons A ≫ len = (A ◁ len) ≫ snd A NNO.N ≫ NNO.succ := by
+  sorry
+
+-- len (a :: xs) = succ (len xs)
+theorem cons_len_succ' :
+    cons A ≫ len = (toUnit A ⊗ₘ len) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
+  sorry
+
+theorem cons_len_eq_map_toUnit_cons :
+    cons A ≫ len = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
+  sorry
+
+-- len ([x]) = 1
+theorem singleton_len_one :
+    singleton (A := A) ≫ len = toUnit A ≫ NNO.one := by
+  sorry
+
+end length
+
+end List
+
+
 
 end MonoidalCategory
 
