@@ -86,7 +86,7 @@ class PList (A : C) where
   /-- The underlying list object on `A`. -/
   L : C
   /-- The nil morphism for the list object `L A`. -/
-  nil : 𝟙_ C ⟶ L
+  nil (A) : 𝟙_ C ⟶ L
   /-- The cons morphism for the list object `L A`. -/
   cons (A) : A ⊗ L ⟶ L
   /-- The universal property of the parameterized list object. -/
@@ -106,7 +106,7 @@ variable {A : C} [PList A]
 
 abbrev prc {P B : C} (f : P ⟶ B) (g : A ⊗ B ⟶ B) :
     PList.L A ⊗ P ⟶ B :=
-  IsPList.prc PList.nil (PList.cons A) f g
+  IsPList.prc (PList.nil A) (PList.cons A) f g
 
 abbrev rc {B : C} (f : 𝟙_ C ⟶ B) (g : A ⊗ B ⟶ B) :
     PList.L A ⟶ B :=
@@ -114,24 +114,24 @@ abbrev rc {B : C} (f : 𝟙_ C ⟶ B) (g : A ⊗ B ⟶ B) :
 
 @[simp]
 lemma rightUnitor_unit_inv_nil_whisker_rightUnitor_unit_hom :
-    (ρ_ (𝟙_ C)).inv ≫ (PList.nil ▷ (𝟙_ C)) ≫ (ρ_ (PList.L A)).hom = nil := by
+    (ρ_ (𝟙_ C)).inv ≫ (nil A ▷ (𝟙_ C)) ≫ (ρ_ (PList.L A)).hom = nil A := by
   sorry
 
 theorem prc_nil_cons_id {P : C} :
-    prc ((λ_ P).inv ≫ PList.nil ▷ P) ((α_ _ _ _).inv ≫ PList.cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
+    prc ((λ_ P).inv ≫ nil A ▷ P) ((α_ _ _ _).inv ≫ cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
   sorry
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
 def map' {A' : C} [PList A'] (P : C) (f : A ⟶ A') :
     PList.L A ⊗ P ⟶ PList.L A' ⊗ P :=
-  prc ((λ_ P).inv ≫ nil ▷ P) (f ▷ (L A' ⊗ P) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P)
+  prc ((λ_ P).inv ≫ nil A' ▷ P) (f ▷ (L A' ⊗ P) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P)
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f ▷ P : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
 def map {A' : C} [PList A'] (f : A ⟶ A') :
     PList.L A ⟶ PList.L A' :=
-  rc (nil) (f ▷ (L A') ≫ cons A')
+  rc (nil A') (f ▷ (L A') ≫ cons A')
 
 theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
     map f = (ρ_ _).inv ≫ map' (𝟙_ C) f ≫ (ρ_ _).hom := by
@@ -144,7 +144,7 @@ theorem map'_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
 
 @[reassoc (attr := simp)]
 theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
-    nil ≫ map f = nil := by
+    nil A ≫ map f = nil A' := by
   simp [map, rc]
   sorry
 
@@ -174,7 +174,7 @@ def foldr {B : C} (g : A ⊗ B ⟶ B) : L A ⊗ B ⟶ B := prc (𝟙 B) g
 
 @[reassoc (attr := simp)]
 theorem foldr_nil {B : C} (g : A ⊗ B ⟶ B) :
-  nil ▷ B ≫ foldr g = (λ_ B).hom := by
+  nil A ▷ B ≫ foldr g = (λ_ B).hom := by
   dsimp [foldr]
   sorry
 
@@ -186,7 +186,7 @@ theorem foldr_cons {B : C} (g : A ⊗ B ⟶ B) :
 
 /-- The singleton list morphism. In types, `singleton a = [a]`. -/
 def singleton : A ⟶ L A :=
-  (ρ_ _).inv ≫ (A ◁ nil) ≫ cons A
+  (ρ_ _).inv ≫ (A ◁ nil A) ≫ cons A
 
 /-- Appends two lists. -/
 def append : L A ⊗ L A ⟶ L A := foldr (cons A)
@@ -195,11 +195,11 @@ theorem append_prc : append = prc (𝟙 _) (cons A) := by
   simp only [append, foldr]
 
 @[reassoc (attr := simp)]
-theorem nil_append : nil ▷ (L A) ≫ append = (λ_ (L A)).hom := by
+theorem nil_append : nil A ▷ (L A) ≫ append = (λ_ (L A)).hom := by
   simp [append]
 
 --xs ++ [] = xs
-theorem append_nil : (L A) ◁ nil ≫ append = (ρ_ (L A)).hom := by
+theorem append_nil : (L A) ◁ nil A ≫ append = (ρ_ (L A)).hom := by
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
@@ -222,7 +222,7 @@ theorem singleton_append : (singleton ▷ L A) ≫ append = cons A := by
 
 /-- The monoid object structure on the list object given by `nil` and `append`. -/
 instance monObj : MonObj (L A) where
-  one := nil
+  one := nil A
   mul := append
   one_mul := nil_append
   mul_one := append_nil
@@ -235,15 +235,15 @@ def mon : Mon C := Mon.mk (L A)
 def snoc {A : C} [PList A] : L A ⊗ A ⟶ L A := (L A ◁ singleton) ≫ append
 
 theorem braiding_list_unit_hom [BraidedCategory C] [PList (𝟙_ C)] {P : C} :
-    (β_ (L (𝟙_ C)) P).hom = prc ((ρ_ P).inv ≫ P ◁ nil) (λ_ _).hom := by
+    (β_ (L (𝟙_ C)) P).hom = prc ((ρ_ P).inv ≫ P ◁ nil (𝟙_ C)) (λ_ _).hom := by
   sorry
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] : L A ⟶ L A :=
-  rc nil ((singleton ▷ L A) ≫ (β_ _ _).hom ≫ append)
+  rc (nil A) ((singleton ▷ L A) ≫ (β_ _ _).hom ≫ append)
 
 /- rev_nil [] = [] -/
-theorem nil_rev [BraidedCategory C] : nil ≫ rev = nil (A := A) := by
+theorem nil_rev [BraidedCategory C] : nil A ≫ rev = nil (A := A) := by
   dsimp [rev, nil, prc]
   sorry
 
@@ -269,16 +269,16 @@ theorem rev_rev [BraidedCategory C] : rev ≫ rev = 𝟙 (L A) :=
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
 def flatten [PList (L A)] : L (L A) ⟶ L A :=
-  rc nil append
+  rc (nil A) append
 
 /-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
 noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
-  rc (coprod.inl) ((𝟙 A ⊗ₘ coprod.desc nil (cons A)) ≫ coprod.inr)
+  rc (coprod.inl) ((𝟙 A ⊗ₘ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
 
 -- split [] = inl ()
 @[reassoc (attr := simp)]
 theorem nil_split [HasBinaryCoproducts C] :
-    nil (A:= A) ≫ split = coprod.inl := by
+    nil A ≫ split = coprod.inl := by
   dsimp [split]
   sorry
 
@@ -292,14 +292,14 @@ theorem cons_split [HasBinaryCoproducts C] :
 -- `fun as => if split (as) = inl (nil) return nil else cons split as = fun as => as`
 @[reassoc (attr := simp)]
 theorem split_nil_cons [HasBinaryCoproducts C] :
-    split ≫ coprod.desc nil (cons A) = 𝟙 (L A) := by
+    split ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
   dsimp [split]
   sorry
 
 @[simps]
 noncomputable def splitIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L A where
   hom := split
-  inv := coprod.desc nil (cons A)
+  inv := coprod.desc (nil A) (cons A)
   hom_inv_id := split_nil_cons
   inv_hom_id := by
     refine coprod.hom_ext ?_ ?_
@@ -418,9 +418,9 @@ instance ofPList (A : C) [PList A] : WithRecursion A where
         rw [associator_inv_naturality_right_assoc, ← whisker_exchange]
     }
   }
-  freeForgetAdj.unit.app P := (λ_ _).inv ≫ (PList.nil) ▷ P
+  freeForgetAdj.unit.app P := (λ_ _).inv ≫ (PList.nil A) ▷ P
   freeForgetAdj.counit.app β := {
-    f := prc (nil := PList.nil) (cons := PList.cons A) (𝟙 (β.a)) β.str
+    f := prc (nil := PList.nil A) (cons := PList.cons A) (𝟙 (β.a)) β.str
     h := by simp }
   freeForgetAdj.unit.naturality P Q φ := by
     simp
@@ -442,7 +442,7 @@ theorem ofPList.freeActionFunctor_forget_obj :
 
 @[simp]
 theorem ofPList.freeForgetAdj_unit_app :
-    (freeForgetAdj A |>.unit).app P = (λ_ _).inv ≫ (PList.nil) ▷ P :=
+    (freeForgetAdj A |>.unit).app P = (λ_ _).inv ≫ (PList.nil A) ▷ P :=
   rfl
 
 @[simp]
@@ -458,7 +458,7 @@ theorem ofPList.forgetMap_freeForgetAdj_homEquiv {B : C} (f : P ⟶ B) (g : A �
 @[simp]
 theorem ofPList.freeActionFunctor_map_forget {Q : C} (φ : P ⟶ Q) :
     (freeActionFunctor A |>.map φ).f =
-      prc (φ ≫ (λ_ Q).inv ≫ PList.nil ▷ Q) ((α_ _ _ _).inv ≫ PList.cons A ▷ Q) := by
+      prc (φ ≫ (λ_ Q).inv ≫ PList.nil A ▷ Q) ((α_ _ _ _).inv ≫ PList.cons A ▷ Q) := by
   sorry
 
 @[simp]
@@ -487,7 +487,7 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
 @[simps]
 def IsPNNO.ofPListUnitNilCons [PList (𝟙_ C)] :
-    IsPNNO (PList.L (𝟙_ C)) PList.nil ((λ_ _).inv ≫ PList.cons (𝟙_ C)) where
+    IsPNNO (PList.L (𝟙_ C)) (PList.nil (𝟙_ C)) ((λ_ _).inv ≫ PList.cons (𝟙_ C)) where
   prc {P B} f g := PList.prc f ((λ_ _).hom ≫ g)
   zero_prc {P B f g} := by simp
   succ_prc {P B f g} := by simp
@@ -501,7 +501,7 @@ def IsPNNO.ofPListUnitNilCons [PList (𝟙_ C)] :
 @[simps]
 def PNNO.ofPListUnit [PList (𝟙_ C)] : PNNO C where
   N := PList.L (𝟙_ C)
-  zero := PList.nil
+  zero := PList.nil (𝟙_ C)
   succ := (λ_ _).inv ≫ PList.cons (𝟙_ C)
   isPNNO := IsPNNO.ofPListUnitNilCons
 
@@ -524,7 +524,7 @@ theorem prc_id_snd_snd : prc (𝟙 P) (snd A P) = snd (L A) P := by
 noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
   split ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
 
-theorem nil_tail [HasBinaryCoproducts C] : nil ≫ tail (A:= A) = coprod.inl := by
+theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail = coprod.inl := by
   dsimp [tail, split]
   rw [← assoc]
   dsimp [rc]
@@ -534,7 +534,7 @@ theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd _ _ ≫ coprod
   sorry
 
 theorem singleton_tail [HasBinaryCoproducts C] :
-    singleton ≫ tail = toUnit A ≫ nil ≫ coprod.inr := by
+    singleton ≫ tail = toUnit A ≫ nil A ≫ coprod.inr := by
   sorry
 
 /-- The length of a list. -/
