@@ -121,20 +121,20 @@ lemma elim_iff {X : C} {f : 𝟮_ C ⟶ X} {a b : 𝟙_ C ⟶ X} :
     · rw [IsBool.tt_elim]
       exact h1.symm
 
-def constTrue : 𝟮_ C ⟶ 𝟮_ C := elim tt tt
+def ttConst : 𝟮_ C ⟶ 𝟮_ C := elim tt tt
 
-def constFalse : 𝟮_ C ⟶ 𝟮_ C := elim ff ff
+def ffConst : 𝟮_ C ⟶ 𝟮_ C := elim ff ff
 
 def toUnit : 𝟮_ C ⟶ 𝟙_ C := elim (𝟙 _) (𝟙 _)
 
-theorem constTrue_toUnit : constTrue ≫ toUnit (C:= C) = toUnit := by
-  simp only [constTrue, elim_comp, toUnit]
+theorem ttConst_toUnit : ttConst ≫ toUnit (C:= C) = toUnit := by
+  simp only [ttConst, elim_comp, toUnit]
   congr 1
   all_goals
   simp only [IsBool.tt_elim]
 
-theorem constTrue_eq_toUnit_true : constTrue (C:= C) = toUnit ≫ tt := by
-  dsimp only [constTrue, toUnit, false, true]
+theorem ttConst_eq_toUnit_tt : ttConst (C:= C) = toUnit ≫ tt := by
+  dsimp only [ttConst, toUnit, ffConst, ttConst]
   apply elim_iff.mpr
   simp
 
@@ -148,7 +148,7 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts
 
 /-- A monoidal category with binary coproducts has booleans. -/
 @[simps]
-def boolOfBinaryCoproduct : Bool C where
+def Bool.ofBinaryCoproduct : Bool C where
   obj := (𝟙_ C) ⨿ (𝟙_ C)
   ff := coprod.inl
   tt := coprod.inr
@@ -162,14 +162,25 @@ def boolOfBinaryCoproduct : Bool C where
       · rw [coprod.inl_desc]; exact h0
       · rw [coprod.inr_desc]; exact h1 }
 
-attribute [local instance] boolOfBinaryCoproduct
+attribute [local instance] Bool.ofBinaryCoproduct
+
+open Distributive
+
+-- TODO (SH): It seem that we currently do not have any useful notation/macro for maps out of iterated coproducts. Here are some temporary macros.
+-- The right thing is to have a small metaprogram that can generate these automatically detecting the pattern and the number of arguments/branches.
+
+macro_rules
+  |`(coprod.desc₃ $f1 $f2 $f3) => `(coprod.desc (coprod.desc $f1 $f2) $f3)
+
+macro_rules
+  |`(coprod.desc₄ $f1 $f2 $f3 $f4) => `(coprod.desc (coprod.desc₃ $f1 $f2 $f3) $f4)
 
 macro_rules
   |`(coprod.desc₄' $f1 $f2 $f3 $f4) => `(coprod.desc (coprod.desc $f1 $f2) (coprod.desc $f3 $f4))
 
 /-- The boolean "and" operation in a monoidal distributive category. -/
-def and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C  :=
-  (leftDistrib (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
+def Bool.and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C  :=
+  (∂L (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
   coprod.map
     (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv
     (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
@@ -178,12 +189,20 @@ def and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 
     ((λ_ _).hom ≫ Bool.ff)
     ((λ_ _).hom ≫ Bool.ff)
     ((λ_ _).hom ≫ Bool.tt)
--- break 𝟮_ C into the sum 𝟙_ C and 𝟙_ C and use distrib.
---def and [HasBinaryCoproducts C] [IsMonoidalLeftDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C := sorry
-#check coprod_inl_leftDistrib_hom
-#check whiskerRight_coprod_inr_rightDistrib_inv
-#check whiskerLeft_coprod_inl_leftDistrib_inv
-theorem false_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+
+@[simp]
+theorem Bool.and_def [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+    and (C:= C) =
+    (∂L (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
+    coprod.map
+      (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv
+      (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
+    coprod.desc
+      (coprod.desc ((λ_ _).hom ≫ coprod.inl) ((λ_ _).hom ≫ coprod.inl))
+      (coprod.desc ((λ_ _).hom ≫ coprod.inl) ((λ_ _).hom ≫ coprod.inr)) :=
+  rfl
+
+theorem ff_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) tt tt) := by
   refine (Iso.inv_comp_eq (λ_ (𝟮_ C))).mp ?_
   apply IsBool.elim_uniq
@@ -207,40 +226,23 @@ theorem false_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     rw [← leftUnitor_naturality]
     sorry
 
+theorem ff_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+    (ff ⊗ₘ ff) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
+  sorry
 
+theorem ff_and_tt [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+    (ff ⊗ₘ tt) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
+  sorry
 
+theorem tt_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := sorry
 
+theorem tt_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+    (tt ⊗ₘ ff) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
+  sorry
 
-
-
-
-    --rw [← coprod_inr_leftDistrib_hom]
-    --rw [← whiskerLeft_coprod_inl_leftDistrib_inv]
-    --simp only [coprod.desc_comp_inl_comp_inr, coprod.map_desc, assoc]
-    --simp only [coprod.desc_comp_inl_comp_inr, coprod.map_desc]
-
-
-
-  · sorry
-
--- theorem false_and' [SemiCartesianMonoidalCategory C] :
---     (false ▷ (𝟮 : C)) ≫ and = SemiCartesianMonoidalCategory.constMorphism _ false := sorry
-
-theorem true_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
-  (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := by {
-    simp only [boolOfBinaryCoproduct_obj, boolOfBinaryCoproduct_tt]
-    dsimp [and]
-    simp only [coprod.desc_comp_inl_comp_inr, coprod.map_desc]
-    sorry
-
-
-
-
-    --rw [← coprod_inl_leftDistrib_hom]
-
-  }
-
-
+theorem tt_and_tt [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+    (tt ⊗ₘ tt) ≫ and (C:= C) = (λ_ _).hom ≫ tt := by
+  sorry
 
 end MonoidalCategory
 

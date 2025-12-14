@@ -5,8 +5,8 @@ import PolyML.Monoidal.ListArithmetic
 import PolyML.ForMathlib.Monad.Distrib
 import PolyML.Monoidal.NNO
 import PolyML.Cartesian.NNO
-import PolyML.Monoidal.FreeMon
-import PolyML.Monoidal.FreeCommMon
-import PolyML.Monoidal.BagInType
-import PolyML.ForMathlib.Monoidal.Semiring
-import PolyML.Monoidal.Fin
+-- import PolyML.Monoidal.FreeMon
+-- import PolyML.Monoidal.FreeCommMon
+-- import PolyML.Monoidal.BagInType
+-- import PolyML.ForMathlib.Monoidal.Semiring
+-- import PolyML.Monoidal.Fin
