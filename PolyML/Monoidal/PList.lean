@@ -149,10 +149,16 @@ theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
   sorry
 
 @[reassoc (attr := simp)]
-theorem cons_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
+theorem cons_map' {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     cons A ▷ P ≫ (map f ▷ P) =
       (α_ _ _ _).hom ≫ (f ⊗ₘ (map f ▷ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
   sorry
+
+theorem cons_map {A' : C} [PList A'] {f : A ⟶ A'} :
+    cons A ≫ map f = (f ⊗ₘ map f) ≫ cons A' := by
+  dsimp [map, rc]
+  sorry
+
 
 theorem map_id : map (𝟙 A) = 𝟙 (PList.L A) := by
   sorry
@@ -213,6 +219,18 @@ theorem singleton_append : (singleton ▷ L A) ≫ append = cons A := by
   simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc, foldr]
   rw [cons_prc]
   sorry
+
+/-- The monoid object structure on the list object given by `nil` and `append`. -/
+instance monObj : MonObj (L A) where
+  one := nil
+  mul := append
+  one_mul := nil_append
+  mul_one := append_nil
+  mul_assoc := append_assoc
+
+variable (A) in
+@[simps]
+def mon : Mon C := Mon.mk (L A)
 
 def snoc {A : C} [PList A] : L A ⊗ A ⟶ L A := (L A ◁ singleton) ≫ append
 
@@ -506,6 +524,19 @@ theorem prc_id_snd_snd : prc (𝟙 P) (snd A P) = snd (L A) P := by
 noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
   split ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
 
+theorem nil_tail [HasBinaryCoproducts C] : nil ≫ tail (A:= A) = coprod.inl := by
+  dsimp [tail, split]
+  rw [← assoc]
+  dsimp [rc]
+  sorry
+
+theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd _ _ ≫ coprod.inr := by
+  sorry
+
+theorem singleton_tail [HasBinaryCoproducts C] :
+    singleton ≫ tail = toUnit A ≫ nil ≫ coprod.inr := by
+  sorry
+
 /-- The length of a list. -/
 abbrev len [PList (𝟙_ C)] : L A ⟶ PNNO.ofPListUnit.N :=
   PList.map <| SemiCartesianMonoidalCategory.toUnit A
@@ -529,55 +560,50 @@ theorem len_eq_rc_zero_snd_succ :
     sorry
 
 @[reassoc (attr := simp)]
-theorem PList.nil_len_zero : nil (A:= A) ≫ len = zero := by
+theorem nil_len_zero : nil (A:= A) ≫ len = zero := by
   simp [len_eq_rc_zero_snd_succ, PList.rc]
   sorry
 
-#exit
-
 -- len (a :: xs) = succ (len xs)
-theorem PList.cons_len_succ :
-    cons A ≫ len = (toUnit A ⊗ₘ len) ≫ (λ_ N).hom ≫ succ := by
+theorem cons_len_succ :
+    cons A ≫ len = (A ◁ len) ≫ snd A N ≫ succ := by
   dsimp [len]
   rw [cons_map]
   rw [← Category.assoc]
-  rw [tensorHom_def']
-  congr 1
-  simp_all only [Iso.hom_inv_id_assoc]
+  sorry
 
 theorem cons_len_eq_map_toUnit_cons :
     cons A ≫ len = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
-  dsimp [list.len, list.cons, list.map]
-  rw [plist.cons_map]
-  rfl
-
-
-theorem append_len_add : list.append (A:= A) ≫ list.len = (list.len ⊗ₘ list.len) ≫ add := by
+  dsimp [len, PList.cons]
+  rw [PList.cons_map]
   sorry
 
-set_option diagnostics true in
+-- len (xs ++ ys) = len xs + len ys
+theorem append_len_add : append (A:= A) ≫ len = (len ⊗ₘ len) ≫ add := by
+  sorry
+
+
 -- len ([x]) = 1
 theorem singleton_len_one :
-    list.singleton ≫ list.len = toUnit A ≫ one := by
+    singleton ≫ len = toUnit A ≫ one := by
   sorry
 
 attribute [local instance] CategoryTheory.AddMonObj.toMonObj
 
 /-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
-instance isMonHomLen [BraidedCategory C] : IsMonHom (list.len (A:= A)) where
+instance isMonHomLen [BraidedCategory C] : IsMonHom (len (A:= A)) where
   one_hom := nil_len_zero
   mul_hom := append_len_add
 
-/-- Promoting the length morphism to an internal monoid homomorphism from `list A` to `N`. -/
-def list.lenMonHom [BraidedCategory C] {A : C} :
-    Mon.Hom (List.mon A) (addMon.toMon) where
-  hom := list.len
+/-- Promoting the length morphism to an internal monoid homomorphism from `L A` to `N`. -/
+def lenMonHom [BraidedCategory C] :
+    Mon.Hom (PList.mon A) (addMon.toMon) where
+  hom := len
   isMonHom_hom := by infer_instance
 
 end length
 
 end PList
-
 
 abbrev WithPList (C : Type u) [Category.{v} C] [MonoidalCategory C] := Π (A : C), PList A
 
@@ -602,17 +628,6 @@ instance : WithPList (Type u) := fun A => {
   }
 }
 
-
-
-namespace list
-
-open Limits
-
-variable {C} [SemiCartesianMonoidalCategory C] [ListArithmetic C]
-
-
-end list
-
-
+end MonoidalCategory
 
 end CategoryTheory
