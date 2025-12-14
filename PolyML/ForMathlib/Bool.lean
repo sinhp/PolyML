@@ -204,27 +204,7 @@ theorem Bool.and_def [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
 
 theorem ff_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) tt tt) := by
-  refine (Iso.inv_comp_eq (λ_ (𝟮_ C))).mp ?_
-  apply IsBool.elim_uniq
-  · simp only [boolOfBinaryCoproduct_obj, boolOfBinaryCoproduct_ff,
-      boolOfBinaryCoproduct_tt]
-
-    dsimp [and]
-    simp only [← assoc]
-    --nth_rw 3 [← assoc]
-
-    rw [leftUnitor_inv_naturality]
-    simp only [assoc]
-    refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mpr ?_
-    simp only [id_whiskerLeft, coprod.desc_comp_inl_comp_inr, coprod.map_desc, assoc,
-      Iso.cancel_iso_hom_left]
-    simp only [← assoc]
-    rw [leftUnitor_inv_naturality]
-    simp only [assoc]
-    rw [← leftUnitor_naturality]
-    refine (Iso.inv_comp_eq (λ_ (𝟙_ C))).mpr ?_
-    rw [← leftUnitor_naturality]
-    sorry
+  sorry
 
 theorem ff_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ⊗ₘ ff) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
