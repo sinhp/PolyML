@@ -47,7 +47,7 @@ class List (A : C) where
   /-- The underlying list object on `A`. -/
   L : C
   /-- The nil morphism for the list object `L A`. -/
-  nil : 𝟙_ C ⟶ L
+  nil (A) : 𝟙_ C ⟶ L
   /-- The cons morphism for the list object `L A`. -/
   cons (A) : A ⊗ L ⟶ L
   /-- The universal property of the parameterized list object. -/
@@ -88,20 +88,20 @@ open IsList
 variable {A : C} [List A]
 
 abbrev rc {B : C} (f : 𝟙_ C ⟶ B) (g : A ⊗ B ⟶ B) : List.L A ⟶ B :=
-  IsList.rc nil (cons A) f g
+  IsList.rc (nil A) (cons A) f g
 
 /-- The singleton list morphism. In types, `singleton a = [a]`. -/
 def singleton : A ⟶ L A :=
-  (ρ_ _).inv ≫ (A ◁ nil) ≫ cons A
+  (ρ_ _).inv ≫ (A ◁ nil A) ≫ cons A
 
 /-- Covariant action of `List` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `List.map f ▷ P : List.L A ⊗ P ⟶ List.L B ⊗ P`. -/
 def map {A' : C} [List A'] (f : A ⟶ A') : L A ⟶ L A' :=
-  rc (nil) (f ▷ (L A') ≫ cons A')
+  rc (nil A') (f ▷ (L A') ≫ cons A')
 
 @[reassoc (attr := simp)]
 theorem nil_map {A' : C} [List A'] (f : A ⟶ A') :
-    nil ≫ map f = nil := by
+    nil A ≫ map f = nil A' := by
   simp only [map, rc, nil_rc]
 
 @[reassoc (attr := simp)]
@@ -126,12 +126,12 @@ theorem map_comp {A' A'' : C} [List A'] [List A''] (f : A ⟶ A') (g : A' ⟶ A'
 
 /-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
 noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
-  rc (coprod.inl) ((𝟙 A ⊗ₘ coprod.desc nil (cons A)) ≫ coprod.inr)
+  rc (coprod.inl) ((𝟙 A ⊗ₘ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
 
 -- split [] = inl ()
 @[reassoc (attr := simp)]
 theorem nil_split [HasBinaryCoproducts C] :
-    nil (A:= A) ≫ split = coprod.inl := by
+    nil A ≫ split = coprod.inl := by
   dsimp [split]
   sorry
 
@@ -145,14 +145,15 @@ theorem cons_split [HasBinaryCoproducts C] :
 -- `fun as => if split (as) = inl (nil) return nil else cons split as = fun as => as`
 @[reassoc (attr := simp)]
 theorem split_nil_cons [HasBinaryCoproducts C] :
-    split ≫ coprod.desc nil (cons A) = 𝟙 (L A) := by
+    split ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
   dsimp [split]
   sorry
 
+variable (A) in
 @[simps]
 noncomputable def splitIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L A where
   hom := split
-  inv := coprod.desc nil (cons A)
+  inv := coprod.desc (nil A) (cons A)
   hom_inv_id := split_nil_cons
   inv_hom_id := by
     refine coprod.hom_ext ?_ ?_
@@ -171,7 +172,7 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
 @[simps]
 def IsNNO.ofListUnitNilCons [List (𝟙_ C)] :
-    IsNNO (List.L (𝟙_ C)) List.nil ((λ_ _).inv ≫ List.cons (𝟙_ C)) where
+    IsNNO (List.L (𝟙_ C)) (List.nil (𝟙_ C)) ((λ_ _).inv ≫ List.cons (𝟙_ C)) where
   rc {B} f g := List.rc f ((λ_ B).hom ≫ g )
   zero_rc {B f g} := by simp
   succ_rc {B f g} := by simp
@@ -182,7 +183,7 @@ def IsNNO.ofListUnitNilCons [List (𝟙_ C)] :
 @[simps]
 def NNO.ofListUnit [List (𝟙_ C)] : NNO C where
   N := List.L (𝟙_ C)
-  zero := List.nil
+  zero := List.nil (𝟙_ C)
   succ := (λ_ _).inv ≫ List.cons (𝟙_ C)
   isNNO := IsNNO.ofListUnitNilCons
 
