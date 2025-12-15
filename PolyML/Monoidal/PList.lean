@@ -184,6 +184,8 @@ theorem foldr_cons {B : C} (g : A ⊗ B ⟶ B) :
   dsimp [foldr]
   sorry
 
+variable (A)
+
 /-- The singleton list morphism. In types, `singleton a = [a]`. -/
 def singleton : A ⟶ L A :=
   (ρ_ _).inv ≫ (A ◁ nil A) ≫ cons A
@@ -191,48 +193,54 @@ def singleton : A ⟶ L A :=
 /-- Appends two lists. -/
 def append : L A ⊗ L A ⟶ L A := foldr (cons A)
 
-theorem append_prc : append = prc (𝟙 _) (cons A) := by
+section append
+
+variable {A}
+
+theorem append_prc : append A = prc (𝟙 _) (cons A) := by
   simp only [append, foldr]
 
 @[reassoc (attr := simp)]
-theorem nil_append : nil A ▷ (L A) ≫ append = (λ_ (L A)).hom := by
+theorem nil_append : nil A ▷ (L A) ≫ append A = (λ_ (L A)).hom := by
   simp [append]
 
 --xs ++ [] = xs
-theorem append_nil : (L A) ◁ nil A ≫ append = (ρ_ (L A)).hom := by
+theorem append_nil : (L A) ◁ nil A ≫ append A = (ρ_ (L A)).hom := by
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
 theorem append_assoc :
-    append ▷ (L A) ≫ append = (α_ _ _ _).hom ≫ ((L A) ◁ append) ≫ append := by
+    append A ▷ (L A) ≫ append A = (α_ _ _ _).hom ≫ ((L A) ◁ append A) ≫ append A := by
   sorry
 
 -- map f (xs ++ ys) = map f xs ++ map f ys
 theorem append_map {A' : C} [PList A'] {f : A ⟶ A'} :
-    append ≫ map f = ((map f) ⊗ₘ (map f)) ≫ append := by
+    append A ≫ map f = ((map f) ⊗ₘ (map f)) ≫ append A' := by
   sorry
 
 -- [x] ++ xs = x :: xs
 @[reassoc (attr := simp)]
-theorem singleton_append : (singleton ▷ L A) ≫ append = cons A := by
+theorem singleton_append : (singleton A ▷ L A) ≫ append A = cons A := by
   dsimp [append, singleton]
   simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc, foldr]
   rw [cons_prc]
   sorry
 
+end append
+
+
 /-- The monoid object structure on the list object given by `nil` and `append`. -/
 instance addMonObj : AddMonObj (L A) where
   zero := nil A
-  add := append
+  add := append A
   zero_add := nil_append
   add_zero := append_nil
   add_assoc := append_assoc
 
-variable (A) in
 @[simps]
 def addMon : AddMon C := AddMon.mk (L A)
 
-def snoc {A : C} [PList A] : L A ⊗ A ⟶ L A := (L A ◁ singleton) ≫ append
+def snoc : L A ⊗ A ⟶ L A := (L A ◁ singleton A) ≫ append A
 
 theorem braiding_list_unit_hom [BraidedCategory C] [PList (𝟙_ C)] {P : C} :
     (β_ (L (𝟙_ C)) P).hom = prc ((ρ_ P).inv ≫ P ◁ nil (𝟙_ C)) (λ_ _).hom := by
@@ -240,76 +248,112 @@ theorem braiding_list_unit_hom [BraidedCategory C] [PList (𝟙_ C)] {P : C} :
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] : L A ⟶ L A :=
-  rc (nil A) ((singleton ▷ L A) ≫ (β_ _ _).hom ≫ append)
+  rc (nil A) ((singleton A ▷ L A) ≫ (β_ _ _).hom ≫ append A)
+
+section rev
+
+variable {A}
 
 /- rev_nil [] = [] -/
-theorem nil_rev [BraidedCategory C] : nil A ≫ rev = nil (A := A) := by
+theorem nil_rev [BraidedCategory C] : nil A ≫ rev A = nil (A := A) := by
   dsimp [rev, nil, prc]
   sorry
 
 /- rev [x] = [x] -/
-theorem singleton_rev_eq_singleton [BraidedCategory C] : singleton ≫ rev (A := A) = singleton := by
+theorem singleton_rev_eq_singleton [BraidedCategory C] : singleton A ≫ rev A = singleton A := by
   simp only [rev, singleton]
   sorry
 
 /- rev (xs ++ ys) = rev ys ++ rev xs -/
 theorem rev_append [BraidedCategory C] :
-    append ≫ rev (A:= A) = (rev ⊗ₘ rev) ≫ append := by
+    append A ≫ rev A = (rev A ⊗ₘ rev A) ≫ append A := by
   sorry
 
 /- rev (rev xs ++ [x]) = [x] ++ xs -/
 theorem singleton_braiding_append_rev_eq_singleton_append [BraidedCategory C] :
-    ((singleton ▷ L A) ≫ (β_ _ _).hom ≫ append ≫ rev) =
-    (singleton ▷ L A) ≫ append  := by
+    ((singleton A ▷ L A) ≫ (β_ _ _).hom ≫ append A ≫ rev A) =
+    (singleton A ▷ L A) ≫ append A := by
   sorry
 
 /-- rev is an involution, i.e. `rev ≫ rev = 𝟙`. -/
-theorem rev_rev [BraidedCategory C] : rev ≫ rev = 𝟙 (L A) :=
+theorem rev_rev [BraidedCategory C] : rev A ≫ rev A = 𝟙 (L A) :=
   sorry
+
+end rev
 
 /-- Concatenates a list of lists into a single list, preserving the order of the elements. -/
 def flatten [PList (L A)] : L (L A) ⟶ L A :=
-  rc (nil A) append
+  rc (nil A) (append A)
 
-/-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
-noncomputable def split {P : C} [HasBinaryCoproducts C] : L A ⊗ P ⟶ P ⨿ (A ⊗ L A) ⊗ P :=
+/-- splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
+noncomputable def splitHeadTail (P : C) [HasBinaryCoproducts C] : L A ⊗ P ⟶ P ⨿ (A ⊗ L A) ⊗ P :=
   prc (coprod.inl) ((A ◁ coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P)) ≫ (α_ _ _ _).inv ≫ coprod.inr)
 
--- split [] = inl ()
+section splitHeadTail
+
+variable {A} {P : C} [HasBinaryCoproducts C]
+
+
+-- splitHeadTail [] = inl ()
 @[reassoc (attr := simp)]
-theorem nil_split {P : C} [HasBinaryCoproducts C] :
-    (nil A ▷ P) ≫ split = (λ_ _).hom ≫ coprod.inl := by
-  dsimp [split]
+theorem nil_splitHeadTail : (nil A ▷ P) ≫ splitHeadTail A P = (λ_ _).hom ≫ coprod.inl := by
+  dsimp [splitHeadTail]
   sorry
 
--- `fun (a, as) => split (a :: as) = fun (a, as) => inr (a, as)`
+-- `fun (a, as) => splitHeadTail (a :: as) = fun (a, as) => inr (a, as)`
 @[reassoc (attr := simp)]
-theorem cons_split {P : C} [HasBinaryCoproducts C] :
-    (cons A ▷ P) ≫ split = coprod.inr := by
-  dsimp [split]
+theorem cons_splitHeadTail : (cons A ▷ P) ≫ splitHeadTail A P = coprod.inr := by
+  dsimp [splitHeadTail]
   sorry
 
--- `fun as => if split (as) = inl (nil) return nil else cons split as = fun as => as`
+-- `fun as => if splitHeadTail (as) = inl (nil) return nil else cons splitHeadTail as = fun as => as`
 @[reassoc (attr := simp)]
-theorem split_nil_cons {P : C} [HasBinaryCoproducts C] :
-    split ≫ coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P) = 𝟙 (L A ⊗ P) := by
-  dsimp [split]
+theorem splitHeadTail_nil_cons :
+    splitHeadTail A P ≫ coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P) = 𝟙 (L A ⊗ P) := by
+  dsimp [splitHeadTail]
   sorry
+
+end splitHeadTail
 
 @[simps]
-noncomputable def splitIso [HasBinaryCoproducts C] {P : C} : L A ⊗ P ≅ P ⨿ (A ⊗ L A) ⊗ P where
-  hom := split
+noncomputable def splitHeadTailIso [HasBinaryCoproducts C] (P : C) : L A ⊗ P ≅ P ⨿ (A ⊗ L A) ⊗ P where
+  hom := splitHeadTail A P
   inv := coprod.desc ((λ_ _).inv ≫ (nil A ▷ P)) (cons A ▷ P)
-  hom_inv_id := split_nil_cons
+  hom_inv_id := splitHeadTail_nil_cons
   inv_hom_id := by
     refine coprod.hom_ext ?_ ?_
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
       BinaryCofan.mk_inl, comp_id]
       rw [assoc, Iso.inv_comp_eq]
-      exact nil_split
+      exact nil_splitHeadTail
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
       BinaryCofan.mk_inr, comp_id]
-      exact cons_split
+      exact cons_splitHeadTail
+
+/-- takes a pair of lists `(as, bs)` and returns `(as, nil)` if `bs` is `nil`, else removes the head of `bs`,
+and attaches it to the end of `as`. -/
+noncomputable def shunt [HasBinaryCoproducts C] [BraidedCategory C] : L A ⊗ L A ⟶ L A ⊗ L A :=
+  (β_ (L A) (L A)).hom ≫
+    splitHeadTail A (L A) ≫
+      (coprod.map (𝟙 _) ((β_ (A ⊗ L A) (L A)).hom ≫ (α_ _ _ _).inv)) ≫
+        coprod.desc ((ρ_ _).inv ≫ (L A ◁ nil A )) (snoc A ▷ L A)
+
+section shunt
+
+variable {A} [HasBinaryCoproducts C] [BraidedCategory C]
+
+-- shunt as [] = as []
+@[reassoc (attr := simp)]
+theorem nil_shunt : (L A ◁ nil A) ≫ shunt A = L A ◁ (nil A) := by
+  dsimp [shunt]
+  sorry
+
+@[reassoc (attr := simp)]
+theorem cons_shunt : (L A ◁ cons A) ≫ shunt A = (α_ _ _ _).inv ≫ (snoc A ▷ L A) := by
+  dsimp [shunt]
+  sorry
+
+end shunt
 
 end PList
 
@@ -515,6 +559,38 @@ end
 
 namespace PList
 
+section
+
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C] (A : C) [PList A]
+
+attribute [local instance] PNNO.ofPListUnit
+
+/-- Splits a list at an index `n` , resulting in the first `n` elements of the list paired with the remaining
+elements. -/
+noncomputable def splitAt [PList (𝟙_ C)] [HasBinaryCoproducts C] [BraidedCategory C] :
+    PNNO.N ⊗ L A ⟶ L A ⊗ L A :=
+  prc ((λ_ _).inv ≫ (nil A ▷ L A)) ((λ_ _).hom ≫ shunt A)
+
+section splitAt
+
+variable {A} [PList (𝟙_ C)] [HasBinaryCoproducts C] [BraidedCategory C]
+
+-- splitAt 0 xs = ([], xs)
+@[reassoc (attr := simp)]
+theorem splitAt_zero :
+    (PNNO.zero ▷ L A) ≫ splitAt A = (nil A ▷ L A) := by
+  dsimp [splitAt]
+  sorry
+
+@[reassoc (attr := simp)]
+-- splitAt (succ n) xs = let (ys, zs) = splitAt n xs in shunt ys zs
+theorem splitAt_succ : (PNNO.succ ▷ L A) ≫ splitAt A = (splitAt A) ≫ shunt A := by
+  dsimp [splitAt]
+  sorry
+
+
+end splitAt
+
 open PList SemiCartesianMonoidalCategory
 
 variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] {A : C} [PList A] {P : C}
@@ -570,7 +646,7 @@ theorem append_len_add : append (A:= A) ≫ len = (len ⊗ₘ len) ≫ add := by
 
 -- len ([x]) = 1
 theorem singleton_len_one :
-    singleton ≫ len = toUnit A ≫ one := by
+    singleton A ≫ len = toUnit A ≫ one := by
   sorry
 
 /-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/

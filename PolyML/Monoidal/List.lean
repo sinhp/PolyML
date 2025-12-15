@@ -158,44 +158,44 @@ theorem map_comp {A' A'' : C} [List A'] [List A''] (f : A ⟶ A') (g : A' ⟶ A'
       Eq.symm (whisker_exchange f
       (IsList.rc (nil A') (cons A') (nil A'') (g ▷ L A'' ≫ cons A'')))
 
-/-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
-noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
-  rc (coprod.inl) ((𝟙 A ⊗ₘ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
+/-- splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
+noncomputable def splitHeadTail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
+  rc (coprod.inl) ((A ◁ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
 
--- split [] = inl ()
+-- splitHeadTail [] = inl ()
 @[reassoc (attr := simp)]
-theorem nil_split [HasBinaryCoproducts C] :
-    nil A ≫ split = coprod.inl := by
-  dsimp [split]
+theorem nil_splitHeadTail [HasBinaryCoproducts C] :
+    nil A ≫ splitHeadTail = coprod.inl := by
+  dsimp [splitHeadTail]
   rw [nil_rc]
 
--- `fun (a, as) => split (a :: as) = fun (a, as) => inr (a, as)`
+-- `fun (a, as) => splitHeadTail (a :: as) = fun (a, as) => inr (a, as)`
 @[reassoc (attr := simp)]
-theorem cons_split [HasBinaryCoproducts C] :
-    cons A ≫ split = coprod.inr := by
+theorem cons_splitHeadTail [HasBinaryCoproducts C] :
+    cons A ≫ splitHeadTail = coprod.inr := by
   sorry
 
--- `fun as => if split (as) = inl (nil) return nil else cons split as = fun as => as`
+-- `fun as => if splitHeadTail (as) = inl (nil) return nil else cons splitHeadTail as = fun as => as`
 @[reassoc (attr := simp)]
-theorem split_nil_cons [HasBinaryCoproducts C] :
-    split ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
+theorem splitHeadTail_nil_cons [HasBinaryCoproducts C] :
+    splitHeadTail ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
   sorry
 
 
 variable (A) in
 @[simps]
-noncomputable def splitIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L A where
-  hom := split
+noncomputable def splitHeadTailIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L A where
+  hom := splitHeadTail
   inv := coprod.desc (nil A) (cons A)
-  hom_inv_id := split_nil_cons
+  hom_inv_id := splitHeadTail_nil_cons
   inv_hom_id := by
     refine coprod.hom_ext ?_ ?_
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_left,
       BinaryCofan.mk_inl, comp_id]
-      exact nil_split
+      exact nil_splitHeadTail
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
       BinaryCofan.mk_inr, comp_id]
-      exact cons_split
+      exact cons_splitHeadTail
 
 end List
 
@@ -235,18 +235,18 @@ variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 variable {A : C} [List A]
 
 noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
-  split ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
+  splitHeadTail ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
 
 @[reassoc (attr := simp)]
 theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail = coprod.inl := by
-  dsimp [tail, split]
+  dsimp [tail, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
   simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
 theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd A (L A) ≫ coprod.inr := by
-  simp only [cons_split_assoc, coprod.inr_map]
+  simp only [cons_splitHeadTail_assoc, coprod.inr_map]
 
 @[simp]
 theorem singleton_tail [HasBinaryCoproducts C] :
