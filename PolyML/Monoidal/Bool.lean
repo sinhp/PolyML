@@ -72,7 +72,10 @@ abbrev elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮_ C ⟶ X :=
   IsBool.elim (ff := Bool.ff) (tt := Bool.tt)  f g
 
 lemma eta {X : C} (f : 𝟮_ C ⟶ X) : Bool.elim (Bool.ff ≫ f) (Bool.tt ≫ f) = f := by
-  sorry
+  symm
+  apply elim_uniq
+  · rfl
+  · rfl
 
 @[simp]
 lemma elim_eta_left {X : C} (f : 𝟮_ C ⟶ X) :
@@ -102,7 +105,7 @@ lemma elim_comp {X : C} {a b : 𝟙_ C ⟶ X} {Y : C} (k : X ⟶ Y) :
     elim a b ≫ k = elim (a ≫ k) (b ≫ k) := by
   apply hom_ext
   simp [elim]
-  sorry
+  simp only [tt_elim_assoc, tt_elim]
 
 lemma elim_iff {X : C} {f : 𝟮_ C ⟶ X} {a b : 𝟙_ C ⟶ X} :
     elim a b = f ↔ (Bool.ff ≫ f = a ∧ Bool.tt ≫ f = b) := by
@@ -202,10 +205,21 @@ theorem ff_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
 
 theorem ff_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ⊗ₘ ff) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
+  rw [tensorHom_def', assoc]
+  rw [ff_and]
+  simp only [ofBinaryCoproduct_obj, ofBinaryCoproduct_ff, id_whiskerLeft, ofBinaryCoproduct_tt,
+    ofBinaryCoproduct_isBool_elim, assoc, Iso.inv_hom_id_assoc, colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.mk_inl, Iso.cancel_iso_hom_left]
   sorry
+
 
 theorem ff_and_tt [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ⊗ₘ tt) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
+  rw [tensorHom_def', assoc]
+  rw [ff_and]
+  simp only [ofBinaryCoproduct_obj, ofBinaryCoproduct_tt, id_whiskerLeft,
+    ofBinaryCoproduct_isBool_elim, assoc, Iso.inv_hom_id_assoc, colimit.ι_desc, BinaryCofan.mk_pt,
+    BinaryCofan.mk_inr, ofBinaryCoproduct_ff, Iso.cancel_iso_hom_left]
   sorry
 
 theorem tt_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := sorry
