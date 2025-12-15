@@ -674,7 +674,7 @@ instance isAddMonHomLen [BraidedCategory C] : IsAddMonHom (len (A:= A)) where
   add_hom := append_len_add
 
 /-- Promoting the length morphism to an internal monoid homomorphism from `L A` to `N`. -/
-def lenMonHom [BraidedCategory C] :
+def lenAddMonHom [BraidedCategory C] :
     AddMon.Hom (PList.addMon A) (PNNO.addMon) where
   hom := len
   isMonHom_hom := by infer_instance
@@ -708,67 +708,82 @@ instance : WithPList (Type u) := fun A => {
 
 end MonoidalCategory
 
-section listAsEndofunctorAlgebra
+section PListAsEndofunctorAlgebra
 
-open PList Endofunctor Algebra
+open PList
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts C]
 
-/-- The endofunctor `X ↦ P ⨿ (A ⊗ X)` on the category `C`. -/
-noncomputable def coprodTensorEndofunctor (A P : C) : C ⥤ C where
+namespace Endofunctor
+
+/-- The linear polynomial endofunctor `X ↦ P ⨿ (A ⊗ X)` on the category `C`. -/
+noncomputable def linearPolynomial (A P : C) : C ⥤ C where
   obj X := P ⨿ (A ⊗ X)
   map {X Y} f := coprod.map (𝟙 _) (A ◁ f)
 
 /-- The algebra associated to a pair `init : P ⟶ X` and `action A ⊗ X ⟶ X` of morphisms for the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
-noncomputable def coprodTensorEndofunctorAlgebraMk {A P} (X : C) (init : P ⟶ X) (action : A ⊗ X ⟶ X) :
-    Algebra (coprodTensorEndofunctor A P) := ⟨X, coprod.desc init action⟩
+noncomputable def linearPolynomialAlgebraMk {A P} (X : C) (nil : P ⟶ X) (cons : A ⊗ X ⟶ X) :
+    Algebra (linearPolynomial A P) := ⟨X, coprod.desc nil cons⟩
+
 
 /-- The init morphism `P ⟶ α.a` for an algebra of the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
-noncomputable def initOfCoprodTensorEndofunctorAlgebra {A P : C}
-    (α : Algebra (coprodTensorEndofunctor A P)) :
+noncomputable def linearPolynomialAlgebra.nil {A P : C}
+    (α : Algebra (linearPolynomial A P)) :
   P ⟶ α.a := coprod.inl ≫ α.str
 
 /-- The action morphism `A ⊗ α.a ⟶ α.a` for an algebra of the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
-noncomputable def actionOfCoprodTensorEndofunctorAlgebra {A P : C}
-    (α : Algebra (coprodTensorEndofunctor A P)) : A ⊗ α.a ⟶ α.a :=
+noncomputable def linearPolynomialAlgebra.cons {A P : C}
+    (α : Algebra (linearPolynomial A P)) : A ⊗ α.a ⟶ α.a :=
   coprod.inr ≫ α.str
 
-namespace Endofunctor.Algebra
+namespace Algebra
 
 /-- The algebra associated to the parameterized list object `plist A P` for the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
-noncomputable def ofWithPList [WithPList C] (A P : C) :
-    Algebra (coprodTensorEndofunctor A P) :=
-  coprodTensorEndofunctorAlgebraMk (L A ⊗ P) ((λ_ _).inv ≫ nil A ▷ P) ((α_ A (L A) P).inv ≫ cons A ▷ P)
+noncomputable def ofPList (A P : C) [PList A] :
+    Algebra (linearPolynomial A P) :=
+  linearPolynomialAlgebraMk (L A ⊗ P) ((λ_ _).inv ≫ nil A ▷ P) ((α_ A (L A) P).inv ≫ cons A ▷ P)
 
-theorem OfWithPList_a [WithPList C] {A P : C} :
-    (ofWithPList A P).a = L A ⊗ P := by
+theorem OfPList_a {A P : C} [PList A] :
+    (ofPList A P).a = L A ⊗ P := by
   rfl
 
-theorem ofWithPList_str [WithPList C] {A P : C} :
-    (ofWithPList A P).str =
+theorem ofPList_str {A P : C} [PList A] :
+    (ofPList A P).str =
       coprod.desc ((λ_ _).inv ≫ nil A ▷ P) ((α_ A (L A) P).inv ≫ cons A ▷ P) := by
   rfl
 
-/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
-noncomputable instance ofWithPListIsInitial [WithPList C] (A P : C)  :
-    IsInitial (Endofunctor.Algebra.ofWithPList A P) := by
+/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the
+polynomial  endofunctor `X ↦ P ⨿ A ⊗ X`. -/
+noncomputable instance ofPListIsInitial {A P : C} [PList A] :
+    IsInitial (Endofunctor.Algebra.ofPList A P) := by
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
-    f := prc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfCoprodTensorEndofunctorAlgebra α)
+    f := prc (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α)
     h := by sorry
   }
   · sorry
 
+/-- Conversely, any initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X` gives rise to a
+parameterized list object. -/
+noncomputable def toPList (A P : C)
+    (α : Algebra (linearPolynomial A P)) (h : IsInitial α):
+    PList A where
+  L := sorry -- extract L A from α.a ≅ L A ⊗ P
+  nil := sorry
+  cons := sorry
+  isPList := sorry
+
 /-- The Lambek isomorphism  `P ⨿ (A ⊗ plist A P) ≅ plist A P` -/
-noncomputable def plistAlgebraIso  [WithPList C] (A P : C) : P ⨿ (A ⊗ L A ⊗ P) ≅ L A ⊗ P where
-  hom := (ofWithPList A P).str
-  inv := Algebra.Initial.strInv <| ofWithPListIsInitial A P
+noncomputable def isoOfPList (A P : C) [PList A] : P ⨿ (A ⊗ L A ⊗ P) ≅ L A ⊗ P where
+  hom := (ofPList A P).str
+  inv := Algebra.Initial.strInv <| ofPListIsInitial
   hom_inv_id := Algebra.Initial.right_inv _
   inv_hom_id := Algebra.Initial.left_inv _
 
-end Endofunctor.Algebra
+end Algebra
 
+end Endofunctor
 
-end listAsEndofunctorAlgebra
+end PListAsEndofunctorAlgebra
 
 end CategoryTheory

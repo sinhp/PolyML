@@ -95,6 +95,12 @@ def List.ofPList (A : C) [PList A] : List A where
   cons := PList.cons A
   isList := IsList.ofIsPList
 
+attribute [local instance] List.ofPList
+
+def List.ofPlistIso (A : C) [PList A] :
+    List.L A ≅ PList.L A :=
+  Iso.refl _
+
 end
 
 
@@ -320,6 +326,12 @@ end length
 
 end List
 
+abbrev WithList (C : Type u) [Category.{v} C] [MonoidalCategory C] := Π (A : C), List A
+
+def WithList.ofWithPList (C : Type u) [Category.{v} C] [MonoidalCategory C] [WithPList C] :
+    WithList C :=
+  fun A => List.ofPList A
+
 /-- The object of nonempty lists. -/
 class NeList {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] [HasBinaryCoproducts C]
     (A : C) [List A] where
@@ -369,5 +381,61 @@ end len
 end NeList
 
 end MonoidalCategory
+
+section ListAsEndofunctorAlgebra
+
+open List Endofunctor Algebra
+
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts C]
+
+namespace Endofunctor.Algebra
+
+/-- The algebra associated to the parameterized list object `plist A P` for the endofunctor `X ↦ 𝟙_ C ⨿ (A ⊗ X)`. -/
+noncomputable def ofList (A : C) [List A] :
+    Algebra (linearPolynomial A (𝟙_ C)) :=
+  linearPolynomialAlgebraMk (L A) (nil A) (cons A)
+
+theorem OfList_a {A : C} [List A] :
+    (ofList A).a = L A := by
+  rfl
+
+theorem ofList_str {A : C} [List A] :
+    (ofList A).str = coprod.desc (nil A) (cons A) := by
+  rfl
+
+/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
+noncomputable instance ofListIsInitial {A : C} [List A] :
+    IsInitial (Endofunctor.Algebra.ofList A) := by
+  refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
+  · exact {
+    f := rc (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α)
+    h := by sorry
+  }
+  · sorry
+
+/-- The Lambek isomorphism  `(𝟙_ C) ⨿ (A ⊗ L A) ≅ L A`. -/
+noncomputable def isoOfList [WithList C] (A : C) : (𝟙_ C) ⨿ (A ⊗ L A) ≅ L A where
+  hom := (ofList A).str
+  inv := Algebra.Initial.strInv <| ofListIsInitial
+  hom_inv_id := Algebra.Initial.right_inv _
+  inv_hom_id := Algebra.Initial.left_inv _
+
+attribute [local instance] WithList.ofWithPList
+
+open PList
+
+/-- Conversely, any initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X` gives rise to a
+parameterized list object. -/
+noncomputable def toList (A : C)
+    (α : Algebra (linearPolynomial A (𝟙_ C))) (h : IsInitial α):
+    List A where
+  L := α.a
+  nil := linearPolynomialAlgebra.nil α
+  cons := linearPolynomialAlgebra.cons α
+  isList := sorry
+
+end Endofunctor.Algebra
+
+end ListAsEndofunctorAlgebra
 
 end CategoryTheory
