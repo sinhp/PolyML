@@ -162,7 +162,7 @@ variable (A)
 def singleton : A ⟶ L A :=
   (ρ_ _).inv ≫ (A ◁ nil A) ≫ cons A
 
-/-- splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
+/-- splits a list into its head and tail?, if the list is non-empty, else returns the empty list. -/
 noncomputable def splitHeadTail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
   rc (coprod.inl) ((A ◁ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
 
@@ -244,28 +244,28 @@ variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 
 variable (A : C) [List A]
 
-noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
+noncomputable abbrev tail? [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
   splitHeadTail A ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
 
-section tail
+section tail?
 
 @[reassoc (attr := simp)]
-theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail A = coprod.inl := by
-  dsimp [tail, splitHeadTail]
+theorem nil_tail? [HasBinaryCoproducts C] : nil A ≫ tail? A = coprod.inl := by
+  dsimp [tail?, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
   simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
-theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail A = snd A (L A) ≫ coprod.inr := by
+theorem cons_tail? [HasBinaryCoproducts C] : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
   simp only [cons_splitHeadTail_assoc, coprod.inr_map]
 
 @[simp]
-theorem singleton_tail [HasBinaryCoproducts C] :
-    singleton A ≫ tail A = toUnit A ≫ nil A ≫ coprod.inr := by
+theorem singleton_tail? [HasBinaryCoproducts C] :
+    singleton A ≫ tail? A = toUnit A ≫ nil A ≫ coprod.inr := by
   sorry
 
-end tail
+end tail?
 
 attribute [local instance] NNO.ofListUnit
 
@@ -327,10 +327,10 @@ class NeList {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] [Ha
   iL : C
   /-- The inclusion morphism from nonempty lists to lists. -/
   toList (A) : iL ⟶ List.L A
-  /-- The tail list -/
+  /-- The tail? list -/
   tail : iL ⟶ List.L A
   /-- The universal property of the nonempty list object. -/
-  isPullback : IsPullback (tail) (toList) coprod.inr (List.tail A)
+  isPullback : IsPullback (tail) (toList) coprod.inr (List.tail? A)
 
 namespace NeList
 
@@ -342,16 +342,29 @@ variable {A : C} [List A] [NeList A]
 theorem isMono_nelistToList : Mono (toList A) := by
   sorry
 
+variable (A)
+
 /-- The singelton list is a nonempty list. -/
 noncomputable def singleton : A ⟶ NeList.iL A :=
   lift isPullback (toUnit A ≫ List.nil A) (List.singleton A)
-    (by simp only [assoc, List.singleton_tail])
+    (by simp only [assoc, List.singleton_tail?])
 
 attribute [local instance] NNO.ofListUnit
 
+/-- The length of a nonempty list is the length of the underlying list. -/
 def len [List (𝟙_ C)] : NeList.iL A ⟶ NNO.N :=
-  tail ≫ List.len A
+  toList A ≫ List.len A
 
+section len
+
+variable [List (𝟙_ C)]
+
+theorem len_eq_tail_len_succ :
+    len A = tail ≫ List.len A ≫ NNO.succ := by
+  simp only [len]
+  sorry
+
+end len
 
 end NeList
 
