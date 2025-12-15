@@ -219,7 +219,7 @@ theorem fromBool_toBool [Bool C] :
   · sorry
 
 @[simps pt]
-def binaryCofanZeroSucc [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N where
+def binaryCofanZeroSucc : BinaryCofan (𝟙_ C) N where
   pt := N
   ι := {
     app := fun
@@ -231,7 +231,7 @@ def binaryCofanZeroSucc [MonoidalCategory C] [NNO C] : BinaryCofan (𝟙_ C) N w
 
 /-- If `N` is an NNO then `1 + N` is also an NNO. -/
 @[simps]
-noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+noncomputable def isNNOOnePlus [HasBinaryCoproduct (𝟙_ C) N] :
     IsNNO (𝟙_ C ⨿ N) (coprod.inl) (coprod.desc zero succ ≫ coprod.inr) where
   rc {B} b g := coprod.desc b (rc (b ≫ g) g)
   zero_rc := by
@@ -258,25 +258,25 @@ noncomputable def isNNOOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct 
         rw [← hr2]
         simp only [coprod.desc_comp, assoc, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
 
-theorem inl_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+theorem inl_isNNOOnePlus_rc [HasBinaryCoproduct (𝟙_ C) N]
     {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
     inl ≫ isNNOOnePlus.rc b g = b := by
   simp
 
-theorem inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+theorem inr_isNNOOnePlus_rc [HasBinaryCoproduct (𝟙_ C) N]
     {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
     zero ≫ inr ≫ isNNOOnePlus.rc b g = b ≫ g := by
   simp
 
 @[simp]
-theorem succ_inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+theorem succ_inr_isNNOOnePlus_rc [HasBinaryCoproduct (𝟙_ C) N]
     {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
     succ ≫ inr ≫ isNNOOnePlus.rc b g = isNNO.rc b g ≫ g ≫ g := by
   simp
   sorry
 
 @[simp]
-theorem zero_succ_inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N]
+theorem zero_succ_inr_isNNOOnePlus_rc [HasBinaryCoproduct (𝟙_ C) N]
     {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
     zero ≫ succ ≫ inr ≫ isNNOOnePlus.rc b g = b ≫ g ≫ g  := by
   rw [succ_inr_isNNOOnePlus_rc]
@@ -284,21 +284,37 @@ theorem zero_succ_inr_isNNOOnePlus_rc [MonoidalCategory C] [NNO C] [HasBinaryCop
   rw [IsNNO.zero_rc]
 
 /-- `N` is isomorphic to `1 + N`. -/
-noncomputable def NNOIsoOnePlus [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+noncomputable def NNOIsoOnePlus [HasBinaryCoproduct (𝟙_ C) N] :
     NNO.N ≅ (𝟙_ C ⨿ N) :=
   @IsNNO.iso _ _ _ N (𝟙_ C ⨿ N) _ _ _ _ (NNO.isNNO) isNNOOnePlus
 
-theorem NNOIsoOnePlus_inv [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+theorem NNOIsoOnePlus_inv [HasBinaryCoproduct (𝟙_ C) N] :
     (NNOIsoOnePlus).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
   --have := IsColimit.uniq _
   --rw [coprod.desc, colimit.desc, colimit.isColimit]
   -- rw [IsColimit.uniq]
   sorry
 
-#check CategoryTheory.Limits.coprod.desc'
+noncomputable def pred? [HasBinaryCoproduct (𝟙_ C) N] : N ⟶ 𝟙_ C ⨿ N :=
+  NNOIsoOnePlus.hom
+
+section pred?
+
+variable [HasBinaryCoproduct (𝟙_ C) N]
+
+@[reassoc (attr := simp)]
+theorem pred?_zero : NNO.zero ≫ pred? = coprod.inl (C:= C) := by
+  sorry
+
+@[reassoc (attr := simp)]
+theorem pred?_succ : NNO.succ ≫ pred? = coprod.inr (C:= C) := by
+  sorry
+
+end pred?
+
 
 /-- The diagram `𝟙_C ⟶ N ⟵ N`  is a coproduct diagram. -/
-noncomputable def colimitCocone [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+noncomputable def colimitCocone [HasBinaryCoproduct (𝟙_ C) N] :
   ColimitCocone (pair (𝟙_ C) N) where
     cocone := binaryCofanZeroSucc
     isColimit := by
@@ -310,7 +326,7 @@ noncomputable def colimitCocone [MonoidalCategory C] [NNO C] [HasBinaryCoproduct
       · sorry
 
 /-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
-def BinaryCoproduct [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N] :
+def BinaryCoproduct [HasBinaryCoproduct (𝟙_ C) N] :
     HasBinaryCoproduct (𝟙_ C) N where
   exists_colimit := by
     constructor
@@ -318,7 +334,7 @@ def BinaryCoproduct [MonoidalCategory C] [NNO C] [HasBinaryCoproduct (𝟙_ C) N
 
 variable (C) in
 /-- The numerals as morphisms from the unit object to the NNO. -/
-def num [MonoidalCategory C] [NNO C] : ℕ → (𝟙_ C ⟶ N)
+def num : ℕ → (𝟙_ C ⟶ N)
   | Nat.zero => zero
   | Nat.succ m => num m ≫ succ
 

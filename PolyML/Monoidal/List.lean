@@ -109,10 +109,6 @@ variable {A : C} [List A]
 abbrev rc {B : C} (f : 𝟙_ C ⟶ B) (g : A ⊗ B ⟶ B) : List.L A ⟶ B :=
   IsList.rc (nil A) (cons A) f g
 
-/-- The singleton list morphism. In types, `singleton a = [a]`. -/
-def singleton : A ⟶ L A :=
-  (ρ_ _).inv ≫ (A ◁ nil A) ≫ cons A
-
 /-- Covariant action of `List` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `List.map f ▷ P : List.L A ⊗ P ⟶ List.L B ⊗ P`. -/
 def map {A' : C} [List A'] (f : A ⟶ A') : L A ⟶ L A' :=
@@ -158,34 +154,46 @@ theorem map_comp {A' A'' : C} [List A'] [List A''] (f : A ⟶ A') (g : A' ⟶ A'
       Eq.symm (whisker_exchange f
       (IsList.rc (nil A') (cons A') (nil A'') (g ▷ L A'' ≫ cons A'')))
 
+section
+
+variable (A)
+
+/-- The singleton list morphism. In types, `singleton a = [a]`. -/
+def singleton : A ⟶ L A :=
+  (ρ_ _).inv ≫ (A ◁ nil A) ≫ cons A
+
 /-- splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
 noncomputable def splitHeadTail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
   rc (coprod.inl) ((A ◁ coprod.desc (nil A) (cons A)) ≫ coprod.inr)
 
+section splitHeadTail
+
+variable {A}
+
 -- splitHeadTail [] = inl ()
 @[reassoc (attr := simp)]
 theorem nil_splitHeadTail [HasBinaryCoproducts C] :
-    nil A ≫ splitHeadTail = coprod.inl := by
+    nil A ≫ splitHeadTail A = coprod.inl := by
   dsimp [splitHeadTail]
   rw [nil_rc]
 
 -- `fun (a, as) => splitHeadTail (a :: as) = fun (a, as) => inr (a, as)`
 @[reassoc (attr := simp)]
 theorem cons_splitHeadTail [HasBinaryCoproducts C] :
-    cons A ≫ splitHeadTail = coprod.inr := by
+    cons A ≫ splitHeadTail A = coprod.inr := by
   sorry
 
 -- `fun as => if splitHeadTail (as) = inl (nil) return nil else cons splitHeadTail as = fun as => as`
 @[reassoc (attr := simp)]
 theorem splitHeadTail_nil_cons [HasBinaryCoproducts C] :
-    splitHeadTail ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
+    splitHeadTail A ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
   sorry
 
+end splitHeadTail
 
-variable (A) in
 @[simps]
 noncomputable def splitHeadTailIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿ A ⊗ L A where
-  hom := splitHeadTail
+  hom := splitHeadTail A
   inv := coprod.desc (nil A) (cons A)
   hom_inv_id := splitHeadTail_nil_cons
   inv_hom_id := by
@@ -196,6 +204,8 @@ noncomputable def splitHeadTailIso [HasBinaryCoproducts C] : L A ≅ 𝟙_ C ⨿
     · simp only [coprod.desc_comp, colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.ι_app_right,
       BinaryCofan.mk_inr, comp_id]
       exact cons_splitHeadTail
+
+end
 
 end List
 
@@ -232,26 +242,30 @@ open NNO SemiCartesianMonoidalCategory
 
 variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 
-variable {A : C} [List A]
+variable (A : C) [List A]
 
 noncomputable abbrev tail [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
-  splitHeadTail ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
+  splitHeadTail A ≫ (coprod.map (𝟙 _) (SemiCartesianMonoidalCategory.snd A (L A)))
+
+section tail
 
 @[reassoc (attr := simp)]
-theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail = coprod.inl := by
+theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail A = coprod.inl := by
   dsimp [tail, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
   simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
-theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd A (L A) ≫ coprod.inr := by
+theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail A = snd A (L A) ≫ coprod.inr := by
   simp only [cons_splitHeadTail_assoc, coprod.inr_map]
 
 @[simp]
 theorem singleton_tail [HasBinaryCoproducts C] :
-    singleton ≫ tail = toUnit A ≫ nil A ≫ coprod.inr := by
+    singleton A ≫ tail A = toUnit A ≫ nil A ≫ coprod.inr := by
   sorry
+
+end tail
 
 attribute [local instance] NNO.ofListUnit
 
@@ -273,11 +287,11 @@ theorem len_eq_rc_zero_snd_succ :
 
 
 @[reassoc (attr := simp)]
-theorem nil_len_zero : nil (A := A) ≫ len = NNO.zero := by
+theorem nil_len_zero : nil (A := A) ≫ len A = NNO.zero := by
   simp only [ofListUnit_N, nil_map, ofListUnit_zero]
 
 theorem cons_len_succ :
-    cons A ≫ len = (A ◁ len) ≫ snd A NNO.N ≫ NNO.succ := by
+    cons A ≫ len A = (A ◁ len A) ≫ snd A NNO.N ≫ NNO.succ := by
   simp [cons_map]
   rw [tensorHom_def']
   simp only [← assoc]
@@ -288,25 +302,58 @@ theorem cons_len_succ :
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ' :
-    cons A ≫ len = (toUnit A ⊗ₘ len) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
+    cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
   simp only [ofListUnit_N, cons_map, ofListUnit_succ, Iso.hom_inv_id_assoc]
 
 theorem cons_len_eq_map_toUnit_cons :
-    cons A ≫ len = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
+    cons A ≫ len A = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
   simp only [ofListUnit_N, cons_map, ← assoc]
   refine ?_ =≫ cons (𝟙_ C)
   rw [tensorHom_def']
 
 -- len ([x]) = 1
 theorem singleton_len_one :
-    singleton (A := A) ≫ len = toUnit A ≫ NNO.one := by
+    singleton A ≫ len A = toUnit A ≫ NNO.one := by
   sorry
 
 end length
 
 end List
 
+/-- The object of nonempty lists. -/
+class NeList {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] [HasBinaryCoproducts C]
+    (A : C) [List A] where
+  /-- The underlying nonempty list object on `A`. -/
+  iL : C
+  /-- The inclusion morphism from nonempty lists to lists. -/
+  toList (A) : iL ⟶ List.L A
+  /-- The tail list -/
+  tail : iL ⟶ List.L A
+  /-- The universal property of the nonempty list object. -/
+  isPullback : IsPullback (tail) (toList) coprod.inr (List.tail A)
 
+namespace NeList
+
+open IsPullback SemiCartesianMonoidalCategory
+
+variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] [HasBinaryCoproducts C]
+variable {A : C} [List A] [NeList A]
+
+theorem isMono_nelistToList : Mono (toList A) := by
+  sorry
+
+/-- The singelton list is a nonempty list. -/
+noncomputable def singleton : A ⟶ NeList.iL A :=
+  lift isPullback (toUnit A ≫ List.nil A) (List.singleton A)
+    (by simp only [assoc, List.singleton_tail])
+
+attribute [local instance] NNO.ofListUnit
+
+def len [List (𝟙_ C)] : NeList.iL A ⟶ NNO.N :=
+  tail ≫ List.len A
+
+
+end NeList
 
 end MonoidalCategory
 
