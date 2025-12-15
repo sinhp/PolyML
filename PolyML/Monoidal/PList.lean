@@ -588,8 +588,9 @@ theorem splitAt_succ : (PNNO.succ ▷ L A) ≫ splitAt A = (splitAt A) ≫ shunt
   dsimp [splitAt]
   sorry
 
-
 end splitAt
+
+end
 
 open PList SemiCartesianMonoidalCategory
 
