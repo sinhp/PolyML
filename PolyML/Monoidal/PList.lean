@@ -690,4 +690,102 @@ instance : WithPList (Type u) := fun A => {
 
 end MonoidalCategory
 
+/-
+In the presence finite coproducts, `list α` is the
+initial algebra for the polynomial functor
+`P ↦ 1 + α × P`. The unique algebra map from `(List α, [n,c])` to
+`(S,[s₀,s])` is the `foldr` function after transposition:
+`foldr : (α → β → β) → β → List α → β`
+satisfying
+`foldr s s₀ n = s₀` and
+`foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
+-/
+
+section listAsEndofunctorAlgebra
+
+open PList Endofunctor Algebra
+
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts C]
+
+/-- The endofunctor `X ↦ P ⨿ (A ⊗ X)` on the category `C`. -/
+noncomputable def coprodTensorEndofunctor (A P : C) : C ⥤ C where
+  obj X := P ⨿ (A ⊗ X)
+  map {X Y} f := coprod.map (𝟙 _) (A ◁ f)
+
+/-- The algebra associated to a pair `init : P ⟶ X` and `action A ⊗ X ⟶ X` of morphisms for the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def coprodTensorEndofunctorAlgebraMk {A P} (X : C) (init : P ⟶ X) (action : A ⊗ X ⟶ X) :
+    Algebra (coprodTensorEndofunctor A P) := ⟨X, coprod.desc init action⟩
+
+/-- The init morphism `P ⟶ α.a` for an algebra of the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def initOfCoprodTensorEndofunctorAlgebra {A P : C}
+    (α : Algebra (coprodTensorEndofunctor A P)) :
+  P ⟶ α.a := coprod.inl ≫ α.str
+
+/-- The action morphism `A ⊗ α.a ⟶ α.a` for an algebra of the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def actionOfCoprodTensorEndofunctorAlgebra {A P : C}
+    (α : Algebra (coprodTensorEndofunctor A P)) : A ⊗ α.a ⟶ α.a :=
+  coprod.inr ≫ α.str
+
+namespace Endofunctor.Algebra
+
+/-- The algebra associated to the parameterized list object `plist A P` for the endofunctor `X ↦ P ⨿ (A ⊗ X)`. -/
+noncomputable def ofWithPList [WithPList C] (A P : C) :
+    Algebra (coprodTensorEndofunctor A P) :=
+  coprodTensorEndofunctorAlgebraMk (L A ⊗ P) ((λ_ _).inv ≫ nil A ▷ P) ((α_ A (L A) P).inv ≫ cons A ▷ P)
+
+theorem OfWithPList_a [WithPList C] {A P : C} :
+    (ofWithPList A P).a = L A ⊗ P := by
+  rfl
+
+theorem ofWithPList_str [WithPList C] {A P : C} :
+    (ofWithPList A P).str =
+      coprod.desc ((λ_ _).inv ≫ nil A ▷ P) ((α_ A (L A) P).inv ≫ cons A ▷ P) := by
+  rfl
+
+-- /-- The algebra associated to the list object `list A` for the endofunctor `X ↦ 1 ⨿ (A ⊗ X)`. -/
+-- noncomputable def Endofunctor.Algebra.list [WithPList C] (A : C) := Endofunctor.Algebra.OfWithPList A (𝟙_ C)
+
+-- theorem Endofunctor.Algebra.list_a [WithPList C] {A : C} : (Endofunctor.Algebra.list A).a = L A := by
+--   rfl
+
+-- theorem listAlgebra_str [WithPList C] {A : C} :
+--     (listAlgebra A).str = coprod.desc list.nil list.cons := by
+--   rfl
+
+/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
+noncomputable instance ofWithPListIsInitial [WithPList C] (A P : C)  :
+    IsInitial (Endofunctor.Algebra.ofWithPList A P) := by
+  refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
+  · exact {
+    f := prc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfCoprodTensorEndofunctorAlgebra α)
+    h := by sorry
+  }
+  · sorry
+
+/-- The Lambek isomorphism  `P ⨿ (A ⊗ plist A P) ≅ plist A P` -/
+noncomputable def plistAlgebraIso  [WithPList C] (A P : C) : P ⨿ (A ⊗ L A ⊗ P) ≅ L A ⊗ P where
+  hom := (ofWithPList A P).str
+  inv := Algebra.Initial.strInv <| ofWithPListIsInitial A P
+  hom_inv_id := Algebra.Initial.right_inv _
+  inv_hom_id := Algebra.Initial.left_inv _
+
+end Endofunctor.Algebra
+
+-- /-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
+-- noncomputable instance isInitialOflistAlgebra [WithPList C] (A P : C)  :
+--     IsInitial (listAlgebra A) := by
+--   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
+--   · exact {
+--     f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
+--     h := by sorry
+--   }
+--   · sorry
+
+-- /-- The Lambek isomorphism  `1 ⨿ (A ⊗ list A) ≅ list A` -/
+-- noncomputable def listAlgebraIso [ListArithmetic C] (A : C) :
+--     𝟙_ C ⨿ (A ⊗ list A) ≅ list A :=
+--   plistAlgebraIso A (𝟙_ C)
+
+end listAsEndofunctorAlgebra
+
 end CategoryTheory
