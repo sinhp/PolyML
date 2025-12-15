@@ -63,16 +63,35 @@ def IsList.ofIsPList {A : C} {L : C} {nil : 𝟙_ C ⟶ L} {cons : A ⊗ L ⟶ L
     [IsPList A L nil cons] : IsList A L nil cons where
   rc {B} f g := (ρ_ _).inv ≫ IsPList.prc nil cons f g
   nil_rc {B f g} := by
-    sorry
+    rw [← assoc,rightUnitor_inv_naturality, assoc, nil_prc, ← unitors_inv_equal,Iso.inv_hom_id_assoc]
   cons_rc {B f g} := by
-    sorry
+    rw [← assoc, rightUnitor_inv_naturality, assoc]
+    rw [whiskerLeft_comp]
+    simp only [assoc]
+    rw [whiskerLeft_rightUnitor_inv]
+    refine (Iso.inv_comp_eq (ρ_ (A ⊗ L))).mpr ?_
+    simp only [← assoc]
+    rw [Iso.hom_inv_id, id_comp]
+    simp only [assoc]
+    refine (Iso.inv_comp_eq (α_ A L (𝟙_ C))).mp ?_
+    rw [cons_prc]
   rc_uniq {B f g} r h_nil h_cons := by
-    sorry
+    refine (Iso.eq_inv_comp (ρ_ L)).mpr ?_
+    apply prc_uniq
+    · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
+      rw [unitors_equal]
+      rw [h_nil]
+    · rw [← rightUnitor_naturality]
+      nth_rw 2 [← assoc]
+      rw [← comp_whiskerRight]
+      rw [h_cons]
+      simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id, whiskerLeft_comp,
+        whiskerLeft_rightUnitor]
 
 @[simps]
 def List.ofPList (A : C) [PList A] : List A where
   L := PList.L A
-  nil := PList.nil
+  nil := PList.nil A
   cons := PList.cons A
   isList := IsList.ofIsPList
 
@@ -107,7 +126,11 @@ theorem nil_map {A' : C} [List A'] (f : A ⟶ A') :
 @[reassoc (attr := simp)]
 theorem cons_map {A' : C} [List A'] {f : A ⟶ A'} :
     cons A ≫ map f = (f ⊗ₘ map f) ≫ cons A' := by
-  sorry
+  dsimp [map]
+  rw [cons_rc]
+  simp only [← assoc]
+  refine ?_ =≫ _
+  rw [tensorHom_def']
 
 @[simp]
 theorem map_id : map (𝟙 A) = 𝟙 (L A) := by
@@ -122,7 +145,18 @@ theorem map_comp {A' A'' : C} [List A'] [List A''] (f : A ⟶ A') (g : A' ⟶ A'
   symm
   apply IsList.rc_uniq
   · aesop
-  · sorry
+  · rw [← assoc]
+    rw [cons_rc]
+    simp only [assoc, cons_rc, whiskerLeft_comp, comp_whiskerRight]
+    simp only [← assoc]
+    refine ?_ =≫ cons A''
+    refine ?_ =≫ _
+    dsimp [rc]
+    simp only [assoc]
+    refine _ ≫= ?_
+    exact
+      Eq.symm (whisker_exchange f
+      (IsList.rc (nil A') (cons A') (nil A'') (g ▷ L A'' ≫ cons A'')))
 
 /-- Splits a list into its head and tail, if the list is non-empty, else returns the empty list. -/
 noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A :=
@@ -133,21 +167,20 @@ noncomputable def split [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ A ⊗ L A 
 theorem nil_split [HasBinaryCoproducts C] :
     nil A ≫ split = coprod.inl := by
   dsimp [split]
-  sorry
+  rw [nil_rc]
 
 -- `fun (a, as) => split (a :: as) = fun (a, as) => inr (a, as)`
 @[reassoc (attr := simp)]
 theorem cons_split [HasBinaryCoproducts C] :
     cons A ≫ split = coprod.inr := by
-  dsimp [split]
   sorry
 
 -- `fun as => if split (as) = inl (nil) return nil else cons split as = fun as => as`
 @[reassoc (attr := simp)]
 theorem split_nil_cons [HasBinaryCoproducts C] :
     split ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
-  dsimp [split]
   sorry
+
 
 variable (A) in
 @[simps]
@@ -178,7 +211,11 @@ def IsNNO.ofListUnitNilCons [List (𝟙_ C)] :
   succ_rc {B f g} := by simp
   rc_uniq {B f g r} h_nil h_cons := by
     apply IsList.rc_uniq r h_nil
-    sorry
+    rw [← leftUnitor_naturality]
+    simp only [← assoc]
+    simp only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc, Iso.inv_hom_id, comp_id]
+    refine (Iso.inv_comp_eq (λ_ (List.L (𝟙_ C)))).mp ?_
+    rw [← assoc, h_cons]
 
 @[simps]
 def NNO.ofListUnit [List (𝟙_ C)] : NNO C where
@@ -205,17 +242,16 @@ theorem nil_tail [HasBinaryCoproducts C] : nil A ≫ tail = coprod.inl := by
   dsimp [tail, split]
   rw [← assoc]
   dsimp [rc]
-  sorry
+  simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
 theorem cons_tail [HasBinaryCoproducts C] : cons A ≫ tail = snd A (L A) ≫ coprod.inr := by
-  sorry
+  simp only [cons_split_assoc, coprod.inr_map]
 
 @[simp]
 theorem singleton_tail [HasBinaryCoproducts C] :
     singleton ≫ tail = toUnit A ≫ nil A ≫ coprod.inr := by
   sorry
-
 
 attribute [local instance] NNO.ofListUnit
 
@@ -235,22 +271,31 @@ theorem len_eq_rc_zero_snd_succ :
     len (A := A) = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
   sorry
 
+
 @[reassoc (attr := simp)]
 theorem nil_len_zero : nil (A := A) ≫ len = NNO.zero := by
-  sorry
+  simp only [ofListUnit_N, nil_map, ofListUnit_zero]
 
 theorem cons_len_succ :
     cons A ≫ len = (A ◁ len) ≫ snd A NNO.N ≫ NNO.succ := by
+  simp [cons_map]
+  rw [tensorHom_def']
+  simp only [← assoc]
+  refine ?_ =≫ _
+  dsimp [map]
+  rw [len_eq_rc_zero_snd_succ]
   sorry
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ' :
     cons A ≫ len = (toUnit A ⊗ₘ len) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
-  sorry
+  simp only [ofListUnit_N, cons_map, ofListUnit_succ, Iso.hom_inv_id_assoc]
 
 theorem cons_len_eq_map_toUnit_cons :
     cons A ≫ len = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
-  sorry
+  simp only [ofListUnit_N, cons_map, ← assoc]
+  refine ?_ =≫ cons (𝟙_ C)
+  rw [tensorHom_def']
 
 -- len ([x]) = 1
 theorem singleton_len_one :
