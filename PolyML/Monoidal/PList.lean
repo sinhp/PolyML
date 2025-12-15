@@ -19,32 +19,52 @@ import PolyML.Monoidal.PNNO
 In category theory, the notion of parameterized list object models the list type, directly
 generalising Lawvere’s notion of NNO (Natural Numbers Object)
 
-A **list object** on an object `A` in a category with finite products consists of an object `list A`
-and morphisms `nil : 𝟙_ C → list A` and `cons : A × list A  ⟶ list A`
-which is initial among such data.
+A **list object** on an object `A` in a monoidal category consists of an object `L A`
+and morphisms `nil A : 𝟙_ C → L A` and `cons A : A ⊗ L A  ⟶ L A`
+which is initial among such data. The initiality gives rise to a recursion scheme for lists.
 
-Such a structure is a **parameterized list object** whenever it is parametrized initial, i.e. it is initial
-among the data of `(P → L ← P × L)` for some parameter object `P` in the category.
+A list object is **parameterized** if the recursion scheme is stable under pullback to the slice
+categories, that is, for all objects `P`, the list object in the slice category `C / P` is given by
+`L A ⊗ P`
 
-In cartesian closed categories, these two notions coincide.
+In cartesian closed categories, the notions of list object and parameterized list object coincide.
 
-## Implementation notes
+## Implementation Notes
 
-- We use a high-level definition of parameterized list object based on existence of a left adjoint to the
-forgetful functor from the category of actions to the underlying category `C`.
-The advantage of this definition is that it gives a compact formulation of the universal property of the
-list object from which the recursion scheme can be derived thus enabling us to define all the important list maps.
-Such categories are called **recursive categories**. We can already define list maps such as `map`, `foldr` in recursive categories.
+We define the type class `PList A` carrying the data of an object `L A` along with the morphisms
+`nil A` and `cons A` and the universal property of the parameterized list object.
 
-- The condition requiring the morphism `plist A (P ⊗ Y) ⟶ (plist A P) ⊗ Y` to be an isomorphism for all
-objects `A, P, Y` is equivalent to the requirment that the recursion in `C` is preserved when
-pulled back to the slice categories `C / P` for all `P`.
+We show that having an instance of `PList A` gives rise to a left adjoint to the forgetful functor
+from the category of left actions of `A : C` to the base monoidal category `C`.
+This adjunction in fact captures all aspects of the list object, including the universal property.
 
-- Although parameterized list objects are defined in finite product categories, the well-behaved recursion
-scheme is only available in **list-arithmetic categories**, i.e. in categories with chosen finite
-products where the comparison morphisms `plist.cmp` are isomorphisms.
+### Main definitions
 
-- In list-arithmetic categories, we can define additional list maps such as `append` and `flatten`.
+- `PList.map f : L A ⟶ L B` : Given a morphism `f : A ⟶ B`, induces
+  a morphism `L A ⟶ L B`.
+
+- `PList.foldr g : L A ⊗ B ⟶ B` : The foldr morphism for lists, generalizing the foldr operation on lists in
+  functional programming languages.
+
+- `PList.singleton A : A ⟶ PList.L A` : The singleton list morphism.
+
+- `PList.append A : L A ⊗ L A ⟶ L A` : The append morphism for lists.
+
+- `PList.rev A : L A ⟶ L A` : The list reversal morphism.
+
+- `PList.flatten A : L (L A) ⟶ L A` : The flatten morphism concatenating a list of lists.
+
+- `PList.snoc A : L A ⊗ A ⟶ L A` : The snoc morphism adding an element to the end of a list.
+
+- `PList.splitHeadTail A P : L A ⊗ P ⟶ P ⨿ (A ⊗ L A) ⊗ P` : The head-tail splitting morphism for
+  lists, generalizing pattern matching on lists into head and tail using coproducts.
+
+- `PList.tail? A : L A ⟶ 𝟙_ C ⨿ L A` : Drops the first element of a nonempty list,
+  returning the tail. Returns none when the argument is empty.
+
+- `PList.splitAt : L A ⊗ N ⟶ L A ⊗ L A` : The splitAt morphism splitting a list at a given numeral
+  index into two sublists.
+
 -/
 
 
@@ -55,8 +75,6 @@ namespace CategoryTheory
 open Category Opposite Limits MonoidalCategory
 
 attribute [local instance] _root_.CategoryTheory.BraidedCategory.ofCartesianMonoidalCategory
-
--- open Endofunctor Algebra
 
 namespace MonoidalCategory
 
@@ -690,17 +708,6 @@ instance : WithPList (Type u) := fun A => {
 
 end MonoidalCategory
 
-/-
-In the presence finite coproducts, `list α` is the
-initial algebra for the polynomial functor
-`P ↦ 1 + α × P`. The unique algebra map from `(List α, [n,c])` to
-`(S,[s₀,s])` is the `foldr` function after transposition:
-`foldr : (α → β → β) → β → List α → β`
-satisfying
-`foldr s s₀ n = s₀` and
-`foldr s s₀ (c x xs) = s x (foldr s s₀ xs)`
--/
-
 section listAsEndofunctorAlgebra
 
 open PList Endofunctor Algebra
@@ -742,16 +749,6 @@ theorem ofWithPList_str [WithPList C] {A P : C} :
       coprod.desc ((λ_ _).inv ≫ nil A ▷ P) ((α_ A (L A) P).inv ≫ cons A ▷ P) := by
   rfl
 
--- /-- The algebra associated to the list object `list A` for the endofunctor `X ↦ 1 ⨿ (A ⊗ X)`. -/
--- noncomputable def Endofunctor.Algebra.list [WithPList C] (A : C) := Endofunctor.Algebra.OfWithPList A (𝟙_ C)
-
--- theorem Endofunctor.Algebra.list_a [WithPList C] {A : C} : (Endofunctor.Algebra.list A).a = L A := by
---   rfl
-
--- theorem listAlgebra_str [WithPList C] {A : C} :
---     (listAlgebra A).str = coprod.desc list.nil list.cons := by
---   rfl
-
 /-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
 noncomputable instance ofWithPListIsInitial [WithPList C] (A P : C)  :
     IsInitial (Endofunctor.Algebra.ofWithPList A P) := by
@@ -771,20 +768,6 @@ noncomputable def plistAlgebraIso  [WithPList C] (A P : C) : P ⨿ (A ⊗ L A �
 
 end Endofunctor.Algebra
 
--- /-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
--- noncomputable instance isInitialOflistAlgebra [WithPList C] (A P : C)  :
---     IsInitial (listAlgebra A) := by
---   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
---   · exact {
---     f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
---     h := by sorry
---   }
---   · sorry
-
--- /-- The Lambek isomorphism  `1 ⨿ (A ⊗ list A) ≅ list A` -/
--- noncomputable def listAlgebraIso [ListArithmetic C] (A : C) :
---     𝟙_ C ⨿ (A ⊗ list A) ≅ list A :=
---   plistAlgebraIso A (𝟙_ C)
 
 end listAsEndofunctorAlgebra
 
