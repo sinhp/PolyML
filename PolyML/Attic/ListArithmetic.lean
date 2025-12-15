@@ -1102,6 +1102,34 @@ instance List.mon (A : C) : Mon C where
   X := list A
 
 
+/-- Every list-arithmetic category has a natural number object. -/
+@[simps]
+instance arithmeticOfListArithmetic [MonoidalCategory C] [ListArithmetic C] : PNNO C where
+  N := list (𝟙_ C)
+  zero := list.nil
+  succ := (λ_ _).inv ≫ list.cons (A:= 𝟙_ C)
+  isPNNO := {
+    prc {P B} e a := list.prc e ((λ_ _).hom ≫ a)
+    zero_prc {A B f g} := by rw [list.nil_prc]
+    succ_prc {A B f g} := by
+      rw [comp_whiskerRight, assoc]
+      refine (IsIso.eq_inv_comp ((λ_ (list (𝟙_ C))).inv ▷ A)).mp ?_
+      rw [list.cons_prc, ← assoc, ← assoc, ← assoc]
+      refine ?_ =≫ g
+      simp only [id_whiskerLeft, assoc,
+        Iso.inv_hom_id, comp_id, leftUnitor_inv_whiskerRight,
+        IsIso.inv_comp, IsIso.Iso.inv_inv]
+    prc_uniq {A B f g r hnil hcons} := by
+     apply list.prc_uniq r hnil
+     simp only [comp_whiskerRight, leftUnitor_inv_whiskerRight, assoc] at hcons
+     refine (Iso.inv_comp_eq (α_ (𝟙_ C) (list (𝟙_ C)) A)).mp ?_
+     simp_all only [id_whiskerLeft, assoc, Iso.inv_hom_id_assoc]
+     rw [← assoc]
+     refine (Iso.inv_comp_eq (λ_ (list (𝟙_ C) ⊗ A))).mp ?_
+     simpa only [assoc]
+  }
+
+
 /-
 Extra challenge:
 Show that in the category of small categories,
