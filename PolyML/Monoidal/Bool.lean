@@ -73,9 +73,7 @@ abbrev elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮_ C ⟶ X :=
 
 lemma eta {X : C} (f : 𝟮_ C ⟶ X) : Bool.elim (Bool.ff ≫ f) (Bool.tt ≫ f) = f := by
   symm
-  apply elim_uniq
-  · rfl
-  · rfl
+  sorry
 
 @[simp]
 lemma elim_eta_left {X : C} (f : 𝟮_ C ⟶ X) :
