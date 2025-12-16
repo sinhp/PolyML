@@ -204,7 +204,16 @@ theorem and_def [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
 @[reassoc (attr := simp)]
 theorem ff_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) ff ff) := by
-  sorry
+  refine (Iso.inv_comp_eq (λ_ (𝟮_ C))).mp ?_
+  apply elim_uniq
+  · simp only [ofBinaryCoproduct_obj, ofBinaryCoproduct_ff, and_def, coprod.desc_comp_inl_comp_inr,
+    coprod.map_desc]
+    have : coprod.inl ▷ (𝟙_ C ⨿ 𝟙_ C) ≫
+      (∂L (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv = sorry := sorry
+    -- nth_rw 5 [← comp_id (f:=coprod.inl )]
+    -- congr
+    sorry
+  · sorry
 
 @[reassoc (attr := simp)]
 theorem ff_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
