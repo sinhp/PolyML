@@ -134,19 +134,16 @@ def IsNNO.toIsPNNO [MonoidalCategory C] [MonoidalClosed C] [BraidedCategory C] (
       simp only [assoc]
       rw [hs]
 
-open PNNO IsPNNO
-
 @[simps]
-def PNNO.toNNO [MonoidalCategory C] [PNNO C] : NNO C where
-  N := N
-  zero := zero
-  succ := succ
-  isNNO := IsPNNO.toIsNNO N zero succ
+def NNO.ofPNNO [MonoidalCategory C] [PNNO C] : NNO C where
+  N := PNNO.N
+  zero := PNNO.zero
+  succ := PNNO.succ
+  isNNO := IsPNNO.toIsNNO PNNO.N PNNO.zero PNNO.succ
 
 /-- Any parameterized natural number object is isomorphic to any natural number object. -/
-def PNNO.isoNNO [MonoidalCategory C] [PNNO C] [NNO C]: PNNO.N (C:= C) ≅ NNO.N  :=
-  @IsNNO.iso _ _ _ PNNO.N NNO.N _ _ _ _  (IsPNNO.toIsNNO N zero succ) (NNO.isNNO)
-
+def NNO.isPNNO [MonoidalCategory C] [PNNO C] [NNO C]: NNO.N ≅ PNNO.N (C:= C)  :=
+  @IsNNO.iso _ _ _ NNO.N PNNO.N _ _ _ _  (NNO.isNNO) (IsPNNO.toIsNNO PNNO.N PNNO.zero PNNO.succ)
 namespace NNO
 
 open IsNNO

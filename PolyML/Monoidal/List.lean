@@ -43,6 +43,18 @@ class IsList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
 
 attribute [reassoc (attr := simp)] IsList.nil_rc IsList.cons_rc
 
+/-- Any two list objects on the same object are isomorphic. -/
+def IsList.iso {A L₁ L₂ : C} {nil₁ : 𝟙_ C ⟶ L₁} {cons₁ : A ⊗ L₁ ⟶ L₁}
+    {nil₂ : 𝟙_ C ⟶ L₂} {cons₂ : A ⊗ L₂ ⟶ L₂}
+    [IsList A L₁ nil₁ cons₁] [IsList A L₂ nil₂ cons₂] :
+    L₁ ≅ L₂ :=
+  { hom := IsList.rc nil₁ cons₁ nil₂ cons₂
+    inv := IsList.rc nil₂ cons₂ nil₁ cons₁
+    hom_inv_id := by
+      sorry
+    inv_hom_id := by
+      sorry }
+
 class List (A : C) where
   /-- The underlying list object on `A`. -/
   L : C
@@ -96,13 +108,15 @@ def List.ofPList (A : C) [PList A] : List A where
   isList := IsList.ofIsPList
 
 attribute [local instance] List.ofPList
+attribute [instance] IsList.ofIsPList
 
-def List.ofPlistIso (A : C) [PList A] :
+/-- Any parameterized list object is isomorphic to any list object. -/
+def List.isoPList (A : C) [PList A] [List A] :
     List.L A ≅ PList.L A :=
-  Iso.refl _
+  @IsList.iso _ _ _ A (List.L A) (PList.L A) _ _ (PList.nil A) (PList.cons A)
+    (List.isList) (IsList.ofIsPList)
 
 end
-
 
 namespace List
 
