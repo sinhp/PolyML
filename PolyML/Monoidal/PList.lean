@@ -568,10 +568,13 @@ def PNNO.ofPListUnit [PList (𝟙_ C)] : PNNO C where
   succ := (λ_ _).inv ≫ PList.cons (𝟙_ C)
   isPNNO := IsPNNO.ofPListUnitNilCons
 
+def PNNO.ofPListUnitIso [PList (𝟙_ C)] [PNNO C] : PNNO.ofPListUnit.N ≅ PNNO.N (C:= C) :=
+  @IsPNNO.iso _ _ _  (PNNO.ofPListUnit.N) PNNO.N _ _ _ _ PNNO.ofPListUnit.isPNNO PNNO.isPNNO
+
 /-- An isomorphism between the parameterized list object on the unit and the natural number object. -/
 @[simps!]
-def PList.ofUnitIsoNNO [PList (𝟙_ C)] [PNNO C] : PList.L (𝟙_ C) ≅ PNNO.N :=
-  @IsPNNO.iso _ _ _  (PNNO.ofPListUnit.N) PNNO.N _ _ _ _ PNNO.ofPListUnit.isPNNO PNNO.isPNNO
+def isoPListUnitPNNO [PList (𝟙_ C)] [PNNO C] : PList.L (𝟙_ C) ≅ PNNO.N :=
+  PNNO.ofPListUnitIso
 
 end
 

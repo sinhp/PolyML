@@ -255,8 +255,13 @@ def NNO.ofListUnit [List (𝟙_ C)] : NNO C where
   isNNO := IsNNO.ofListUnitNilCons
 
 def NNO.ofListUnitIso [List (𝟙_ C)] [NNO C] :
-    NNO.N (C:= C) ≅ NNO.ofListUnit.N :=
-  @IsNNO.iso _ _ _ NNO.N NNO.ofListUnit.N _ _ _ _ NNO.isNNO NNO.ofListUnit.isNNO
+    NNO.ofListUnit.N ≅ NNO.N (C:= C) :=
+  @IsNNO.iso _ _ _ NNO.ofListUnit.N NNO.N _ _ _ _ NNO.ofListUnit.isNNO NNO.isNNO
+
+/-- An isomorphism between the list object on the unit and the natural number object. -/
+def isoListUnitNNO [List (𝟙_ C)] [NNO C] :
+    List.L (𝟙_ C) ≅ NNO.N :=
+  NNO.ofListUnitIso
 
 end
 
@@ -273,20 +278,29 @@ noncomputable abbrev tail? [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
 
 section tail?
 
+variable [HasBinaryCoproducts C]
+
 @[reassoc (attr := simp)]
-theorem nil_tail? [HasBinaryCoproducts C] : nil A ≫ tail? A = coprod.inl := by
+theorem nil_tail? : nil A ≫ tail? A = coprod.inl := by
   dsimp [tail?, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
   simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
-theorem cons_tail? [HasBinaryCoproducts C] : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
+theorem cons_tail? : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
   simp only [cons_splitHeadTail_assoc, coprod.inr_map]
 
 @[simp]
-theorem singleton_tail? [HasBinaryCoproducts C] :
+theorem singleton_tail? :
     singleton A ≫ tail? A = toUnit A ≫ nil A ≫ coprod.inr := by
+  sorry
+
+/-- `tail?` for the unit list object is isomorphic to `pred?` on the natural
+number object. -/
+theorem tail?_pred? [List (𝟙_ C)] [NNO C] :
+      tail? (𝟙_ C) ≫ (coprod.map (𝟙 _) isoListUnitNNO.hom) =
+        isoListUnitNNO.hom ≫ NNO.pred? (C:= C) := by
   sorry
 
 end tail?
