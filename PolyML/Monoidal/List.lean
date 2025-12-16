@@ -360,7 +360,7 @@ class NeList {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] [Ha
   /-- The inclusion morphism from nonempty lists to lists. -/
   toList (A) : iL ⟶ List.L A
   /-- The tail? list -/
-  tail : iL ⟶ List.L A
+  tail (A) : iL ⟶ List.L A
   /-- The universal property of the nonempty list object. -/
   isPullback : IsPullback (tail) (toList) coprod.inr (List.tail? A)
 
@@ -384,15 +384,15 @@ noncomputable def singleton : A ⟶ NeList.iL A :=
 attribute [local instance] NNO.ofListUnit
 
 /-- The length of a nonempty list is the length of the underlying list. -/
-def len [List (𝟙_ C)] : NeList.iL A ⟶ NNO.N :=
+def len [NNO C] : NeList.iL A ⟶ NNO.N :=
   toList A ≫ List.len A
 
 section len
 
-variable [List (𝟙_ C)]
+variable [NNO C]
 
 theorem len_eq_tail_len_succ :
-    len A = tail ≫ List.len A ≫ NNO.succ := by
+    len A = tail A ≫ List.len A ≫ NNO.succ := by
   simp only [len]
   sorry
 
