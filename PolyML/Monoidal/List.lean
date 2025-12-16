@@ -240,6 +240,10 @@ def NNO.ofListUnit [List (𝟙_ C)] : NNO C where
   succ := (λ_ _).inv ≫ List.cons (𝟙_ C)
   isNNO := IsNNO.ofListUnitNilCons
 
+def NNO.ofListUnitIso [List (𝟙_ C)] [NNO C] :
+    NNO.N (C:= C) ≅ NNO.ofListUnit.N :=
+  @IsNNO.iso _ _ _ NNO.N NNO.ofListUnit.N _ _ _ _ NNO.isNNO NNO.ofListUnit.isNNO
+
 end
 
 namespace List
@@ -275,11 +279,14 @@ end tail?
 
 attribute [local instance] NNO.ofListUnit
 
+abbrev len [NNO C]: L A ⟶ NNO.N :=
+  rc NNO.zero (snd A NNO.N ≫ NNO.succ)
+
 /-- The length of a list. -/
-abbrev len [List (𝟙_ C)] : L A ⟶ ofListUnit.N :=
+abbrev len' [List (𝟙_ C)] : L A ⟶ ofListUnit.N :=
   List.map <| SemiCartesianMonoidalCategory.toUnit A
 
-section length
+section len
 
 open SemiCartesianMonoidalCategory
 
@@ -287,42 +294,41 @@ variable [List (𝟙_ C)]
 
 attribute [local instance] ofListUnit
 
+theorem len_eq_len' :
+    len A = len' A ≫ NNO.ofListUnitIso.hom := by
+  sorry
+
 theorem len_eq_rc_zero_snd_succ :
     len (A := A) = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
   sorry
 
-
 @[reassoc (attr := simp)]
 theorem nil_len_zero : nil (A := A) ≫ len A = NNO.zero := by
-  simp only [ofListUnit_N, nil_map, ofListUnit_zero]
+  simp
 
 theorem cons_len_succ :
     cons A ≫ len A = (A ◁ len A) ≫ snd A NNO.N ≫ NNO.succ := by
-  simp [cons_map]
-  rw [tensorHom_def']
-  simp only [← assoc]
-  refine ?_ =≫ _
-  dsimp [map]
-  rw [len_eq_rc_zero_snd_succ]
-  sorry
+  aesop
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ' :
     cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
-  simp only [ofListUnit_N, cons_map, ofListUnit_succ, Iso.hom_inv_id_assoc]
+  rw [len_eq_len', len']
+  simp only [← assoc, cons_map, ofListUnit_succ]
+  sorry
 
 theorem cons_len_eq_map_toUnit_cons :
     cons A ≫ len A = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
   simp only [ofListUnit_N, cons_map, ← assoc]
-  refine ?_ =≫ cons (𝟙_ C)
-  rw [tensorHom_def']
+  rw [assoc]
+  sorry
 
 -- len ([x]) = 1
 theorem singleton_len_one :
     singleton A ≫ len A = toUnit A ≫ NNO.one := by
   sorry
 
-end length
+end len
 
 end List
 

@@ -585,9 +585,9 @@ attribute [local instance] PNNO.ofPListUnit
 
 /-- Splits a list at an index `n` , resulting in the first `n` elements of the list paired with the remaining
 elements. -/
-noncomputable def splitAt [PList (𝟙_ C)] [HasBinaryCoproducts C] [BraidedCategory C] :
+noncomputable def splitAt [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
     PNNO.N ⊗ L A ⟶ L A ⊗ L A :=
-  prc ((λ_ _).inv ≫ (nil A ▷ L A)) ((λ_ _).hom ≫ shunt A)
+  PNNO.prc ((λ_ _).inv ≫ (nil A ▷ L A)) (shunt A)
 
 section splitAt
 
@@ -684,27 +684,6 @@ end length
 end PList
 
 abbrev WithPList (C : Type u) [Category.{v} C] [MonoidalCategory C] := Π (A : C), PList A
-
-@[simps!]
-instance : WithPList (Type u) := fun A => {
-  L := List A
-  nil := fun _ => []
-  cons := fun x => List.cons x.1 x.2
-  isPList := {
-    prc {P B} f g := fun x => List.foldr (g.curry) (f x.2) x.1
-    nil_prc := by aesop
-    cons_prc := by aesop
-    prc_uniq {P B} f g r h_nil h_cons := by
-      ext ⟨l, p⟩
-      cases l with
-      | nil =>
-        simp
-        symm
-        simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
-      | cons head tail =>
-        sorry
-  }
-}
 
 end MonoidalCategory
 
