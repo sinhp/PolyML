@@ -37,34 +37,26 @@ instance boolType : Bool (Type u) where
     elim_uniq := by sorry
   }
 
-/-- The natural numbers object in the category `Type`. -/
-instance nnoType₀ : NNO (Type) where
-  N := ℕ
-  zero := fun _ => 0
-  succ := Nat.succ
-  isNNO := {
-    rc {B} b g := Nat.rec (b ()) (fun n b => g b)
-    zero_rc := by aesop
-    succ_rc := by aesop
-    rc_uniq := by sorry
-  }
-
 instance pnnoType₀ : PNNO (Type) where
   N := ℕ
   zero := fun _ => 0
   succ := Nat.succ
   isPNNO := {
-    prc {P B} b g := sorry --Nat.rec (b ()) (fun n b => g b)
+    prc {P B} b g := fun x => Nat.rec (b x.2) (fun n b => g b) x.1
     zero_prc := sorry
     succ_prc := sorry
     prc_uniq := sorry
   }
 
+instance nnoType₀ : NNO (Type) := NNO.ofPNNO
+
 example : pnnoType₀.one = fun _ => (1 : ℕ) := rfl
+example : nnoType₀.one = fun _ => (1 : ℕ) := rfl
 
 #eval! pnnoType₀.one () -- fix this
+#eval! nnoType₀.one () -- fix this
 
-instance pnnoType : PNNO (Type u) where
+def pnnoType : PNNO (Type u) where
   N := ULift ℕ
   zero := fun _ => ULift.up 0
   succ := fun n => ULift.up (Nat.succ n.down)
@@ -75,31 +67,10 @@ instance pnnoType : PNNO (Type u) where
     prc_uniq := sorry
   }
 
-instance nnoType : NNO (Type u) := NNO.ofPNNO
+def nnoType : NNO (Type u) := @NNO.ofPNNO (Type u) _ _ pnnoType
 
 @[simps]
 instance withPListType₀ : WithPList (Type) := fun A => {
-  L := List A
-  nil := fun _ => []
-  cons := fun x => List.cons x.1 x.2
-  isPList := {
-    prc {P B} f g := fun x => List.foldr (g.curry) (f x.2) x.1
-    nil_prc := by aesop
-    cons_prc := by aesop
-    prc_uniq {P B} f g r h_nil h_cons := by
-      ext ⟨l, p⟩
-      cases l with
-      | nil =>
-        simp
-        symm
-        simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
-      | cons head tail =>
-        sorry
-  }
-}
-
-@[simps!]
-instance withPListType : WithPList (Type u) := fun A => {
   L := List A
   nil := fun _ => []
   cons := fun x => List.cons x.1 x.2
@@ -123,11 +94,30 @@ attribute [local instance] List.ofPList
 
 instance withListType₀ : WithList (Type) := WithList.ofWithPList (C:= Type)
 
-#check List.nil_len_zero
 
-#check List.len (C:= Type)
+@[simps!]
+def withPListType : WithPList (Type u) := fun A => {
+  L := List A
+  nil := fun _ => []
+  cons := fun x => List.cons x.1 x.2
+  isPList := {
+    prc {P B} f g := fun x => List.foldr (g.curry) (f x.2) x.1
+    nil_prc := by aesop
+    cons_prc := by aesop
+    prc_uniq {P B} f g r h_nil h_cons := by
+      ext ⟨l, p⟩
+      cases l with
+      | nil =>
+        simp
+        symm
+        simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
+      | cons head tail =>
+        sorry
+  }
+}
 
-#check withPListType₀ (ℕ)
+def withListType : WithList (Type u) :=
+  @WithList.ofWithPList (C:= Type u) _ _ withPListType
 
 #check (withPListType₀ ℕ).L
 
@@ -137,13 +127,12 @@ def myList : 𝟙_ (Type) ⟶  (withListType₀ ℕ).L := fun _ => [1,2,3]
 
 #eval! myPList PUnit.unit  -- fix this
 
-#eval! List.len (C:= Type) (A:= ℕ) (myList ())
-
-#check PList.splitAt
+#eval! List.len (C:= Type) ℕ (myList ())
 
 #check PNNO.GlobalElement.num
 
---#eval! PList.splitAt (C:= Type) (A:= ℕ) (PNNO.GlobalElement.num (Type) (3 : ℕ) (), myPList ())
+-- #eval! PList.splitAt (C:= Type) (A:= ℕ) (PNNO.GlobalElement.num (Type) (3 : ℕ) (), myPList ())
+--failed to compile definition, because it depends on 'PList.splitAt', which is noncomputable. HasBinaryProducts is noncomputable in Type. need to replace it with cocartesian monoidal category with computable coproducts.
 
 /-- The NNO in presheaf categories. -/
 instance nnoPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
@@ -193,6 +182,7 @@ instance listPresheaf {C : Type u} [Category C] : WithPList (C ⥤ Type) := fun 
       sorry
   }}
 
+-- make a test case for computing the length of a list in presheaf category
 
 -- We want to prove that categorical fin operations correspond to the arithmetical ones in Types.
 
