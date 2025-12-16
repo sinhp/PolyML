@@ -6,6 +6,7 @@ Authors: Sina Hazratpour
 
 import Mathlib.CategoryTheory.Monoidal.Comon_
 import Mathlib.Tactic.CategoryTheory.Coherence
+
 import PolyML.Monoidal.Bool
 import PolyML.ForMathlib.Monoidal.AddMon_
 import PolyML.ForMathlib.Monoidal.Powers

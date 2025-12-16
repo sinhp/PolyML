@@ -43,6 +43,18 @@ class IsList (A : C) (L : C) (nil : 𝟙_ C ⟶ L) (cons : A ⊗ L ⟶ L) where
 
 attribute [reassoc (attr := simp)] IsList.nil_rc IsList.cons_rc
 
+/-- Any two list objects on the same object are isomorphic. -/
+def IsList.iso {A L₁ L₂ : C} {nil₁ : 𝟙_ C ⟶ L₁} {cons₁ : A ⊗ L₁ ⟶ L₁}
+    {nil₂ : 𝟙_ C ⟶ L₂} {cons₂ : A ⊗ L₂ ⟶ L₂}
+    [IsList A L₁ nil₁ cons₁] [IsList A L₂ nil₂ cons₂] :
+    L₁ ≅ L₂ :=
+  { hom := IsList.rc nil₁ cons₁ nil₂ cons₂
+    inv := IsList.rc nil₂ cons₂ nil₁ cons₁
+    hom_inv_id := by
+      sorry
+    inv_hom_id := by
+      sorry }
+
 class List (A : C) where
   /-- The underlying list object on `A`. -/
   L : C
@@ -96,13 +108,15 @@ def List.ofPList (A : C) [PList A] : List A where
   isList := IsList.ofIsPList
 
 attribute [local instance] List.ofPList
+attribute [instance] IsList.ofIsPList
 
-def List.ofPlistIso (A : C) [PList A] :
+/-- Any parameterized list object is isomorphic to any list object. -/
+def List.isoPList (A : C) [PList A] [List A] :
     List.L A ≅ PList.L A :=
-  Iso.refl _
+  @IsList.iso _ _ _ A (List.L A) (PList.L A) _ _ (PList.nil A) (PList.cons A)
+    (List.isList) (IsList.ofIsPList)
 
 end
-
 
 namespace List
 
@@ -240,6 +254,15 @@ def NNO.ofListUnit [List (𝟙_ C)] : NNO C where
   succ := (λ_ _).inv ≫ List.cons (𝟙_ C)
   isNNO := IsNNO.ofListUnitNilCons
 
+def NNO.ofListUnitIso [List (𝟙_ C)] [NNO C] :
+    NNO.ofListUnit.N ≅ NNO.N (C:= C) :=
+  @IsNNO.iso _ _ _ NNO.ofListUnit.N NNO.N _ _ _ _ NNO.ofListUnit.isNNO NNO.isNNO
+
+/-- An isomorphism between the list object on the unit and the natural number object. -/
+def isoListUnitNNO [List (𝟙_ C)] [NNO C] :
+    List.L (𝟙_ C) ≅ NNO.N :=
+  NNO.ofListUnitIso
+
 end
 
 namespace List
@@ -255,31 +278,43 @@ noncomputable abbrev tail? [HasBinaryCoproducts C] : L A ⟶ 𝟙_ C ⨿ L A :=
 
 section tail?
 
+variable [HasBinaryCoproducts C]
+
 @[reassoc (attr := simp)]
-theorem nil_tail? [HasBinaryCoproducts C] : nil A ≫ tail? A = coprod.inl := by
+theorem nil_tail? : nil A ≫ tail? A = coprod.inl := by
   dsimp [tail?, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
   simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
-theorem cons_tail? [HasBinaryCoproducts C] : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
+theorem cons_tail? : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
   simp only [cons_splitHeadTail_assoc, coprod.inr_map]
 
 @[simp]
-theorem singleton_tail? [HasBinaryCoproducts C] :
+theorem singleton_tail? :
     singleton A ≫ tail? A = toUnit A ≫ nil A ≫ coprod.inr := by
+  sorry
+
+/-- `tail?` for the unit list object is isomorphic to `pred?` on the natural
+number object. -/
+theorem tail?_pred? [List (𝟙_ C)] [NNO C] :
+      tail? (𝟙_ C) ≫ (coprod.map (𝟙 _) isoListUnitNNO.hom) =
+        isoListUnitNNO.hom ≫ NNO.pred? (C:= C) := by
   sorry
 
 end tail?
 
 attribute [local instance] NNO.ofListUnit
 
+abbrev len [NNO C]: L A ⟶ NNO.N :=
+  rc NNO.zero (snd A NNO.N ≫ NNO.succ)
+
 /-- The length of a list. -/
-abbrev len [List (𝟙_ C)] : L A ⟶ ofListUnit.N :=
+abbrev len' [List (𝟙_ C)] : L A ⟶ ofListUnit.N :=
   List.map <| SemiCartesianMonoidalCategory.toUnit A
 
-section length
+section len
 
 open SemiCartesianMonoidalCategory
 
@@ -287,42 +322,41 @@ variable [List (𝟙_ C)]
 
 attribute [local instance] ofListUnit
 
+theorem len_eq_len' :
+    len A = len' A ≫ NNO.ofListUnitIso.hom := by
+  sorry
+
 theorem len_eq_rc_zero_snd_succ :
     len (A := A) = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
   sorry
 
-
 @[reassoc (attr := simp)]
 theorem nil_len_zero : nil (A := A) ≫ len A = NNO.zero := by
-  simp only [ofListUnit_N, nil_map, ofListUnit_zero]
+  simp
 
 theorem cons_len_succ :
     cons A ≫ len A = (A ◁ len A) ≫ snd A NNO.N ≫ NNO.succ := by
-  simp [cons_map]
-  rw [tensorHom_def']
-  simp only [← assoc]
-  refine ?_ =≫ _
-  dsimp [map]
-  rw [len_eq_rc_zero_snd_succ]
-  sorry
+  aesop
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ' :
     cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
-  simp only [ofListUnit_N, cons_map, ofListUnit_succ, Iso.hom_inv_id_assoc]
+  rw [len_eq_len', len']
+  simp only [← assoc, cons_map, ofListUnit_succ]
+  sorry
 
 theorem cons_len_eq_map_toUnit_cons :
     cons A ≫ len A = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
   simp only [ofListUnit_N, cons_map, ← assoc]
-  refine ?_ =≫ cons (𝟙_ C)
-  rw [tensorHom_def']
+  rw [assoc]
+  sorry
 
 -- len ([x]) = 1
 theorem singleton_len_one :
     singleton A ≫ len A = toUnit A ≫ NNO.one := by
   sorry
 
-end length
+end len
 
 end List
 
@@ -340,7 +374,7 @@ class NeList {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] [Ha
   /-- The inclusion morphism from nonempty lists to lists. -/
   toList (A) : iL ⟶ List.L A
   /-- The tail? list -/
-  tail : iL ⟶ List.L A
+  tail (A) : iL ⟶ List.L A
   /-- The universal property of the nonempty list object. -/
   isPullback : IsPullback (tail) (toList) coprod.inr (List.tail? A)
 
@@ -364,15 +398,15 @@ noncomputable def singleton : A ⟶ NeList.iL A :=
 attribute [local instance] NNO.ofListUnit
 
 /-- The length of a nonempty list is the length of the underlying list. -/
-def len [List (𝟙_ C)] : NeList.iL A ⟶ NNO.N :=
+def len [NNO C] : NeList.iL A ⟶ NNO.N :=
   toList A ≫ List.len A
 
 section len
 
-variable [List (𝟙_ C)]
+variable [NNO C]
 
 theorem len_eq_tail_len_succ :
-    len A = tail ≫ List.len A ≫ NNO.succ := by
+    len A = tail A ≫ List.len A ≫ NNO.succ := by
   simp only [len]
   sorry
 
