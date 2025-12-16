@@ -8,13 +8,14 @@ import Mathlib.Data.FinEnum
 import Mathlib.CategoryTheory.Monoidal.FunctorCategory
 
 import PolyML.Monoidal.List
+import PolyML.Monoidal.NNO
 import PolyML.Monoidal.Fin
 
 namespace CategoryTheory
 
 open  MonoidalCategory
 
-def boolType₀ : Bool (Type) where
+instance boolType₀ : Bool (Type) where
   obj := Bool
   ff := fun _ => false
   tt := fun _ => true
@@ -25,7 +26,7 @@ def boolType₀ : Bool (Type) where
     elim_uniq := by sorry
   }
 
-def boolType : Bool (Type u) where
+instance boolType : Bool (Type u) where
   obj := ULift Bool
   ff := fun _ => ULift.up false
   tt := fun _ => ULift.up true
@@ -37,7 +38,7 @@ def boolType : Bool (Type u) where
   }
 
 /-- The natural numbers object in the category `Type`. -/
-def nnoType₀ : NNO (Type) where
+instance nnoType₀ : NNO (Type) where
   N := ℕ
   zero := fun _ => 0
   succ := Nat.succ
@@ -48,7 +49,7 @@ def nnoType₀ : NNO (Type) where
     rc_uniq := by sorry
   }
 
-def pnnoType₀ : PNNO (Type) where
+instance pnnoType₀ : PNNO (Type) where
   N := ℕ
   zero := fun _ => 0
   succ := Nat.succ
@@ -61,18 +62,9 @@ def pnnoType₀ : PNNO (Type) where
 
 example : pnnoType₀.one = fun _ => (1 : ℕ) := rfl
 
-def nnoType : NNO (Type u) where
-  N := ULift ℕ
-  zero := fun _ => ULift.up 0
-  succ := fun n => ULift.up (Nat.succ n.down)
-  isNNO := {
-    rc := fun {B} b g => sorry
-    zero_rc := sorry
-    succ_rc := sorry
-    rc_uniq := sorry
-  }
+#eval! pnnoType₀.one () -- fix this
 
-def pnnoType : PNNO (Type u) where
+instance pnnoType : PNNO (Type u) where
   N := ULift ℕ
   zero := fun _ => ULift.up 0
   succ := fun n => ULift.up (Nat.succ n.down)
@@ -83,8 +75,10 @@ def pnnoType : PNNO (Type u) where
     prc_uniq := sorry
   }
 
+instance nnoType : NNO (Type u) := NNO.ofPNNO
+
 @[simps]
-def withPListType₀ : WithPList (Type) := fun A => {
+instance withPListType₀ : WithPList (Type) := fun A => {
   L := List A
   nil := fun _ => []
   cons := fun x => List.cons x.1 x.2
@@ -105,7 +99,7 @@ def withPListType₀ : WithPList (Type) := fun A => {
 }
 
 @[simps!]
-def withPListType : WithPList (Type u) := fun A => {
+instance withPListType : WithPList (Type u) := fun A => {
   L := List A
   nil := fun _ => []
   cons := fun x => List.cons x.1 x.2
@@ -125,6 +119,10 @@ def withPListType : WithPList (Type u) := fun A => {
   }
 }
 
+attribute [local instance] List.ofPList
+
+instance withListType₀ : WithList (Type) := WithList.ofWithPList (C:= Type)
+
 #check List.nil_len_zero
 
 #check List.len (C:= Type)
@@ -133,14 +131,22 @@ def withPListType : WithPList (Type u) := fun A => {
 
 #check (withPListType₀ ℕ).L
 
-def myList : 𝟙_ (Type) ⟶  (withPListType₀ ℕ).L := fun _ => [1, 2, 3]
+def myPList : 𝟙_ (Type) ⟶  (withPListType₀ ℕ).L := fun _ => [1, 2, 3]
 
--- #eval myList PUnit.unit  -- fix this
+def myList : 𝟙_ (Type) ⟶  (withListType₀ ℕ).L := fun _ => [1,2,3]
 
--- #eval List.len myList
+#eval! myPList PUnit.unit  -- fix this
+
+#eval! List.len (C:= Type) (A:= ℕ) (myList ())
+
+#check PList.splitAt
+
+#check PNNO.GlobalElement.num
+
+--#eval! PList.splitAt (C:= Type) (A:= ℕ) (PNNO.GlobalElement.num (Type) (3 : ℕ) (), myPList ())
 
 /-- The NNO in presheaf categories. -/
-def nnoPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
+instance nnoPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
   N := (Functor.const (J:= C)).obj ℕ
   zero := (Functor.const (J:= C)).map (fun _ => 0)
   succ := (Functor.const (J:= C)).map Nat.succ
@@ -154,7 +160,21 @@ def nnoPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
     rc_uniq := sorry
   }
 
-def listPresheaf {C : Type u} [Category C] : WithPList (C ⥤ Type) := fun A => {
+instance pnnoPresheaf {C : Type u} [Category C] : PNNO (C ⥤ Type) where
+  N := (Functor.const (J:= C)).obj ℕ
+  zero := (Functor.const (J:= C)).map (fun _ => 0)
+  succ := (Functor.const (J:= C)).map Nat.succ
+  isPNNO := {
+    prc := fun {P B} b g =>
+      { app := fun X => sorry
+        naturality := by
+          sorry }
+    zero_prc := sorry
+    succ_prc := sorry
+    prc_uniq := sorry
+  }
+
+instance listPresheaf {C : Type u} [Category C] : WithPList (C ⥤ Type) := fun A => {
   L.obj X := List (A.obj X)
   L.map {X Y} f := List.map (A.map f)
   nil.app X := fun _ => [ ]
