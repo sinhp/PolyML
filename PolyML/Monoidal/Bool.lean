@@ -66,6 +66,8 @@ variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
 
 open IsBool
 
+section
+
 variable [Bool C]
 
 abbrev elim {X : C} (f : 𝟙_ C ⟶ X) (g : 𝟙_ C ⟶ X) : 𝟮_ C ⟶ X :=
@@ -137,15 +139,15 @@ theorem ttConst_eq_toUnit_tt : ttConst (C:= C) = toUnit ≫ tt := by
 
 def not : 𝟮_ C ⟶ 𝟮_ C := elim tt ff
 
-end Bool
+end
 
-open Bool
+section
 
-variable {C : Type u} [Category.{v} C] [MonoidalCategory C] [HasBinaryCoproducts C]
+variable [HasBinaryCoproducts C]
 
 /-- A monoidal caetegory with binary coproducts has booleans. -/
 @[simps]
-def Bool.ofBinaryCoproduct : Bool C where
+def ofBinaryCoproduct : Bool C where
   obj := (𝟙_ C) ⨿ (𝟙_ C)
   ff := coprod.inl
   tt := coprod.inr
@@ -176,8 +178,8 @@ macro_rules
   |`(coprod.desc₄' $f1 $f2 $f3 $f4) => `(coprod.desc (coprod.desc $f1 $f2) (coprod.desc $f3 $f4))
 
 /-- The boolean "and" operation in a monoidal distributive category. -/
-def Bool.and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C  :=
-  (∂L (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
+def and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C ⟶ 𝟮_ C  :=
+  (∂L (𝟮_ C) (𝟙_ C) (𝟙_ C)).inv ≫
   coprod.map
     (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv
     (∂R (𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
@@ -188,7 +190,7 @@ def Bool.and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : 𝟮_ C ⊗ 𝟮_ C
     ((λ_ _).hom ≫ Bool.tt)
 
 @[simp]
-theorem Bool.and_def [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
+theorem and_def [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     and (C:= C) =
     (∂L (𝟙_ C ⨿ 𝟙_ C) (𝟙_ C) (𝟙_ C)).inv ≫
     coprod.map
@@ -199,38 +201,44 @@ theorem Bool.and_def [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
       (coprod.desc ((λ_ _).hom ≫ coprod.inl) ((λ_ _).hom ≫ coprod.inr)) :=
   rfl
 
+@[reassoc (attr := simp)]
 theorem ff_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
-    (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) tt tt) := by
+    (ff ▷ (𝟮_ C)) ≫ and = (λ_ _).hom ≫ (elim (C:= C) (X:= 𝟮_ C) ff ff) := by
   sorry
 
+@[reassoc (attr := simp)]
 theorem ff_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ⊗ₘ ff) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
   rw [tensorHom_def', assoc]
   rw [ff_and]
-  simp only [ofBinaryCoproduct_obj, ofBinaryCoproduct_ff, id_whiskerLeft, ofBinaryCoproduct_tt,
-    ofBinaryCoproduct_isBool_elim, assoc, Iso.inv_hom_id_assoc, colimit.ι_desc, BinaryCofan.mk_pt,
-    BinaryCofan.mk_inl, Iso.cancel_iso_hom_left]
-  sorry
+  simp
 
-
+@[reassoc (attr := simp)]
 theorem ff_and_tt [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (ff ⊗ₘ tt) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
   rw [tensorHom_def', assoc]
   rw [ff_and]
-  simp only [ofBinaryCoproduct_obj, ofBinaryCoproduct_tt, id_whiskerLeft,
-    ofBinaryCoproduct_isBool_elim, assoc, Iso.inv_hom_id_assoc, colimit.ι_desc, BinaryCofan.mk_pt,
-    BinaryCofan.mk_inr, ofBinaryCoproduct_ff, Iso.cancel_iso_hom_left]
-  sorry
+  simp
 
-theorem tt_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := sorry
+@[reassoc (attr := simp)]
+theorem tt_and [HasBinaryCoproducts C] [IsMonoidalDistrib C] : (tt ▷ 𝟮_ C) ≫ and = (λ_ _).hom := by
+  sorry
 
 theorem tt_and_ff [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (tt ⊗ₘ ff) ≫ and (C:= C) = (λ_ _).hom ≫ ff := by
-  sorry
+  rw [tensorHom_def', assoc]
+  rw [tt_and]
+  simp
 
 theorem tt_and_tt [HasBinaryCoproducts C] [IsMonoidalDistrib C] :
     (tt ⊗ₘ tt) ≫ and (C:= C) = (λ_ _).hom ≫ tt := by
-  sorry
+  rw [tensorHom_def', assoc]
+  rw [tt_and]
+  simp
+
+end
+
+end Bool
 
 end MonoidalCategory
 
