@@ -21,10 +21,16 @@ instance boolType₀ : Bool (Type) where
   ff := fun _ => false
   tt := fun _ => true
   isBool := {
-    elim x y := fun b => ite b (x ()) (y ())
-    ff_elim := by sorry
-    tt_elim := by sorry
-    elim_uniq := by sorry
+    elim x y := fun b => ite b (y ()) (x ())
+    ff_elim {X a b} := by funext; rfl
+    tt_elim {X a b} := by funext; rfl
+    elim_uniq {X a b h hf ht} := by
+      funext x
+      rw [← hf, ← ht]
+      simp only [types_comp_apply]
+      split
+      · rename_i H; rw [H]
+      · rename_i H; grind only
   }
 
 instance boolType : Bool (Type u) where
@@ -32,10 +38,25 @@ instance boolType : Bool (Type u) where
   ff := fun _ => ULift.up false
   tt := fun _ => ULift.up true
   isBool := {
-    elim x y := fun b => if b.down then x ⟨⟩ else y ⟨⟩
-    ff_elim := by sorry
-    tt_elim := by sorry
-    elim_uniq := by sorry
+    elim x y := fun b => if b.down then y ⟨⟩ else x ⟨⟩
+    ff_elim {X a b} := by
+      funext;
+      simp only [types_comp_apply, Bool.false_eq_true, ↓reduceIte]
+      rename_i H
+      rfl
+    tt_elim {X a b} :=  by
+      ext x
+      simp only [types_comp_apply, ↓reduceIte]
+      rfl
+    elim_uniq {X a b h hf ht} := by
+      funext x
+      rw [← hf, ← ht]
+      simp only [types_comp_apply]
+      split
+      · rename_i H; congr; exact ULift.ext_iff.mpr H
+      · rename_i H; congr;
+        simp only [Bool.not_eq_true] at H
+        exact ULift.ext_iff.mpr H
   }
 
 instance pnnoType₀ : PNNO (Type) where
@@ -44,9 +65,19 @@ instance pnnoType₀ : PNNO (Type) where
   succ := Nat.succ
   isPNNO := {
     prc {P B} b g := fun x => Nat.rec (b x.2) (fun n b => g b) x.1
-    zero_prc := sorry
-    succ_prc := sorry
-    prc_uniq := sorry
+    zero_prc {P B f g} := by
+      ext x
+      simp only [types_comp_apply, whiskerRight_apply, Nat.rec_zero]
+      congr
+    succ_prc {P B f g} := by
+      ext x
+      simp only [types_comp_apply, whiskerRight_apply, Nat.succ_eq_add_one]
+    prc_uniq {a b zero succ hf ht H} := by
+      funext x
+      rw [← (Iso.inv_comp_eq (λ_ a))] at ht
+      rw [← ht]
+      simp only [types_comp_apply, leftUnitor_inv_apply, whiskerRight_apply]
+      sorry
   }
 
 instance nnoType₀ : NNO (Type) := NNO.ofPNNO
@@ -87,7 +118,13 @@ instance withPListType₀ : WithPList (Type) := fun A => {
         symm
         simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
       | cons head tail =>
+        simp only [List.foldr_cons, Function.curry_apply]
+        rw [← Iso.inv_comp_eq (λ_ P)] at h_nil
+        rw [Iso.inv_comp_eq] at h_cons
+        rw [← h_nil]
+        simp only [types_comp_apply, leftUnitor_inv_apply, whiskerRight_apply]
         sorry
+
   }
 }
 
@@ -113,7 +150,21 @@ def withPListType : WithPList (Type u) := fun A => {
         symm
         simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
       | cons head tail =>
-        sorry
+        simp only [List.foldr_cons, Function.curry_apply]
+        symm
+        rw [← Iso.inv_comp_eq (λ_ P)] at h_nil
+        rw [← h_nil]
+        simp only [types_comp_apply, leftUnitor_inv_apply, whiskerRight_apply]
+        rw [Iso.inv_comp_eq] at h_cons
+        unfold List.foldr
+        split
+        · rename_i x
+          sorry
+        · rename_i x hx hx1
+          simp only [Function.curry_apply]
+          subst h_nil
+          sorry
+
   }
 }
 
@@ -143,11 +194,20 @@ instance nnoPresheaf {C : Type u} [Category C] : NNO (C ⥤ Type) where
   isNNO := {
     rc := fun {B} b g =>
       { app := fun X => Nat.rec (b.app X ()) (fun n b => g.app X b)
-        naturality := by
-          sorry }
-    zero_rc := sorry
-    succ_rc := sorry
-    rc_uniq := sorry
+        naturality X Y f := by
+          simp only [Functor.const_obj_obj, Functor.const_obj_map, Category.id_comp]
+          sorry
+           }
+    zero_rc {B f g } := by
+      rfl
+    succ_rc  {B f g } := by
+      rfl
+    rc_uniq {B f g r h1 h2} := by
+      ext x F
+      simp only
+      rw [← h1]
+      simp only [FunctorToTypes.comp, Functor.const_map_app]
+      sorry
   }
 
 instance pnnoPresheaf {C : Type u} [Category C] : PNNO (C ⥤ Type) where
@@ -172,15 +232,33 @@ instance listPresheaf {C : Type u} [Category C] : WithPList (C ⥤ Type) := fun 
   isPList := {
     prc {P B} f g := {
       app X := fun p => List.foldr (g.app X).curry (f.app X p.2) p.1
-      naturality := by
-        sorry
+      naturality X Y i := by
+       simp only [Monoidal.tensorObj_obj, Monoidal.tensorObj_map]
+       ext a
+       simp only [types_comp_apply, tensor_apply]
+       sorry
     }
-    nil_prc := by
-      sorry
-    cons_prc := by
-      sorry
-    prc_uniq := by
-      sorry
+    nil_prc {P B f g} := by
+      simp only [Monoidal.tensorUnit_obj, Monoidal.tensorObj_obj]
+      exact rfl
+    cons_prc {P B f g} := by
+      rfl
+    prc_uniq {B f g r h1 h2 H} := by
+      simp only [Monoidal.tensorObj_obj]
+      ext a b
+      simp only [Monoidal.tensorUnit_obj, Monoidal.tensorObj_obj] at *
+      rw [← Iso.inv_comp_eq (λ_ B)] at h2
+      rw [← h2]
+      simp only [FunctorToTypes.comp, Monoidal.leftUnitor_inv_app, leftUnitor_inv_apply,
+        Monoidal.whiskerRight_app, Monoidal.tensorUnit_obj, whiskerRight_apply]
+      rw [Iso.inv_comp_eq] at H
+      unfold List.foldr
+      simp only [Function.curry_apply]
+      split
+      · rename_i s
+        sorry
+      · rename_i s hs s1 s2
+        sorry
   }}
 
 -- make a test case for computing the length of a list in presheaf category
