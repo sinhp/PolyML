@@ -581,8 +581,6 @@ section
 
 variable {C : Type u} [Category.{v} C] [MonoidalCategory C] (A : C) [PList A]
 
-attribute [local instance] PNNO.ofPListUnit
-
 /-- Splits a list at an index `n` , resulting in the first `n` elements of the list paired with the remaining
 elements. -/
 noncomputable def splitAt [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
@@ -591,7 +589,7 @@ noncomputable def splitAt [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
 
 section splitAt
 
-variable {A} [PList (𝟙_ C)] [HasBinaryCoproducts C] [BraidedCategory C]
+variable {A} [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C]
 
 -- splitAt 0 xs = ([], xs)
 @[reassoc (attr := simp)]
