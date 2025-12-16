@@ -3,6 +3,9 @@
 import PolyML.Basic
 import PolyML.Monoidal.NNO
 import PolyML.Cartesian.NNO
+import PolyML.Monoidal.List
+import PolyML.Monoidal.PList
+import PolyML.Monoidal.Examples
 -- import PolyML.ForMathlib.Monad.Distrib
 -- import PolyML.Monoidal.FreeMon
 -- import PolyML.Monoidal.FreeCommMon
