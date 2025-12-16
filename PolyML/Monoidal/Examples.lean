@@ -6,6 +6,7 @@ Authors: Sina Hazratpour
 import Mathlib.CategoryTheory.Monoidal.Internal.Types.Basic
 import Mathlib.Data.FinEnum
 import Mathlib.CategoryTheory.Monoidal.FunctorCategory
+import Mathlib.AlgebraicTopology.SimplexCategory.Defs
 
 import PolyML.Monoidal.List
 import PolyML.Monoidal.NNO
@@ -183,6 +184,29 @@ instance listPresheaf {C : Type u} [Category C] : WithPList (C ⥤ Type) := fun 
   }}
 
 -- make a test case for computing the length of a list in presheaf category
+
+section
+
+open SimplexCategory Simplicial Category Opposite
+
+variable (n : ℕ)
+
+attribute [local instance] listPresheaf
+
+#check PList.L ((yoneda.obj (⦋n⦌ : SimplexCategory)))
+
+def simplicesListIso (m : ℕ) :
+    (PList.L ((yoneda.obj (⦋n⦌ : SimplexCategory))) |>.obj (op ⦋m⦌)) ≅ List (⦋m⦌ ⟶ ⦋n⦌) where
+  hom := sorry
+  inv := sorry
+  hom_inv_id := sorry
+  inv_hom_id := sorry
+
+
+end
+
+#check yoneda
+#check isRepresentable_of_natIso
 
 -- We want to prove that categorical fin operations correspond to the arithmetical ones in Types.
 
