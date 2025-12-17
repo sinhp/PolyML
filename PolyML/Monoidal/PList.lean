@@ -133,11 +133,14 @@ abbrev rc {B : C} (f : 𝟙_ C ⟶ B) (g : A ⊗ B ⟶ B) :
 @[simp]
 lemma rightUnitor_unit_inv_nil_whisker_rightUnitor_unit_hom :
     (ρ_ (𝟙_ C)).inv ≫ (nil A ▷ (𝟙_ C)) ≫ (ρ_ (PList.L A)).hom = nil A := by
-  sorry
+  simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id, Iso.inv_hom_id_assoc]
 
 theorem prc_nil_cons_id {P : C} :
-    prc ((λ_ P).inv ≫ nil A ▷ P) ((α_ _ _ _).inv ≫ cons A ▷ P) = 𝟙 (PList.L A ⊗ P) :=
-  sorry
+    prc ((λ_ P).inv ≫ nil A ▷ P) ((α_ _ _ _).inv ≫ cons A ▷ P) = 𝟙 (PList.L A ⊗ P) := by
+  symm
+  apply prc_uniq
+  · simp only [comp_id, Iso.hom_inv_id_assoc]
+  · simp only [comp_id, whiskerLeft_id, id_comp]
 
 /-- Covariant action of `PList` on morphisms of the first argument.
 A morphism `f : A ⟶ B` induces a morphism `PList.map f : PList.L A ⊗ P ⟶ PList.L B ⊗ P`. -/
@@ -151,9 +154,43 @@ def map {A' : C} [PList A'] (f : A ⟶ A') :
     PList.L A ⟶ PList.L A' :=
   rc (nil A') (f ▷ (L A') ≫ cons A')
 
+#check cons_prc
 theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
     map f = (ρ_ _).inv ≫ map' (𝟙_ C) f ≫ (ρ_ _).hom := by
-  sorry
+  dsimp [map, rc]
+  simp only [Iso.cancel_iso_inv_left]
+  symm
+  apply prc_uniq
+  · simp only [whiskerRight_id, assoc]
+    rw [← assoc]
+    rw [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [comp_whiskerRight]
+    simp only [← assoc]
+    refine (IsIso.eq_comp_inv (ρ_ (L A')).hom).mp ?_
+    dsimp [map']
+    rw [assoc]
+    rw [nil_prc]
+    simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id, Iso.hom_inv_id_assoc,
+      id_comp, IsIso.Iso.inv_hom, assoc, Iso.cancel_iso_inv_right_assoc]
+    rw [unitors_equal]
+  · sorry
+
+
+
+
+    -- simp only [← assoc]
+    -- rw [← IsIso.eq_comp_inv]
+    -- simp only [assoc]
+    -- dsimp [map']
+
+
+
+
+
+
+
+
 
 theorem map'_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     map' P f = map f ▷ P := by
@@ -194,7 +231,7 @@ def foldr {B : C} (g : A ⊗ B ⟶ B) : L A ⊗ B ⟶ B := prc (𝟙 B) g
 theorem foldr_nil {B : C} (g : A ⊗ B ⟶ B) :
   nil A ▷ B ≫ foldr g = (λ_ B).hom := by
   dsimp [foldr]
-  sorry
+  simp only [nil_prc, comp_id]
 
 @[simp]
 theorem foldr_cons {B : C} (g : A ⊗ B ⟶ B) :
@@ -224,6 +261,7 @@ theorem nil_append : nil A ▷ (L A) ≫ append A = (λ_ (L A)).hom := by
 
 --xs ++ [] = xs
 theorem append_nil : (L A) ◁ nil A ≫ append A = (ρ_ (L A)).hom := by
+  dsimp [append, foldr]
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
@@ -316,12 +354,13 @@ variable {A} {P : C} [HasBinaryCoproducts C]
 @[reassoc (attr := simp)]
 theorem nil_splitHeadTail : (nil A ▷ P) ≫ splitHeadTail A P = (λ_ _).hom ≫ coprod.inl := by
   dsimp [splitHeadTail]
-  sorry
+  simp only [nil_prc]
 
 -- `fun (a, as) => splitHeadTail (a :: as) = fun (a, as) => inr (a, as)`
 @[reassoc (attr := simp)]
 theorem cons_splitHeadTail : (cons A ▷ P) ≫ splitHeadTail A P = coprod.inr := by
   dsimp [splitHeadTail]
+  simp only [← assoc]
   sorry
 
 -- `fun as => if splitHeadTail (as) = inl (nil) return nil else cons splitHeadTail as = fun as => as`
@@ -364,7 +403,7 @@ variable {A} [HasBinaryCoproducts C] [BraidedCategory C]
 @[reassoc (attr := simp)]
 theorem nil_shunt : (L A ◁ nil A) ≫ shunt A = L A ◁ (nil A) := by
   dsimp [shunt]
-  sorry
+  aesop
 
 @[reassoc (attr := simp)]
 theorem cons_shunt : (L A ◁ cons A) ≫ shunt A = (α_ _ _ _).inv ≫ (snoc A ▷ L A) := by
@@ -599,13 +638,13 @@ variable {A} [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C]
 theorem splitAt_zero :
     (PNNO.zero ▷ L A) ≫ splitAt A = (nil A ▷ L A) := by
   dsimp [splitAt]
-  sorry
+  rw [PNNO.zero_prc, Iso.hom_inv_id_assoc]
 
 @[reassoc (attr := simp)]
 -- splitAt (succ n) xs = let (ys, zs) = splitAt n xs in shunt ys zs
 theorem splitAt_succ : (PNNO.succ ▷ L A) ≫ splitAt A = (splitAt A) ≫ shunt A := by
   dsimp [splitAt]
-  sorry
+  rw [PNNO.succ_prc]
 
 end splitAt
 
@@ -636,6 +675,10 @@ theorem len_eq_rc_zero_snd_succ :
   rw [Iso.eq_inv_comp]
   apply IsPList.prc_uniq
   · dsimp [nil, len, map, map]
+    simp only [whiskerRight_id, Iso.hom_inv_id_assoc, assoc]
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    simp only [assoc]
     sorry
   . dsimp [len, PList.map, PList.cons]
     sorry
