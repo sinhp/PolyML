@@ -686,11 +686,16 @@ def lenAddMonHom [BraidedCategory C] :
 
 end len
 
-noncomputable def take (A: C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
+theorem splitAt_append {A : C} [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
+    splitAt A ≫ append A = snd N (L A) := by
+  dsimp [splitAt]
+  sorry
+
+noncomputable def take (A : C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
     PNNO.N ⊗ L A ⟶ L A :=
   splitAt A ≫ fst (L A) (L A)
 
-noncomputable def drop (A: C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
+noncomputable def drop (A : C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
     PNNO.N ⊗ L A ⟶ L A :=
   splitAt A ≫ snd (L A) (L A)
 
