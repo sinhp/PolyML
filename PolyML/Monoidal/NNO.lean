@@ -190,6 +190,8 @@ def fromBool [Bool C] : 𝟮_ C ⟶ N := Bool.elim zero one
 
 variable {C}
 
+open Bool
+
 theorem zero_toBool [Bool C] :
     zero ≫ toBool C = Bool.ff := by
   dsimp [toBool, Bool.ff]
@@ -197,8 +199,24 @@ theorem zero_toBool [Bool C] :
 
 theorem succ_toBool [Bool C] :
     succ ≫ toBool C = toUnit ≫ Bool.tt := by
-  rw [toUnit, toBool, succ_rc, const]
-  sorry
+  dsimp [toBool]
+  rw [succ_rc]
+  nth_rw 2 [Bool.ttConst_eq_toUnit_tt]
+  dsimp [toUnit]
+  dsimp [const]
+  simp only [← assoc]
+  congr
+  apply rc_uniq
+  · simp only [← assoc]
+    simp only [zero_rc]
+    dsimp [Bool.toUnit]
+    simp only [IsBool.ff_elim]
+  · simp only [comp_id]
+    simp only [← assoc]
+    rw [succ_rc]
+    simp only [assoc]
+    congr
+    exact Bool.ttConst_toUnit
 
 @[simp]
 theorem false_fromBool [Bool C] :
@@ -214,7 +232,18 @@ theorem fromBool_toBool [Bool C] :
     fromBool C ≫ toBool C = 𝟙 (𝟮_ C) := by
   ext
   · simp only [← assoc, false_fromBool, zero_toBool, comp_id]
-  · sorry
+  · congr
+    dsimp [fromBool, toBool]
+    simp only [elim_comp, zero_rc]
+    symm
+    apply IsBool.elim_uniq
+    simp only [comp_id]
+    simp only [comp_id]
+    dsimp [one]
+    simp only [assoc]
+    rw [succ_rc,← assoc,zero_rc]
+    dsimp [ttConst]
+    simp only [IsBool.ff_elim]
 
 @[simps pt]
 def binaryCofanZeroSucc : BinaryCofan (𝟙_ C) N where
@@ -246,7 +275,7 @@ noncomputable def isNNOOnePlus [HasBinaryCoproduct (𝟙_ C) N] :
     refine coprod.hom_ext_iff.mpr ?_
     · rw [hr1]
       simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl, BinaryCofan.mk_inr,
-        true_and]
+        _root_.true_and]
       apply isNNO.rc_uniq
       · rw [← hr1]
         simp only [assoc]
@@ -271,7 +300,15 @@ theorem succ_inr_isNNOOnePlus_rc [HasBinaryCoproduct (𝟙_ C) N]
     {B : C} (b : 𝟙_ C ⟶ B) (g : B ⟶ B) :
     succ ≫ inr ≫ isNNOOnePlus.rc b g = isNNO.rc b g ≫ g ≫ g := by
   simp
-  sorry
+  rw [succ_rc]
+  simp only [← assoc]
+  congr
+  symm
+  apply rc_uniq
+  · simp only [← assoc]
+    simp only [zero_rc]
+  · simp only [← assoc]
+    rw [succ_rc]
 
 @[simp]
 theorem zero_succ_inr_isNNOOnePlus_rc [HasBinaryCoproduct (𝟙_ C) N]
