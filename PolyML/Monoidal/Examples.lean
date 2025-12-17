@@ -118,13 +118,14 @@ instance withPListType₀ : WithPList (Type) := fun A => {
         symm
         simpa using congrArg (fun h => h (PUnit.unit, p)) (h_nil.symm)
       | cons head tail =>
-        simp only [List.foldr_cons, Function.curry_apply]
         rw [← Iso.inv_comp_eq (λ_ P)] at h_nil
         rw [Iso.inv_comp_eq] at h_cons
         rw [← h_nil]
         simp only [types_comp_apply, leftUnitor_inv_apply, whiskerRight_apply]
+        unfold List.foldr
+        rw [← Iso.inv_comp_eq] at h_cons
+        simp only [Function.curry_apply]
         sorry
-
   }
 }
 
