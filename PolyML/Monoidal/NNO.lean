@@ -362,8 +362,7 @@ noncomputable def colimitCocone [HasBinaryCoproduct (𝟙_ C) N] :
       refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
       · intro S a b
         exact NNOIsoOnePlus.hom ≫ (coprod.desc a b)
-      · intros T f g;
-        sorry
+      · sorry
       · sorry
       · sorry
 
