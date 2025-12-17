@@ -316,19 +316,21 @@ abbrev len' [List (𝟙_ C)] : L A ⟶ ofListUnit.N :=
 
 section len
 
-open SemiCartesianMonoidalCategory
+open SemiCartesianMonoidalCategory PList
 
-variable [List (𝟙_ C)]
+variable [NNO C]
 
 attribute [local instance] ofListUnit
 
-theorem len_eq_len' :
-    len A = len' A ≫ NNO.ofListUnitIso.hom := by
+variable {A}
+
+theorem len_eq_len' [List (𝟙_ C)] :
+    len A = len' A ≫ isoListUnitNNO.hom := by
   sorry
 
-theorem len_eq_rc_zero_snd_succ :
-    len (A := A) = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
-  sorry
+theorem len_def :
+    len A = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
+  rfl
 
 @[reassoc (attr := simp)]
 theorem nil_len_zero : nil (A := A) ≫ len A = NNO.zero := by
@@ -339,14 +341,14 @@ theorem cons_len_succ :
   aesop
 
 -- len (a :: xs) = succ (len xs)
-theorem cons_len_succ' :
+theorem cons_len_succ' [List (𝟙_ C)] :
     cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
   rw [len_eq_len', len']
-  simp only [← assoc, cons_map, ofListUnit_succ]
+  simp only [← assoc, cons_map]
   sorry
 
-theorem cons_len_eq_map_toUnit_cons :
-    cons A ≫ len A = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
+theorem cons_len_eq_toUnit_map_cons_iso [List (𝟙_ C)] :
+    cons A ≫ len A = (toUnit A ⊗ₘ map (toUnit A)) ≫ cons (𝟙_ C) ≫ isoListUnitNNO.hom := by
   simp only [ofListUnit_N, cons_map, ← assoc]
   rw [assoc]
   sorry

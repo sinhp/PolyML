@@ -10,7 +10,7 @@ import Mathlib.CategoryTheory.Monoidal.Mon_
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
-import PolyML.Monoidal.PNNO
+import PolyML.Monoidal.NNO
 
 
 /-!
@@ -650,80 +650,93 @@ end splitAt
 
 end
 
-open PList SemiCartesianMonoidalCategory
+open PList PNNO SemiCartesianMonoidalCategory
 
-variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C] {A : C} [PList A] {P : C}
+variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 
-theorem prc_id_snd_snd : prc (𝟙 P) (snd A P) = snd (L A) P := by
+theorem prc_id_snd_snd  {A : C} [PList A] {P : C} : prc (𝟙 P) (snd A P) = snd (L A) P := by
   sorry
-
-/-- The length of a list. -/
-abbrev len [PList (𝟙_ C)] : L A ⟶ PNNO.ofPListUnit.N :=
-  PList.map <| SemiCartesianMonoidalCategory.toUnit A
-
-section length
-
-open SemiCartesianMonoidalCategory PList PNNO
-
-variable [PList (𝟙_ C)]
 
 attribute [local instance] PNNO.ofPListUnit
 
-theorem len_eq_rc_zero_snd_succ :
-    len = PList.rc zero (snd A N ≫ succ) := by
-  dsimp [len]
-  rw [Iso.eq_inv_comp]
-  apply IsPList.prc_uniq
-  · dsimp [nil, len, map, map]
-    simp only [whiskerRight_id, Iso.hom_inv_id_assoc, assoc]
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    simp only [assoc]
-    sorry
-  . dsimp [len, PList.map, PList.cons]
-    sorry
+abbrev len (A : C) [PList A] [PNNO C]: L A ⟶ PNNO.N :=
+  rc zero (snd A N ≫ succ)
+
+/-- The length of a list. -/
+abbrev len' (A : C) [PList A] [PList (𝟙_ C)] : L A ⟶ ofPListUnit.N :=
+  PList.map <| SemiCartesianMonoidalCategory.toUnit A
+
+section len
+
+open SemiCartesianMonoidalCategory PList NNO PNNO
+
+variable [PNNO C]
+
+variable {A : C} [PList A]
+
+theorem len_eq_len' [PList (𝟙_ C)] :
+    len A = len' A ≫ isoPListUnitPNNO.hom := by
+  sorry
+
+theorem len_def :
+    len A = PList.rc PNNO.zero (snd A PNNO.N ≫ PNNO.succ) := by
+  rfl
 
 @[reassoc (attr := simp)]
-theorem nil_len_zero : nil (A:= A) ≫ len = zero := by
-  simp [len_eq_rc_zero_snd_succ, PList.rc]
+theorem nil_len_zero : nil A ≫ len A = PNNO.zero := by
+  rw [len_def, rc]
+  sorry
+
+theorem cons_len_succ :
+    cons A ≫ len A = (A ◁ len A) ≫ snd A PNNO.N ≫ PNNO.succ := by
   sorry
 
 -- len (a :: xs) = succ (len xs)
-theorem cons_len_succ :
-    cons A ≫ len = (A ◁ len) ≫ snd A N ≫ succ := by
-  dsimp [len]
-  rw [cons_map]
-  rw [← Category.assoc]
+theorem cons_len_succ' [PList (𝟙_ C)] :
+    cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ PNNO.N).hom ≫ PNNO.succ := by
+  rw [len_eq_len', len']
+  simp only [← assoc, cons_map]
   sorry
 
-theorem cons_len_eq_map_toUnit_cons :
-    cons A ≫ len = A ◁ map (toUnit A) ≫ (toUnit A ▷ L (𝟙_ C)) ≫ cons (𝟙_ C) := by
-  dsimp [len, PList.cons]
-  rw [PList.cons_map]
-  sorry
-
--- len (xs ++ ys) = len xs + len ys
-theorem append_len_add : append (A:= A) ≫ len = (len ⊗ₘ len) ≫ add := by
-  sorry
-
+theorem cons_len_eq_toUnit_map_cons_iso [PList (𝟙_ C)] :
+    cons A ≫ len A = (toUnit A ⊗ₘ map (toUnit A)) ≫ cons (𝟙_ C) ≫ isoPListUnitPNNO.hom := by
+  rw [len_eq_len', len']
+  simp only [ofPListUnit_N, cons_map, ← assoc]
 
 -- len ([x]) = 1
 theorem singleton_len_one :
-    singleton A ≫ len = toUnit A ≫ one := by
+    singleton A ≫ len A = toUnit A ≫ PNNO.one := by
+  sorry
+
+-- len (xs ++ ys) = len xs + len ys
+theorem append_len_add [PNNO C] : append A ≫ len A = (len A ⊗ₘ len A) ≫ PNNO.add := by
   sorry
 
 /-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
-instance isAddMonHomLen [BraidedCategory C] : IsAddMonHom (len (A:= A)) where
+instance isAddMonHomLen [BraidedCategory C] : IsAddMonHom (len A) where
   zero_hom := nil_len_zero
   add_hom := append_len_add
 
 /-- Promoting the length morphism to an internal monoid homomorphism from `L A` to `N`. -/
 def lenAddMonHom [BraidedCategory C] :
     AddMon.Hom (PList.addMon A) (PNNO.addMon) where
-  hom := len
+  hom := len A
   isMonHom_hom := by infer_instance
 
-end length
+end len
+
+theorem splitAt_append {A : C} [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
+    splitAt A ≫ append A = snd N (L A) := by
+  dsimp [splitAt]
+  sorry
+
+noncomputable def take (A : C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
+    PNNO.N ⊗ L A ⟶ L A :=
+  splitAt A ≫ fst (L A) (L A)
+
+noncomputable def drop (A : C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
+    PNNO.N ⊗ L A ⟶ L A :=
+  splitAt A ≫ snd (L A) (L A)
 
 end PList
 
