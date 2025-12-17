@@ -145,7 +145,7 @@ section
 
 variable [HasBinaryCoproducts C]
 
-/-- A monoidal caetegory with binary coproducts has booleans. -/
+/-- A monoidal category with binary coproducts has booleans. -/
 @[simps]
 def ofBinaryCoproduct : Bool C where
   obj := (𝟙_ C) ⨿ (𝟙_ C)
