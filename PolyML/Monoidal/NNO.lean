@@ -339,11 +339,17 @@ variable [HasBinaryCoproduct (𝟙_ C) N]
 
 @[reassoc (attr := simp)]
 theorem pred?_zero : NNO.zero ≫ pred? = coprod.inl (C:= C) := by
-  sorry
+  dsimp [pred?]
+  refine (Iso.eq_comp_inv NNOIsoOnePlus).mp ?_
+  rw [NNOIsoOnePlus_inv]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inl]
 
 @[reassoc (attr := simp)]
 theorem pred?_succ : NNO.succ ≫ pred? = coprod.inr (C:= C) := by
-  sorry
+  dsimp [pred?]
+  refine (Iso.eq_comp_inv NNOIsoOnePlus).mp ?_
+  rw [NNOIsoOnePlus_inv]
+  simp only [colimit.ι_desc, BinaryCofan.mk_pt, BinaryCofan.mk_inr]
 
 end pred?
 
@@ -356,7 +362,8 @@ noncomputable def colimitCocone [HasBinaryCoproduct (𝟙_ C) N] :
       refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
       · intro S a b
         exact NNOIsoOnePlus.hom ≫ (coprod.desc a b)
-      · sorry
+      · intros T f g;
+        sorry
       · sorry
       · sorry
 
