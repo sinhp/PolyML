@@ -195,7 +195,40 @@ theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
 theorem map'_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     map' P f = map f ▷ P := by
   dsimp [map, map']
-  sorry
+  symm
+  apply prc_uniq
+  · simp only [← assoc]
+    simp only [comp_whiskerRight, Iso.hom_inv_id, id_comp]
+    rw [← comp_whiskerRight]
+    rw [← comp_whiskerRight]
+    simp only [← assoc]
+    rw [rightUnitor_inv_naturality]
+    rw [comp_whiskerRight]
+    rw [comp_whiskerRight]
+    simp only [assoc]
+    have : nil A ▷ 𝟙_ C ▷ P ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P=
+    ((nil A ▷ 𝟙_ C)  ≫ prc (nil A') (f ▷ L A' ≫ cons A')) ▷ P := by {
+      simp only [whiskerRight_id, comp_whiskerRight, assoc]
+    }
+    rw [this]
+    rw [nil_prc]
+    simp only [comp_whiskerRight, leftUnitor_whiskerRight, assoc,
+      triangle_assoc_comp_right_inv_assoc, id_whiskerLeft, Iso.hom_inv_id_assoc,
+      Iso.inv_hom_id_assoc]
+  · unfold rc
+    simp only [comp_whiskerRight]
+
+    have : (α_ A (L A) P).inv ≫ cons A ▷ P ≫ (ρ_ (L A)).inv ▷ P ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P=
+    ((α_ A (L A) P).inv ≫ cons A ▷ P ≫ (ρ_ (L A)).inv ▷ P) ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P := by {simp only [assoc]}
+    rw [this]
+    rw [← comp_whiskerRight]
+    rw [rightUnitor_inv_naturality]
+    simp only [← assoc]
+    rw [comp_whiskerRight]
+    simp only [← assoc]
+    dsimp [prc]
+    sorry
+    --rw [cons_prc]
 
 @[reassoc (attr := simp)]
 theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
