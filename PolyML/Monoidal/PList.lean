@@ -262,8 +262,23 @@ theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
 theorem cons_map' {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     cons A ▷ P ≫ (map f ▷ P) =
       (α_ _ _ _).hom ≫ (f ⊗ₘ (map f ▷ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
-  sorry
+  dsimp [map,rc]
+  refine (Iso.inv_comp_eq (α_ A (L A) P)).mp ?_
+  simp only [comp_whiskerRight]
+  simp only [← assoc]
+  have :
+  (((α_ A (L A) P).inv ≫ cons A ▷ P) ≫ (ρ_ (L A)).inv ▷ P) ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P=
+  ((((α_ A (L A) P).inv ≫ (cons A ▷ P) ≫ (ρ_ (L A)).inv ▷ P))) ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P := by {
+    simp only [assoc]
+  }
+  rw [this]
+  rw [← comp_whiskerRight]
+  rw [rightUnitor_inv_naturality]
 
+  rw [cons_prc]
+
+
+#exit
 theorem cons_map {A' : C} [PList A'] {f : A ⟶ A'} :
     cons A ≫ map f = (f ⊗ₘ map f) ≫ cons A' := by
   dsimp [map, rc]
