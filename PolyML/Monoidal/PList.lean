@@ -174,7 +174,24 @@ theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
     simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id, Iso.hom_inv_id_assoc,
       id_comp, IsIso.Iso.inv_hom, assoc, Iso.cancel_iso_inv_right_assoc]
     rw [unitors_equal]
-  · sorry
+  ·
+    dsimp [map']
+    dsimp [prc]
+    simp only [← assoc]
+    have : (((α_ A (L A) (𝟙_ C)).inv ≫ cons A ▷ 𝟙_ C) ≫
+      IsPList.prc (nil A) (cons A) ((λ_ (𝟙_ C)).inv ≫ nil A' ▷ 𝟙_ C)
+        ((f ▷ (L A' ⊗ 𝟙_ C) ≫ (α_ A' (L A') (𝟙_ C)).inv) ≫ cons A' ▷ 𝟙_ C)) ≫
+    (ρ_ (L A')).hom=((((α_ A (L A) (𝟙_ C)).inv ≫ cons A ▷ 𝟙_ C) ≫
+      IsPList.prc (nil A) (cons A) ((λ_ (𝟙_ C)).inv ≫ nil A' ▷ 𝟙_ C)
+        ((f ▷ (L A' ⊗ 𝟙_ C) ≫ (α_ A' (L A') (𝟙_ C)).inv) ≫ cons A' ▷ 𝟙_ C))) ≫
+    (ρ_ (L A')).hom := sorry
+    rw [this]
+    sorry
+
+
+
+
+
 
 
 
@@ -234,7 +251,12 @@ theorem map'_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
 theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
     nil A ≫ map f = nil A' := by
   simp [map, rc]
-  sorry
+  simp only [←  assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  rw [nil_prc]
+  rw [← unitors_inv_equal]
+  simp only [Iso.inv_hom_id_assoc]
 
 @[reassoc (attr := simp)]
 theorem cons_map' {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
