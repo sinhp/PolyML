@@ -274,8 +274,8 @@ theorem cons_map' {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
   rw [this]
   rw [← comp_whiskerRight]
   rw [rightUnitor_inv_naturality]
-
-  rw [cons_prc]
+  sorry
+  --rw [cons_prc]
 
 
 #exit
