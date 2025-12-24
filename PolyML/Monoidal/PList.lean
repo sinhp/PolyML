@@ -277,11 +277,15 @@ theorem cons_map' {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
   sorry
   --rw [cons_prc]
 
-
-#exit
 theorem cons_map {A' : C} [PList A'] {f : A ⟶ A'} :
     cons A ≫ map f = (f ⊗ₘ map f) ≫ cons A' := by
   dsimp [map, rc]
+  simp only [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  rw [tensorHom_def']
+  simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, whiskerLeft_comp,
+    whiskerLeft_rightUnitor_inv]
   sorry
 
 
@@ -307,7 +311,8 @@ theorem foldr_nil {B : C} (g : A ⊗ B ⟶ B) :
 theorem foldr_cons {B : C} (g : A ⊗ B ⟶ B) :
   cons A ▷ B ≫ foldr g = (α_ _ _ _).hom ≫ (A ◁ foldr g) ≫ g := by
   dsimp [foldr]
-  sorry
+  refine (Iso.inv_comp_eq (α_ A (L A) B)).mp ?_
+  rw [cons_prc]
 
 variable (A)
 
@@ -332,6 +337,8 @@ theorem nil_append : nil A ▷ (L A) ≫ append A = (λ_ (L A)).hom := by
 --xs ++ [] = xs
 theorem append_nil : (L A) ◁ nil A ≫ append A = (ρ_ (L A)).hom := by
   dsimp [append, foldr]
+  refine (Iso.inv_comp_eq_id (ρ_ (L A))).mp ?_
+  simp only [← assoc]
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
@@ -370,7 +377,15 @@ def snoc : L A ⊗ A ⟶ L A := (L A ◁ singleton A) ≫ append A
 
 theorem braiding_list_unit_hom [BraidedCategory C] [PList (𝟙_ C)] {P : C} :
     (β_ (L (𝟙_ C)) P).hom = prc ((ρ_ P).inv ≫ P ◁ nil (𝟙_ C)) (λ_ _).hom := by
-  sorry
+  apply prc_uniq
+  · simp only [BraidedCategory.braiding_naturality_left, braiding_tensorUnit_left, assoc]
+  · simp only [BraidedCategory.braiding_naturality_left, BraidedCategory.braiding_tensor_left_hom,
+    id_whiskerLeft, braiding_tensorUnit_left, comp_whiskerRight, leftUnitor_whiskerRight, assoc,
+    triangle_assoc_comp_right_inv, Iso.inv_hom_id_assoc, Iso.inv_hom_id, comp_id,
+    Iso.cancel_iso_hom_left]
+    refine (Iso.eq_inv_comp (β_ (L (𝟙_ C)) P)).mp ?_
+    simp only [Iso.inv_hom_id]
+    sorry
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] : L A ⟶ L A :=
@@ -383,12 +398,32 @@ variable {A}
 /- rev_nil [] = [] -/
 theorem nil_rev [BraidedCategory C] : nil A ≫ rev A = nil (A := A) := by
   dsimp [rev, nil, prc]
-  sorry
+  simp only [BraidedCategory.braiding_naturality_left_assoc]
+  dsimp [rc]
+  dsimp [singleton]
+  simp only [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  rw [nil_prc]
+  rw [unitors_equal]
+  simp only [Iso.inv_hom_id_assoc]
 
 /- rev [x] = [x] -/
 theorem singleton_rev_eq_singleton [BraidedCategory C] : singleton A ≫ rev A = singleton A := by
   simp only [rev, singleton]
-  sorry
+  nth_rw  3 [← comp_id (f:=  (ρ_ A).inv ≫ (A ◁ nil A ≫ cons A))]
+  simp only [assoc]
+  congr
+  dsimp [rc]
+  refine (Iso.inv_comp_eq_id (ρ_ (L A))).mpr ?_
+  symm
+  apply prc_uniq
+  · rw [unitors_equal]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+  · dsimp [append]
+    dsimp [foldr]
+    sorry
+
 
 /- rev (xs ++ ys) = rev ys ++ rev xs -/
 theorem rev_append [BraidedCategory C] :
@@ -596,7 +631,11 @@ instance ofPList (A : C) [PList A] : WithRecursion A where
     h := by simp }
   freeForgetAdj.unit.naturality P Q φ := by
     simp
+    simp only [← assoc]
+    rw [leftUnitor_inv_naturality]
+    simp only [assoc]
     sorry
+
   freeForgetAdj.counit.naturality β γ f := by
     simp
     sorry
@@ -725,7 +764,12 @@ open PList PNNO SemiCartesianMonoidalCategory
 variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 
 theorem prc_id_snd_snd  {A : C} [PList A] {P : C} : prc (𝟙 P) (snd A P) = snd (L A) P := by
-  sorry
+  symm
+  apply IsPList.prc_uniq
+  · simp only [comp_id]
+    sorry
+  · sorry
+
 
 attribute [local instance] PNNO.ofPListUnit
 
@@ -752,10 +796,15 @@ theorem len_def :
     len A = PList.rc PNNO.zero (snd A PNNO.N ≫ PNNO.succ) := by
   rfl
 
+
 @[reassoc (attr := simp)]
 theorem nil_len_zero : nil A ≫ len A = PNNO.zero := by
-  rw [len_def, rc]
+  rw [len_def]
+  simp only [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
   sorry
+  --rw [nil_prc]
 
 theorem cons_len_succ :
     cons A ≫ len A = (A ◁ len A) ≫ snd A PNNO.N ≫ PNNO.succ := by
