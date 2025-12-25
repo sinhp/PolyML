@@ -154,7 +154,6 @@ def map {A' : C} [PList A'] (f : A ⟶ A') :
     PList.L A ⟶ PList.L A' :=
   rc (nil A') (f ▷ (L A') ≫ cons A')
 
-#check cons_prc
 theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
     map f = (ρ_ _).inv ≫ map' (𝟙_ C) f ≫ (ρ_ _).hom := by
   dsimp [map, rc]
