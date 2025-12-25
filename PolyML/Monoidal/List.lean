@@ -285,7 +285,7 @@ theorem nil_tail? : nil A ≫ tail? A = coprod.inl := by
   dsimp [tail?, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
-  simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
+  simp only [IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
 theorem cons_tail? : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
