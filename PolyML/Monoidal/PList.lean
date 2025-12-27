@@ -173,79 +173,19 @@ theorem map_map' {A' : C} [PList A'] {f : A ⟶ A'} :
     simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id, Iso.hom_inv_id_assoc,
       id_comp, IsIso.Iso.inv_hom, assoc, Iso.cancel_iso_inv_right_assoc]
     rw [unitors_equal]
-  ·
-    dsimp [map']
-    dsimp [prc]
+  · dsimp [map']
     simp only [← assoc]
-    have : (((α_ A (L A) (𝟙_ C)).inv ≫ cons A ▷ 𝟙_ C) ≫
-      IsPList.prc (nil A) (cons A) ((λ_ (𝟙_ C)).inv ≫ nil A' ▷ 𝟙_ C)
-        ((f ▷ (L A' ⊗ 𝟙_ C) ≫ (α_ A' (L A') (𝟙_ C)).inv) ≫ cons A' ▷ 𝟙_ C)) ≫
-    (ρ_ (L A')).hom=((((α_ A (L A) (𝟙_ C)).inv ≫ cons A ▷ 𝟙_ C) ≫
-      IsPList.prc (nil A) (cons A) ((λ_ (𝟙_ C)).inv ≫ nil A' ▷ 𝟙_ C)
-        ((f ▷ (L A' ⊗ 𝟙_ C) ≫ (α_ A' (L A') (𝟙_ C)).inv) ≫ cons A' ▷ 𝟙_ C))) ≫
-    (ρ_ (L A')).hom := sorry
-    rw [this]
-    sorry
-
-
-
-
-
-
-
-
-
-    -- simp only [← assoc]
-    -- rw [← IsIso.eq_comp_inv]
-    -- simp only [assoc]
-    -- dsimp [map']
-
-
-
-
-
-
-
-
+    refine (Iso.eq_comp_inv (ρ_ (L A'))).mp ?_
+    dsimp [prc]
+    simp only [assoc]
+    rw [cons_prc]
+    simp only [whiskerRight_id, whiskerRight_tensor, assoc, Iso.hom_inv_id_assoc,
+      Iso.inv_hom_id_assoc, whiskerLeft_comp, whiskerLeft_rightUnitor]
 
 theorem map'_map {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     map' P f = map f ▷ P := by
-  dsimp [map, map']
-  symm
-  apply prc_uniq
-  · simp only [← assoc]
-    simp only [comp_whiskerRight, Iso.hom_inv_id, id_comp]
-    rw [← comp_whiskerRight]
-    rw [← comp_whiskerRight]
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    rw [comp_whiskerRight]
-    rw [comp_whiskerRight]
-    simp only [assoc]
-    have : nil A ▷ 𝟙_ C ▷ P ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P=
-    ((nil A ▷ 𝟙_ C)  ≫ prc (nil A') (f ▷ L A' ≫ cons A')) ▷ P := by {
-      simp only [whiskerRight_id, comp_whiskerRight, assoc]
-    }
-    rw [this]
-    rw [nil_prc]
-    simp only [comp_whiskerRight, leftUnitor_whiskerRight, assoc,
-      triangle_assoc_comp_right_inv_assoc, id_whiskerLeft, Iso.hom_inv_id_assoc,
-      Iso.inv_hom_id_assoc]
-  · unfold rc
-    simp only [comp_whiskerRight]
-
-    have : (α_ A (L A) P).inv ≫ cons A ▷ P ≫ (ρ_ (L A)).inv ▷ P ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P=
-    ((α_ A (L A) P).inv ≫ cons A ▷ P ≫ (ρ_ (L A)).inv ▷ P) ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P := by
-      {simp only [assoc]}
-    rw [this]
-    rw [← comp_whiskerRight]
-    rw [rightUnitor_inv_naturality]
-    simp only [← assoc]
-    rw [comp_whiskerRight]
-    simp only [← assoc]
-    dsimp [prc]
-    sorry
-    --rw [cons_prc]
+  rw [map_map']
+  sorry
 
 @[reassoc (attr := simp)]
 theorem nil_map {A' : C} [PList A'] {P : C} (f : A ⟶ A') :
@@ -263,19 +203,7 @@ theorem cons_map' {A' : C} [PList A'] {P : C} {f : A ⟶ A'} :
     cons A ▷ P ≫ (map f ▷ P) =
       (α_ _ _ _).hom ≫ (f ⊗ₘ (map f ▷ P)) ≫ (α_ _ _ _).inv ≫ cons A' ▷ P := by
   dsimp [map,rc]
-  refine (Iso.inv_comp_eq (α_ A (L A) P)).mp ?_
-  simp only [comp_whiskerRight]
-  simp only [← assoc]
-  have :
-  (((α_ A (L A) P).inv ≫ cons A ▷ P) ≫ (ρ_ (L A)).inv ▷ P) ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P=
-  ((((α_ A (L A) P).inv ≫ (cons A ▷ P) ≫ (ρ_ (L A)).inv ▷ P))) ≫ prc (nil A') (f ▷ L A' ≫ cons A') ▷ P := by {
-    simp only [assoc]
-  }
-  rw [this]
-  rw [← comp_whiskerRight]
-  rw [rightUnitor_inv_naturality]
   sorry
-  --rw [cons_prc]
 
 theorem cons_map {A' : C} [PList A'] {f : A ⟶ A'} :
     cons A ≫ map f = (f ⊗ₘ map f) ≫ cons A' := by
@@ -286,11 +214,23 @@ theorem cons_map {A' : C} [PList A'] {f : A ⟶ A'} :
   rw [tensorHom_def']
   simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, whiskerLeft_comp,
     whiskerLeft_rightUnitor_inv]
-  sorry
-
+  rw [← assoc]
+  rw [rightUnitor_inv_naturality]
+  simp only [assoc]
+  refine _ ≫= ?_
+  refine (Iso.inv_comp_eq (α_ A (L A) (𝟙_ C))).mp ?_
+  rw [cons_prc]
 
 theorem map_id : map (𝟙 A) = 𝟙 (PList.L A) := by
-  sorry
+  dsimp [map,rc]
+  refine (Iso.inv_comp_eq_id (ρ_ (L A))).mpr ?_
+  symm
+  apply prc_uniq
+  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
+    rw [unitors_equal]
+  · simp only [← assoc]
+    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id, whiskerLeft_rightUnitor,
+      id_whiskerRight]
 
 @[reassoc (attr := simp)]
 theorem map_comp {A' A'' : C} [PList A'] [PList A''] (f : A ⟶ A') (g : A' ⟶ A'') :
@@ -336,9 +276,6 @@ theorem nil_append : nil A ▷ (L A) ≫ append A = (λ_ (L A)).hom := by
 
 --xs ++ [] = xs
 theorem append_nil : (L A) ◁ nil A ≫ append A = (ρ_ (L A)).hom := by
-  dsimp [append, foldr]
-  refine (Iso.inv_comp_eq_id (ρ_ (L A))).mp ?_
-  simp only [← assoc]
   sorry
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
@@ -355,12 +292,21 @@ theorem append_map {A' : C} [PList A'] {f : A ⟶ A'} :
 @[reassoc (attr := simp)]
 theorem singleton_append : (singleton A ▷ L A) ≫ append A = cons A := by
   dsimp [append, singleton]
-  simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc, foldr]
-  rw [cons_prc]
-  sorry
+  simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc,
+    foldr_cons, Iso.inv_hom_id_assoc]
+  --rw [cons_prc]
+  simp only [← assoc]
+  rw [← id_comp (f:= cons A)]
+  congr
+  · dsimp [foldr]
+    simp only [id_comp, assoc]
+    refine (hom_comp_eq_id (A ◁ (λ_ (L A)).inv)).mpr ?_
+    rw [← whiskerLeft_comp]
+    rw [nil_prc]
+    simp only [comp_id, inv_whiskerLeft, IsIso.Iso.inv_inv]
+  · simp only [id_comp]
 
 end append
-
 
 /-- The monoid object structure on the list object given by `nil` and `append`. -/
 instance addMonObj : AddMonObj (L A) where
@@ -377,15 +323,7 @@ def snoc : L A ⊗ A ⟶ L A := (L A ◁ singleton A) ≫ append A
 
 theorem braiding_list_unit_hom [BraidedCategory C] [PList (𝟙_ C)] {P : C} :
     (β_ (L (𝟙_ C)) P).hom = prc ((ρ_ P).inv ≫ P ◁ nil (𝟙_ C)) (λ_ _).hom := by
-  apply prc_uniq
-  · simp only [BraidedCategory.braiding_naturality_left, braiding_tensorUnit_left, assoc]
-  · simp only [BraidedCategory.braiding_naturality_left, BraidedCategory.braiding_tensor_left_hom,
-    id_whiskerLeft, braiding_tensorUnit_left, comp_whiskerRight, leftUnitor_whiskerRight, assoc,
-    triangle_assoc_comp_right_inv, Iso.inv_hom_id_assoc, Iso.inv_hom_id, comp_id,
-    Iso.cancel_iso_hom_left]
-    refine (Iso.eq_inv_comp (β_ (L (𝟙_ C)) P)).mp ?_
-    simp only [Iso.inv_hom_id]
-    sorry
+  sorry
 
 /-- Reverses a list, i.e. the list with the elements in reverse order. -/
 def rev [BraidedCategory C] : L A ⟶ L A :=
@@ -410,20 +348,7 @@ theorem nil_rev [BraidedCategory C] : nil A ≫ rev A = nil (A := A) := by
 
 /- rev [x] = [x] -/
 theorem singleton_rev_eq_singleton [BraidedCategory C] : singleton A ≫ rev A = singleton A := by
-  simp only [rev, singleton]
-  nth_rw  3 [← comp_id (f:=  (ρ_ A).inv ≫ (A ◁ nil A ≫ cons A))]
-  simp only [assoc]
-  congr
-  dsimp [rc]
-  refine (Iso.inv_comp_eq_id (ρ_ (L A))).mpr ?_
-  symm
-  apply prc_uniq
-  · rw [unitors_equal]
-    simp only [whiskerRight_id, assoc, Iso.inv_hom_id, comp_id]
-  · dsimp [append]
-    dsimp [foldr]
-    sorry
-
+  sorry
 
 /- rev (xs ++ ys) = rev ys ++ rev xs -/
 theorem rev_append [BraidedCategory C] :
@@ -465,10 +390,6 @@ theorem nil_splitHeadTail : (nil A ▷ P) ≫ splitHeadTail A P = (λ_ _).hom �
 @[reassoc (attr := simp)]
 theorem cons_splitHeadTail : (cons A ▷ P) ≫ splitHeadTail A P = coprod.inr := by
   dsimp [splitHeadTail]
-  simp only [← assoc]
-  simp only [assoc]
-  simp only [← assoc]
-  dsimp [prc]
   sorry
 
 -- `fun as => if splitHeadTail (as) = inl (nil) return nil else cons splitHeadTail as = fun as => as`
@@ -634,9 +555,6 @@ instance ofPList (A : C) [PList A] : WithRecursion A where
     h := by simp }
   freeForgetAdj.unit.naturality P Q φ := by
     simp
-    simp only [← assoc]
-    rw [leftUnitor_inv_naturality]
-    simp only [assoc]
     sorry
 
   freeForgetAdj.counit.naturality β γ f := by
@@ -688,11 +606,6 @@ theorem ofPList.forget_freeActionFunctor_map {Q : C} (φ : P ⟶ Q) :
 @[simp]
 theorem ofPList.forgetMap_freeActionFrunctorTrianlge_app {A' : C} [PList A'] {f : A ⟶ A'}  :
     (Act.forget.map <| freeActionFunctorMapTriangle f |>.app P) = map f ▷ P := by
-  dsimp [Adjunction.homEquiv, freeActionFunctorMapTriangle]
-  simp only [Act.mapForgetTwoSquare,Act.mapForgetIsoSquare,Act.mapForgetIso]
-  simp only [Functor.map_id, comp_id, id_comp]
-  dsimp [Act.forget, forget_map, Act.map]
-  simp only [Functor.map_id, id_f, id_comp]
   sorry
 
 end
@@ -771,32 +684,7 @@ open PList PNNO SemiCartesianMonoidalCategory
 variable {C : Type u} [Category.{v} C] [SemiCartesianMonoidalCategory C]
 
 theorem prc_id_snd_snd  {A : C} [PList A] {P : C} : prc (𝟙 P) (snd A P) = snd (L A) P := by
-  symm
-  apply IsPList.prc_uniq
-  · simp only [comp_id]
-    rw [snd_def]
-    simp only [← assoc]
-    nth_rw 2 [← id_comp ((λ_ P).hom)]
-    congr
-    rw [← comp_whiskerRight]
-    simp only [IsTerminal.comp_from, IsTerminal.from_self, id_whiskerRight]
-  · rw [snd_def]
-    rw [snd_def]
-    simp only [whiskerLeft_comp, ← assoc]
-    refine ?_ =≫ _
-
-    simp only [assoc]
-    rw [← comp_whiskerRight]
-    simp only [IsTerminal.comp_from]
-
-    simp only [← assoc]
-    rw [← whiskerLeft_comp]
-    --refine (Iso.inv_comp_eq (α_ A (L A) P)).mpr ?_
-    sorry
-
-    --rw [comp_whiskerRight]
-
-
+  sorry
 
 attribute [local instance] PNNO.ofPListUnit
 
@@ -817,38 +705,7 @@ variable {A : C} [PList A]
 
 theorem len_eq_len' [PList (𝟙_ C)] :
     len A = len' A ≫ isoPListUnitPNNO.hom := by
-  dsimp [len', len]
-  dsimp [rc]
-  refine (Iso.inv_comp_eq (ρ_ (L A))).mpr ?_
-  symm
-  apply isPList.prc_uniq
-  · simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc]
-    have : (ρ_ (𝟙_ C)).hom ≫
-     nil A ≫
-      map (SemiCartesianMonoidalCategory.toUnit A) ≫
-       (ρ_ (L (𝟙_ C))).inv ≫ prc PNNO.zero ((λ_ PNNO.N).hom ≫ PNNO.succ)=
-      (ρ_ (𝟙_ C)).hom ≫
-    (nil A ≫
-      map (SemiCartesianMonoidalCategory.toUnit A)) ≫
-      ((ρ_ (L (𝟙_ C))).inv ≫ prc PNNO.zero ((λ_ PNNO.N).hom ≫ PNNO.succ)) := by simp
-    rw [this]; clear this
-    rw [nil_map]
-    simp only [← assoc]
-    rw [rightUnitor_inv_naturality]
-    rw [comp_whiskerRight]
-    simp only [assoc]
-    rw [IsPList.nil_prc]
-    simp only [whiskerRight_id, Iso.hom_inv_id, comp_id, Iso.inv_hom_id_assoc]
-    exact A
-  · rw [snd_def]
-    simp only [whiskerRight_id, assoc, Iso.inv_hom_id_assoc, whiskerLeft_comp,
-      whiskerLeft_rightUnitor, whiskerLeft_rightUnitor_inv, Iso.cancel_iso_inv_left,
-      Iso.cancel_iso_hom_left]
-    simp only [← assoc]
-    rw [cons_map]
-    simp only [assoc]
-    sorry
-
+  sorry
 
 theorem len_def :
     len A = PList.rc PNNO.zero (snd A PNNO.N ≫ PNNO.succ) := by
@@ -867,10 +724,6 @@ theorem nil_len_zero : nil A ≫ len A = PNNO.zero := by
 
 theorem cons_len_succ :
     cons A ≫ len A = (A ◁ len A) ≫ snd A PNNO.N ≫ PNNO.succ := by
-  rw [snd_def]
-  --dsimp [len, rc]
-  simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, assoc]
-  simp only [← assoc]
   sorry
 
 -- len (a :: xs) = succ (len xs)
@@ -896,9 +749,6 @@ theorem singleton_len_one :
 
 -- len (xs ++ ys) = len xs + len ys
 theorem append_len_add [PNNO C] : append A ≫ len A = (len A ⊗ₘ len A) ≫ PNNO.add := by
-  rw [tensorHom_def']
-  dsimp [len,add,iter]
-  simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, assoc, comp_whiskerRight]
   sorry
 
 /-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
