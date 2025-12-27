@@ -784,18 +784,17 @@ theorem prc_id_snd_snd  {A : C} [PList A] {P : C} : prc (𝟙 P) (snd A P) = snd
     rw [snd_def]
     simp only [whiskerLeft_comp, ← assoc]
     refine ?_ =≫ _
+
     simp only [assoc]
     rw [← comp_whiskerRight]
+    simp only [IsTerminal.comp_from]
+
     simp only [← assoc]
     rw [← whiskerLeft_comp]
     --refine (Iso.inv_comp_eq (α_ A (L A) P)).mpr ?_
-    simp only [IsTerminal.comp_from]
     sorry
 
     --rw [comp_whiskerRight]
-
-
-
 
 
 
@@ -869,25 +868,21 @@ theorem nil_len_zero : nil A ≫ len A = PNNO.zero := by
 theorem cons_len_succ :
     cons A ≫ len A = (A ◁ len A) ≫ snd A PNNO.N ≫ PNNO.succ := by
   rw [snd_def]
-  dsimp [len,rc]
+  --dsimp [len, rc]
   simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, assoc]
+  simp only [← assoc]
   sorry
 
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ' [PList (𝟙_ C)] :
     cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ PNNO.N).hom ≫ PNNO.succ := by
+  rw [cons_len_succ]
   rw [len_eq_len', len']
-  simp only [← assoc, cons_map]
-  simp only [tensorHom_def]
-  simp only [assoc]
-  refine _ ≫= ?_
-  rw [whiskerLeft_comp]
-  simp only [assoc]
-  refine _ ≫= ?_
+  rw [snd_def]
   simp only [← assoc]
-  rw [leftUnitor_naturality]
-  sorry
-
+  congr
+  simp only [tensorHom_def']
+  congr
 
 theorem cons_len_eq_toUnit_map_cons_iso [PList (𝟙_ C)] :
     cons A ≫ len A = (toUnit A ⊗ₘ map (toUnit A)) ≫ cons (𝟙_ C) ≫ isoPListUnitPNNO.hom := by
@@ -901,6 +896,9 @@ theorem singleton_len_one :
 
 -- len (xs ++ ys) = len xs + len ys
 theorem append_len_add [PNNO C] : append A ≫ len A = (len A ⊗ₘ len A) ≫ PNNO.add := by
+  rw [tensorHom_def']
+  dsimp [len,add,iter]
+  simp only [whiskerLeft_comp, whiskerLeft_rightUnitor_inv, assoc, comp_whiskerRight]
   sorry
 
 /-- The length function is a monoid homomorphism from the list monoid to the natural number object. -/
@@ -918,12 +916,7 @@ end len
 
 theorem splitAt_append {A : C} [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
     splitAt A ≫ append A = snd N (L A) := by
-  rw [snd_def]
   sorry
-
-  --dsimp [append, splitAt, prc, foldr]
-  --symm
-
 
 noncomputable def take (A : C) [PList A] [PNNO C] [HasBinaryCoproducts C] [BraidedCategory C] :
     PNNO.N ⊗ L A ⟶ L A :=
@@ -990,10 +983,7 @@ noncomputable instance ofPListIsInitial {A P : C} [PList A] :
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
     f := prc (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α)
-    h := by
-      simp only [linearPolynomialAlgebra.nil, linearPolynomialAlgebra.cons, ofPList_str,
-        coprod.desc_comp]
-      sorry
+    h := by sorry
   }
   · sorry
 
