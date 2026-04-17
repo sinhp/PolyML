@@ -422,34 +422,35 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
 
     -- 1. Format the LHS to cleanly match the end of our backward calculation
     -- 1. Format the LHS to cleanly match the end of our backward calculation
-    have h_lhs : (𝟙 α.A ⊗ₘ (nil ≫ α.a)) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a = (singleton ⊗ₘ (nil ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+    -- 1. Format the LHS. Notice we start directly with `α.A ◁` to perfectly match the goal!
+    have h_lhs : α.A ◁ (nil ≫ α.a) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a = (singleton ⊗ₘ (nil ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+      -- Expand the tensors
       simp only [tensorHom_def]
 
-      -- 1. Flatten everything. This usually results in: L ≫ (R ≫ (L ≫ ...))
-      simp only [Category.assoc, MonoidalCategory.whiskerRight_id, Category.id_comp]
+      -- Clean up identities and flatten parentheses
+      simp only [Category.assoc, MonoidalCategory.whiskerRight_id]
 
-      -- 2. SURGICAL REGROUP: Group the first L and the first R together.
-      -- We tell Lean: "Start at the first left-whisker and wrap the next two things."
+      -- 2. SURGICAL REGROUP: Wrap the first Left-whisker and Right-whisker together
       rw [← Category.assoc (f := α.A ◁ (nil ≫ α.a))]
 
-      -- 3. Now they are touching: (L ≫ R) ≫ L ...
-      -- whisker_exchange will find them now!
+      -- 3. Swap them! (L ≫ R becomes R ≫ L)
       rw [whisker_exchange]
 
-      -- 4. Flatten again so we can see the two Left-whiskers sitting together
+      -- 4. Flatten again
       simp only [Category.assoc]
-      stop
 
-      -- 5. Group the two Left-whiskers so we can compress them
-      rw [← Category.assoc (f := singleton ▷ α.A)]
+      -- 5. SURGICAL REGROUP: Wrap the two Left-whiskers together
+      rw [← Category.assoc (f := bag α.A ◁ (nil ≫ α.a))]
 
       -- 6. Compress!
       rw [← MonoidalCategory.whiskerLeft_comp]
 
       -- 7. Final cleanup
       simp only [Category.assoc]
+      aesop
 
-
+    -- Now the pattern is a 1:1 identical match, and the rewrite will succeed!
+    rw [h_lhs]
     -- Bridge the syntax gap for the algebra unit law
     have h_unit : singleton ≫ α.a = 𝟙 α.A := α.unit
 
@@ -495,8 +496,6 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
           simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp]
           simp
         rw [h_compress]
-
-
       -- 4. Evaluate the unit law locally on the LEFT side of the tensor
       _ = (singleton ⊗ₘ (nil ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
         have h_left : singleton ≫ α.a ≫ singleton = singleton (A:=α.A) := by
@@ -506,14 +505,144 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
 
         -- Let simp magically dive into the left side of the tensor and substitute!
         simp only [h_left]
+
+
+
+  mul_assoc := by
+    dsimp [MonObj.mul]
+
+    -- 1. FORMAT THE LEFT HAND SIDE ((mul ⊗ 𝟙) ≫ mul)
+    have h_lhs : ((((singleton ⊗ₘ singleton) ≫ μ ≫ α.a) ⊗ₘ 𝟙 α.A) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a) =
+                 (((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton) ⊗ₘ singleton) ≫ μ ≫ α.a := by
+      -- Expand all tensors
+      simp only [tensorHom_def]
+
+      -- Clean up the identities
+      simp only [Category.assoc, MonoidalCategory.whiskerLeft_id, Category.comp_id]
+
+      -- SURGICAL REGROUP: Target the fully unpacked inner tensor!
+      rw [← Category.assoc (f := (singleton ▷ α.A ≫ bag α.A ◁ singleton ≫ μ ≫ α.a) ▷ α.A)]
+
+      -- Compress the two right-whiskers
+      rw [← MonoidalCategory.comp_whiskerRight]
+      simp only [Category.assoc]
+
+    -- 2. FORMAT THE RIGHT HAND SIDE (α_.hom ≫ (𝟙 ⊗ mul) ≫ mul)
+    have h_rhs : (α_ α.A α.A α.A).hom ≫ (𝟙 α.A ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ ≫ α.a)) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a =
+                 (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+      -- Expand all tensors
+      simp only [tensorHom_def]
+
+      -- Clean up the identities
+      simp only [Category.assoc]
+
+      -- A. Group the mismatched Left-whisker and Right-whisker (fully unpacked!)
+      rw [← Category.assoc (f := α.A ◁ (singleton ▷ α.A ≫ bag α.A ◁ singleton ≫ μ ≫ α.a))]
+
+      -- B. Swap them to align the left-whiskers
+      rw [whisker_exchange]
+      simp only [Category.assoc]
+
+      -- C. Group the two adjacent Left-whiskers (fully unpacked base!)
+      rw [← Category.assoc (f := bag α.A ◁ (singleton ▷ α.A ≫ bag α.A ◁ singleton ≫ μ ≫ α.a))]
+
+      -- D. Compress them!
+      rw [← MonoidalCategory.whiskerLeft_comp]
+      simp only [Category.assoc]
+      aesop
+
+    -- Rewrite both sides to their compressed forms
+    simp at *
+    rw [h_lhs, h_rhs]
+    -- 3. BRIDGE THE LHS: "Un-compress" the tensor backwards using mu_comp_a
+    have bridge_LHS : (((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton) ≫ μ ≫ α.a =
+                      (((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton) ⊗ₘ singleton) ≫ μ ≫ α.a := by
+      calc (((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton) ≫ μ ≫ α.a
+        _ = (((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton) ≫ (((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) ≫ μ ≫ α.a) := by
+          conv_lhs => rw [mu_comp_a]
+        _ = ((((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton) ≫ ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton))) ≫ μ ≫ α.a := by
+          rw [← Category.assoc]
+        _ = (((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton) ⊗ₘ (singleton ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+          -- Standard manual tensor compression!
+          have h_comp : (((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton) ≫ ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) = (((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton) ⊗ₘ (singleton ≫ α.a ≫ singleton)) := by
+            simp only [tensorHom_def, Category.assoc]
+            rw [← Category.assoc (f := bag α.A ◁ singleton)]
+            rw [whisker_exchange]
+            simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp, ← MonoidalCategory.comp_whiskerRight]
+          rw [h_comp]
+        _ = (((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton) ⊗ₘ singleton) ≫ μ ≫ α.a := by
+          -- Simplify (singleton ≫ α.a ≫ singleton) to (singleton)
+          have h_unit : singleton ≫ α.a ≫ singleton = singleton (A:=α.A) := by
+            rw [← Category.assoc, α.unit, Category.id_comp]
+          simp only [h_unit]
+
+    -- 4. BRIDGE THE RHS: "Un-compress" the tensor backwards using mu_comp_a
+    have bridge_RHS : (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ μ ≫ α.a =
+                      (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+      calc (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ μ ≫ α.a
+        _ = (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ (((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) ≫ μ ≫ α.a) := by
+          conv_lhs => rw [mu_comp_a]
+        _ = (α_ α.A α.A α.A).hom ≫ ((singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton))) ≫ μ ≫ α.a := by
+          simp only [Category.assoc]
+        _ = (α_ α.A α.A α.A).hom ≫ ((singleton ≫ α.a ≫ singleton) ⊗ₘ (((singleton ⊗ₘ singleton) ≫ μ) ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+          -- Standard manual tensor compression!
+          have h_comp : (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) = ((singleton ≫ α.a ≫ singleton) ⊗ₘ (((singleton ⊗ₘ singleton) ≫ μ) ≫ α.a ≫ singleton)) := by
+            simp only [tensorHom_def, Category.assoc]
+
+            -- Target the FULLY UNPACKED inner tensor!
+            rw [← Category.assoc (f := bag α.A ◁ (singleton ▷ α.A ≫ bag α.A ◁ singleton ≫ μ))]
+
+            -- Now the exchange will work
+            rw [whisker_exchange]
+            simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp]
+            aesop
+          rw [h_comp]
+        _ = (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
+          have h_unit : singleton ≫ α.a ≫ singleton = singleton (A:=α.A) := by
+            -- Shift parentheses to group (singleton ≫ α.a)
+            rw [← Category.assoc]
+
+            -- Use 'erw' instead of 'rw' so Lean recognizes 'singleton' as the monad unit 'η'!
+            erw [α.unit]
+
+            -- Clean up the remaining (𝟙 α.A ≫ singleton)
+            rw [Category.id_comp]
+          simp only [h_unit, Category.assoc]
+
+    -- 5. THE FREE MONOID ASSOCIATIVITY LAW
+    -- Now we just need to relate the "un-compressed" raw tensors.
+    have h_free : (((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton) ≫ μ =
+                  (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ μ := by
+      -- Expand into standard Mathlib Category Theory whiskers
+      simp only [tensorHom_def, Category.assoc, MonoidalCategory.comp_whiskerRight]
+      -- Swap the inner whiskers!
+      have h_swap : (μ ▷ α.A) ≫ (bag α.A ◁ singleton) = ((bag α.A ⊗ bag α.A) ◁ singleton) ≫ (μ ▷ bag α.A) := by rw [whisker_exchange]
+      rw [← Category.assoc (f := μ ▷ α.A)]
+      rw [h_swap]
+      -- Apply the core associativity law of the `bag` commutative monoid
+      have h_assoc : (μ ▷ bag α.A) ≫ μ = (α_ (bag α.A) (bag α.A) (bag α.A)).hom ≫ (bag α.A ◁ μ) ≫ μ := by apply MonObj.mul_assoc
+      --rw [h_assoc]
+      -- Let Mathlib's powerful `simp` engine handle the remaining associator naturality and parenthesis flattening
+      simp
+
+    -- 6. THE GRAND FINALE
+    -- Substitute the un-compressed forms into the goal
+    rw [← bridge_LHS, ← bridge_RHS]
+
+    -- Shift the parentheses left to completely isolate the free monoid logic from the `α.a` map at the end
+    rw [← Category.assoc (f := (((singleton ⊗ₘ singleton) ≫ μ) ⊗ₘ singleton))]
+    rw [← Category.assoc (f := (α_ α.A α.A α.A).hom)]
+    --rw [← Category.assoc (f := (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)))]
+
+    -- Apply the free monoid associativity law!
+    rw [h_free]
     simp
-    aesop
 
 
 
 
 
-  mul_assoc := sorry
+
 
 
 
