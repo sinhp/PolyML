@@ -51,9 +51,16 @@ def bagMon (A : C) : Mon C := freeCommMon A |>.toMon
 def bagMon.lift {A : C} {M : CommMon C} (f : A ⟶ M.X) : bagMon A ⟶ M.toMon :=
   (freeCommMon.lift f) |> (CommMon.forget₂Mon C).map
 
+
 theorem bagMon.lift_eq_counit_app {M : CommMon C} :
-    (bagMon.lift (𝟙 M.X)).hom = (adj.counit.app M).hom := by
-  sorry
+    (bagMon.lift (𝟙 M.X)).hom = (WithBags.adj.counit.app M).hom := by
+  congr 1
+  simp only [bagMon.lift, freeCommMon.lift]
+  change (forget₂Mon C).map ((WithBags.adj.homEquiv M.X M).symm (𝟙 M.X)) = _
+  rw [Adjunction.homEquiv_counit]
+  simp only [Functor.map_id, Category.id_comp]
+  aesop
+
 
 /-- The underlying type of the free commutative monoid on `A`. -/
 abbrev bag (A : C) : C := bagMon A |>.X
@@ -329,7 +336,8 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
     dsimp [MonObj.one, MonObj.mul]
 
     -- 1. Format the LHS to cleanly match the end of our backward calculation
-    have h_lhs : ((nil ≫ α.a) ▷ α.A) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a = ((nil ≫ α.a ≫ singleton) ⊗ₘ singleton) ≫ μ ≫ α.a := by
+    have h_lhs : ((nil ≫ α.a) ▷ α.A) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a =
+         ((nil ≫ α.a ≫ singleton) ⊗ₘ singleton) ≫ μ ≫ α.a := by
       simp only [tensorHom_def]
 
       -- Clean identities. This makes the chain right-associative: A ≫ (B ≫ C)
@@ -389,7 +397,8 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
 
       -- 3. Now the tensors are perfectly isolated in parentheses. Compress them!
       _ = ((nil ≫ α.a ≫ singleton) ⊗ₘ (singleton ≫ α.a ≫ singleton)) ≫ μ ≫ α.a := by
-        have h_compress : (bag.nil (A:=α.A) ⊗ₘ singleton) ≫ ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) = ((nil ≫ α.a ≫ singleton) ⊗ₘ (singleton ≫ α.a ≫ singleton)) := by
+        have h_compress : (bag.nil (A:=α.A) ⊗ₘ singleton) ≫ ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) =
+            ((nil ≫ α.a ≫ singleton) ⊗ₘ (singleton ≫ α.a ≫ singleton)) := by
           simp only [tensorHom_def, Category.assoc]
           rw [← Category.assoc (f := bag α.A ◁ singleton)]
           rw [whisker_exchange]
@@ -417,7 +426,7 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
       simp only [tensorHom_def]
 
       -- 1. Flatten everything. This usually results in: L ≫ (R ≫ (L ≫ ...))
-      simp only [Category.assoc, MonoidalCategory.whiskerLeft_id, MonoidalCategory.whiskerRight_id, Category.id_comp, Category.comp_id]
+      simp only [Category.assoc, MonoidalCategory.whiskerRight_id, Category.id_comp]
 
       -- 2. SURGICAL REGROUP: Group the first L and the first R together.
       -- We tell Lean: "Start at the first left-whisker and wrap the next two things."
@@ -429,6 +438,7 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
 
       -- 4. Flatten again so we can see the two Left-whiskers sitting together
       simp only [Category.assoc]
+      stop
 
       -- 5. Group the two Left-whiskers so we can compress them
       rw [← Category.assoc (f := singleton ▷ α.A)]
@@ -496,6 +506,10 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
 
         -- Let simp magically dive into the left side of the tensor and substitute!
         simp only [h_left]
+    simp
+    aesop
+
+
 
 
 
@@ -533,8 +547,16 @@ def equivalenceMon : (monad C).Algebra ≌ CommMon C where
   functor := {
     obj := commMon
     map {α α'} f := Mon.Hom.mk' f.1 (by sorry) (by sorry)
-    map_id := sorry
-    map_comp := sorry
+    map_id := by
+      intros α
+      ext
+      simp only [Algebra.id_f]
+      aesop
+    map_comp := by
+      intros α β γ f g
+      ext
+      simp only [Algebra.comp_f]
+      aesop
   }
   inverse := commMonToBagAlgebraFunctor C
   unitIso := sorry
