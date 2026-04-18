@@ -243,12 +243,10 @@ theorem ofMon_a_eq {M : CommMon C} : (ofCommMon M).a = bag.lift (𝟙 M.X) := by
   apply this.mp
   simpa using singleton_lift
 
-
--- 1. The monad multiplication (join) distributes over the free monoid multiplication (μ).
-lemma join_mul : μ ≫ bag.join (A:=A) = (bag.join ⊗ₘ bag.join) ≫ μ := by
-  -- Follows from the fact that `join` evaluates to `lift (𝟙 (bag A))`
-  -- and `lift` distributes over `μ` via `mul_lift`.
-  sorry
+lemma join_mul {A : C} : μ ≫ bag.join (A:=A) = (bag.join ⊗ₘ bag.join) ≫ μ := by
+  dsimp [monad, join]
+  rw [← bagMon.lift_eq_counit_app]
+  exact IsMonHom.mul_hom (bagMon.lift (𝟙 (bag A))).hom
 
 -- 2. The monad unit law applied to join.
 lemma monad_unit_law : singleton ≫ bag.join (A:=A) = 𝟙 (bag A) := by
@@ -507,7 +505,6 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
         simp only [h_left]
 
 
-
   mul_assoc := by
     dsimp [MonObj.mul]
 
@@ -568,13 +565,23 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
             simp only [tensorHom_def, Category.assoc]
             rw [← Category.assoc (f := bag α.A ◁ singleton)]
             rw [whisker_exchange]
-            simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp, ← MonoidalCategory.comp_whiskerRight]
+            simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp]
+            aesop
           rw [h_comp]
         _ = (((singleton ⊗ₘ singleton) ≫ μ ≫ α.a ≫ singleton) ⊗ₘ singleton) ≫ μ ≫ α.a := by
           -- Simplify (singleton ≫ α.a ≫ singleton) to (singleton)
           have h_unit : singleton ≫ α.a ≫ singleton = singleton (A:=α.A) := by
-            rw [← Category.assoc, α.unit, Category.id_comp]
-          simp only [h_unit]
+            -- 1. Shift parentheses to group (singleton ≫ α.a) together
+            rw [← Category.assoc]
+
+            -- 2. Force Lean to rewrite the word 'singleton' into the formal monad unit
+            change ((monad C).η.app α.A ≫ α.a) ≫ singleton = _
+
+            -- 3. Now the pattern matches perfectly!
+            rw [α.unit]
+            simp
+          aesop
+
 
     -- 4. BRIDGE THE RHS: "Un-compress" the tensor backwards using mu_comp_a
     have bridge_RHS : (α_ α.A α.A α.A).hom ≫ (singleton ⊗ₘ ((singleton ⊗ₘ singleton) ≫ μ)) ≫ μ ≫ α.a =
@@ -640,21 +647,6 @@ instance monClassOf (α : Algebra (monad C)) : MonObj (α.A) where
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 instance isCommMonObj {α : Algebra (monad C)} : IsCommMonObj (α.A) where
   mul_comm := by
     dsimp [MonObj.mul]
@@ -670,27 +662,6 @@ def commMon (α : (monad C).Algebra) : CommMon C where
 
 noncomputable def commMonToBagAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ CommMon C :=
   (commMonToBagAlgebraFunctor C).asEquivalence.symm
-
--- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
-def equivalenceMon : (monad C).Algebra ≌ CommMon C where
-  functor := {
-    obj := commMon
-    map {α α'} f := Mon.Hom.mk' f.1 (by sorry) (by sorry)
-    map_id := by
-      intros α
-      ext
-      simp only [Algebra.id_f]
-      aesop
-    map_comp := by
-      intros α β γ f g
-      ext
-      simp only [Algebra.comp_f]
-      aesop
-  }
-  inverse := commMonToBagAlgebraFunctor C
-  unitIso := sorry
-  counitIso := sorry
-  functor_unitIso_comp := sorry
 
 end Algebra
 
@@ -730,9 +701,284 @@ theorem aggregator_map {M' : CommMon C} {f : M.X ⟶ M'.X} :
     map f ≫ aggregator M' = aggregator M ≫ f := by
   sorry
 
-theorem aggregator_ofList [ListArithmetic C] {M' : CommMon C} :
-    ofList ≫ bag.aggregator M = M.toMon.aggregator := by
-  sorry
+theorem aggregator_ofList [ListArithmetic C] {M : CommMon C} :
+    ofList ≫ bag.aggregator M = M.toMon.aggregator := by sorry
+
+-- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
+def equivalenceMon : (monad C).Algebra ≌ CommMon C where
+  functor := {
+    obj := commMon
+    map {α α'} f :=
+      -- 1. Pre-compile the unit proof with an explicit type to kill the metavariable
+      have h_one : MonObj.one (X := α.A) ≫ f.f = MonObj.one (X := α'.A) := by
+        dsimp [MonObj.one, monClassOf]
+        rw [Category.assoc]
+        rw [← f.h]
+        rw [← Category.assoc]
+
+        -- Force Lean to peel back `bag.nil` and `(monad C).map` to expose
+        -- the exact `η ≫ bag.map` syntax that `bag.nil_map` is expecting!
+        change (η ≫ bag.map f.f) ≫ α'.a = _
+
+        -- Now the rewrite will snap perfectly into place
+        rw [bag.nil_map]
+
+        -- The LHS is now `η ≫ α'.a`, which is definitionally exactly the `bag.nil ≫ α'.a` on the RHS
+        rfl
+
+      -- 2. Pre-compile the multiplication proof
+      have h_mul : MonObj.mul (X := α.A) ≫ f.f = (f.f ⊗ₘ f.f) ≫ MonObj.mul (X := α'.A) := by
+        dsimp [MonObj.mul, monClassOf]
+        rw [Category.assoc, Category.assoc, ← f.h]
+        rw [← Category.assoc (f := μ)]
+        have h_append : μ ≫ (monad C).map f.f = ((monad C).map f.f ⊗ₘ (monad C).map f.f) ≫ μ := by
+          symm; exact bag.append_map
+        rw [h_append]
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := singleton ⊗ₘ singleton)]
+
+        -- Compress the tensors
+        have h_tensor1 : ((singleton ⊗ₘ singleton) ≫ ((monad C).map f.f ⊗ₘ (monad C).map f.f)) =
+            ((singleton ≫ (monad C).map f.f) ⊗ₘ (singleton ≫ (monad C).map f.f)) := by
+          simp only [tensorHom_def, Category.assoc]
+          rw [← Category.assoc (f := bag α.A ◁ singleton)]
+          have h_swap : (bag α.A ◁ singleton) ≫ ((monad C).map f.f ▷ bag α.A) =
+            ((monad C).map f.f ▷ α.A) ≫ (bag α'.A ◁ singleton) := by rw [whisker_exchange];aesop
+          rw [h_swap]
+          simp only [Category.assoc]
+          aesop
+        rw [h_tensor1]
+
+        -- Naturality
+        change ((singleton ≫ bag.map f.f) ⊗ₘ (singleton ≫ bag.map f.f)) ≫ μ ≫ α'.a = _
+
+        -- 2. Now simp can easily find and apply the theorem
+        simp only [bag.singleton_naturality]
+
+        -- Uncompress backwards
+        have h_tensor2 : ((f.f ≫ singleton) ⊗ₘ (f.f ≫ singleton)) = (f.f ⊗ₘ f.f) ≫ (singleton ⊗ₘ singleton) := by
+          simp only [tensorHom_def, Category.assoc]
+          rw [MonoidalCategory.comp_whiskerRight, MonoidalCategory.whiskerLeft_comp]
+          simp only [Category.assoc]
+          rw [← Category.assoc (f := singleton ▷ α.A)]
+          have h_swap : (singleton ▷ α.A) ≫ (bag α'.A ◁ f.f) = (α'.A ◁ f.f) ≫ (singleton ▷ α'.A) := by rw [whisker_exchange]
+          rw [h_swap]
+          simp only [Category.assoc]
+
+        -- 3. Because naturality succeeded, this rewrite now matches perfectly!
+        rw [h_tensor2]
+
+        -- Final alignment
+        simp only [Category.assoc]
+
+
+      -- 3. Feed the fully-compiled, explicitly typed proofs into the constructor
+      Mon.Hom.mk' f.f h_one h_mul
+
+    map_id := by
+      intros α
+      ext
+      simp only [Algebra.id_f]
+      aesop
+    map_comp := by
+      intros α β γ f g
+      ext
+      simp only [Algebra.comp_f]
+      aesop
+  }
+  inverse := commMonToBagAlgebraFunctor C
+  unitIso := NatIso.ofComponents
+    (fun α => Monad.Algebra.isoMk (Iso.refl α.A)
+      (by
+        dsimp [commMonToBagAlgebraFunctor, commMon, Monad.comparison]
+        simp only [Functor.map_id, Category.id_comp, Category.comp_id]
+
+        -- 1. BUILD THE BUNDLED MORPHISM (Must use `let` so it remains transparent!)
+        let f_a : freeCommMon α.A ⟶ commMon α := Mon.Hom.mk' α.a
+          (by rfl)
+          (by
+            change μ ≫ α.a = (α.a ⊗ₘ α.a) ≫ (singleton ⊗ₘ singleton) ≫ μ ≫ α.a
+            rw [← Category.assoc (f := α.a ⊗ₘ α.a)]
+            have h_tensor_comp : (α.a ⊗ₘ α.a) ≫ (singleton ⊗ₘ singleton) = ((α.a ≫ singleton) ⊗ₘ (α.a ≫ singleton)) := by
+              simp only [tensorHom_def, Category.assoc]
+              rw [← Category.assoc (f := α.A ◁ α.a)]
+              have h_swap : (α.A ◁ α.a) ≫ (singleton ▷ α.A) = (singleton ▷ bag α.A) ≫ (bag α.A ◁ α.a) := by rw [whisker_exchange];aesop
+              rw [h_swap]
+              simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp]
+              aesop
+            rw [h_tensor_comp]
+            exact mu_comp_a α
+          )
+
+        -- 2. GET THE ADJUNCTION PROPERTY
+        have h_adj := CategoryTheory.Adjunction.unit_comp_map_eq_iff (C:=C)
+           (adj) (A:=α.A) (B:=commMon α) (f := f_a) (𝟙 α.A)
+
+        -- 3. PROVE BUNDLED EQUALITY
+        have h_eq : f_a = (adj.homEquiv α.A (commMon α)).symm (𝟙 α.A) := by
+          apply h_adj.mp
+          -- Because f_a is a `let`, Lean's kernel can naturally see through it!
+          change bag.singleton ≫ α.a = 𝟙 α.A
+          exact α.unit
+
+        -- 4. PROJECT THE EQUALITY TO THE BASE CATEGORY
+        -- If the bundled morphisms are equal, their underlying `.hom` arrows are equal
+        have h_base : f_a.hom = ((adj.homEquiv α.A (commMon α)).symm (𝟙 α.A)).hom := by
+          rw [h_eq]
+
+        -- 5. APPLY THE ADJUNCTION DEFINITION
+        -- homEquiv.symm (𝟙) is definitionally the counit
+        have h_counit : ((adj.homEquiv α.A (commMon α)).symm (𝟙 α.A)).hom = (adj.counit.app (commMon α)).hom := by
+          rw [Adjunction.homEquiv_counit]
+          simp only [Functor.id_obj, Functor.map_id]
+          simp
+
+        -- 6. THE GRAND FINALE
+        -- Our goal is: (adj.counit.app (commMon α)).hom = α.a
+        symm
+
+        -- Because f_a.hom is structurally just `α.a`, we can swap the text safely
+        change f_a.hom = (adj.counit.app (commMon α)).hom
+
+        -- Lock it in using our projected equalities!
+        rw [h_base]
+        exact h_counit
+
+      ))
+    (by
+      -- This proof shows the naturality of the unitIso
+      intros α β f
+      ext
+      dsimp
+      simp only [Category.id_comp, Category.comp_id]
+      aesop
+    )
+  counitIso := NatIso.ofComponents
+    (fun M => {
+      hom := Mon.Hom.mk' (𝟙 M.X)
+        (by
+          -- 1. hom.one_hom:
+          change (bag.nil ≫ (WithBags.adj.counit.app M).hom) ≫ 𝟙 M.X = MonObj.one (X := M.X)
+          erw [Category.comp_id]
+
+          have h_counit : (WithBags.adj.counit.app M).hom = bag.lift (𝟙 M.X) := aggregator_eq_lift
+          rw [h_counit]
+          exact one_lift
+        )
+        (by
+          -- 2. hom.mul_hom:
+          change ((bag.singleton ⊗ₘ bag.singleton) ≫ μ ≫ (WithBags.adj.counit.app M).hom) ≫ 𝟙 M.X = (𝟙 M.X ⊗ₘ 𝟙 M.X) ≫ MonObj.mul (X := M.X)
+          erw [Category.comp_id]
+
+          have h_clear_id : ∀ {Y : C} (g : (M.X ⊗ M.X) ⟶ Y), (𝟙 M.X ⊗ₘ 𝟙 M.X) ≫ g = g := by
+            intro Y g
+            simp only [tensorHom_def]
+            simp
+
+          rw [h_clear_id]
+
+          have h_counit : (WithBags.adj.counit.app M).hom = bag.lift (𝟙 M.X) := aggregator_eq_lift
+          rw [h_counit]
+
+          have h_mul : μ ≫ bag.lift (𝟙 M.X) = (bag.lift (𝟙 M.X) ⊗ₘ bag.lift (𝟙 M.X)) ≫ MonObj.mul (X := M.X) := mul_lift
+          rw [h_mul]
+
+          -- DELETE THE SIMP: We immediately shift associativity to group the tensors!
+          rw [← Category.assoc (f := bag.singleton ⊗ₘ bag.singleton)]
+
+          have h_tensor : (bag.singleton (A:=M.X) ⊗ₘ bag.singleton (A:=M.X)) ≫ (bag.lift (𝟙 M.X) ⊗ₘ bag.lift (𝟙 M.X)) =
+              ((bag.singleton ≫ bag.lift (𝟙 M.X)) ⊗ₘ (bag.singleton ≫ bag.lift (𝟙 M.X))) := by
+            simp only [tensorHom_def, Category.assoc]
+            rw [← Category.assoc (f := bag M.X ◁ bag.singleton)]
+            have h_swap : (bag M.X ◁ bag.singleton) ≫ (bag.lift (𝟙 M.X) ▷ bag M.X) =
+              (bag.lift (𝟙 M.X) ▷ M.X) ≫ (M.X ◁ bag.singleton) := by rw [whisker_exchange]
+            rw [h_swap]
+            simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp]
+            aesop
+          rw [h_tensor]
+
+          have h_sing : bag.singleton (A:=M.X) ≫ bag.lift (𝟙 M.X) = 𝟙 M.X := singleton_lift
+          rw [h_sing]
+          rw [h_clear_id]
+        )
+      inv := Mon.Hom.mk' (𝟙 M.X)
+        (by
+          -- 3. inv.one_hom
+          change MonObj.one (X := M.X) ≫ 𝟙 M.X = bag.nil ≫ (WithBags.adj.counit.app M).hom
+          erw [Category.comp_id]
+
+          have h_counit : (WithBags.adj.counit.app M).hom = bag.lift (𝟙 M.X) := aggregator_eq_lift
+          rw [h_counit]
+
+          symm
+          exact one_lift
+        )
+        (by
+          -- 4. inv.mul_hom
+          change MonObj.mul (X := M.X) ≫ 𝟙 M.X = (𝟙 M.X ⊗ₘ 𝟙 M.X) ≫ ((bag.singleton ⊗ₘ bag.singleton) ≫ μ ≫ (WithBags.adj.counit.app M).hom)
+          erw [Category.comp_id]
+
+          have h_clear_id : ∀ {Y : C} (g : (M.X ⊗ M.X) ⟶ Y), (𝟙 M.X ⊗ₘ 𝟙 M.X) ≫ g = g := by
+            intro Y g
+            simp only [tensorHom_def]
+            simp
+
+          rw [h_clear_id]
+          symm
+
+          have h_counit : (WithBags.adj.counit.app M).hom = bag.lift (𝟙 M.X) := aggregator_eq_lift
+          rw [h_counit]
+
+          have h_mul : μ ≫ bag.lift (𝟙 M.X) = (bag.lift (𝟙 M.X) ⊗ₘ bag.lift (𝟙 M.X)) ≫ MonObj.mul (X := M.X) := mul_lift
+          rw [h_mul]
+
+          -- DELETE THE SIMP
+          rw [← Category.assoc (f := bag.singleton ⊗ₘ bag.singleton)]
+
+          have h_tensor : (bag.singleton (A:=M.X) ⊗ₘ bag.singleton (A:=M.X)) ≫ (bag.lift (𝟙 M.X) ⊗ₘ bag.lift (𝟙 M.X)) =
+              ((bag.singleton ≫ bag.lift (𝟙 M.X)) ⊗ₘ (bag.singleton ≫ bag.lift (𝟙 M.X))) := by
+            simp only [tensorHom_def, Category.assoc]
+            rw [← Category.assoc (f := bag M.X ◁ bag.singleton)]
+            have h_swap : (bag M.X ◁ bag.singleton) ≫ (bag.lift (𝟙 M.X) ▷ bag M.X) =
+              (bag.lift (𝟙 M.X) ▷ M.X) ≫ (M.X ◁ bag.singleton) := by rw [whisker_exchange]
+            rw [h_swap]
+            simp only [Category.assoc, ← MonoidalCategory.whiskerLeft_comp]
+            aesop
+          rw [h_tensor]
+          have h_sing : bag.singleton (A:=M.X) ≫ bag.lift (𝟙 M.X) = 𝟙 M.X := singleton_lift
+          rw [h_sing]
+          rw [h_clear_id]
+        )
+
+      hom_inv_id := by ext; dsimp; simp only [Category.comp_id];aesop
+      inv_hom_id := by ext; dsimp; aesop
+    })
+    (by
+      intros M N f
+      ext
+
+      -- Force Lean to unwrap the functors and expose the raw underlying morphisms.
+      -- The left side is (F.map f) ≫ 𝟙, the right side is 𝟙 ≫ (Id.map f)
+      change f.hom ≫ 𝟙 N.X = 𝟙 M.X ≫ f.hom
+
+      -- Now the identities are fully exposed, simp can easily destroy them!
+      simp only [Category.id_comp]
+      simp_all only [toMon_X, comp_id]
+    )
+  functor_unitIso_comp := by
+    -- The Triangle Identity: `F(η) ≫ ε_F = 𝟙`
+    intros α
+
+    -- `ext` drops the equality from the category of Algebras down to the base category C
+    ext
+
+    -- Force Lean to bypass the pretty-printer and evaluate the underlying category arrows.
+    -- Because our functors are strictly structural, the mapped identities remain identities!
+    change 𝟙 α.A ≫ 𝟙 α.A = 𝟙 α.A
+
+    -- Now it's a trivial Category Theory axiom. One single rewrite finishes the equivalence.
+    rw [Category.comp_id]
+
 
 end aggregator
 
