@@ -517,9 +517,9 @@ def plistIsoTensor (A P : C) : plist A P ≅ list A ⊗ P where
 def list.prc {A P Y : C} (e : P ⟶ Y) (a : A ⊗ Y ⟶ Y) : list A ⊗ P ⟶ Y :=
   (plistIsoTensor A P).inv ≫ plist.rc e a
 
+
 theorem list.prc_rc {A Y : C} (e : 𝟙_ C ⟶ Y) (a : A ⊗ Y ⟶ Y) :
-    (ρ_ (list A)).inv ≫ list.prc e a = list.rc e a := by
-  sorry
+    (ρ_ (list A)).inv ≫ list.prc e a = list.rc e a := by sorry
 
 namespace list
 
@@ -554,7 +554,39 @@ theorem nil_prc {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
 theorem cons_prc {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y} :
     (list.cons ▷ P) ≫ list.prc init action = (α_ _ _ _).hom ≫ (A ◁ list.prc init action) ≫ action := by
   dsimp [prc,cons]
-  sorry
+  dsimp [plistIsoTensor]
+  have h_cmp : (plist.cons (P := 𝟙_ C) ▷ P) ≫ cmpInv A (𝟙_ C) P =
+      (α_ A (list A) P).hom ≫ (A ◁ cmpInv A (𝟙_ C) P) ≫ plist.cons := by
+    calc (plist.cons (P := 𝟙_ C) ▷ P) ≫ cmpInv A (𝟙_ C) P
+      _ = 𝟙 _ ≫ (plist.cons ▷ P) ≫ cmpInv A (𝟙_ C) P := by rw [Category.id_comp]
+      _ = ((α_ A (list A) P).hom ≫ (α_ A (list A) P).inv) ≫
+          (plist.cons ▷ P) ≫ cmpInv A (𝟙_ C) P := by rw [Iso.hom_inv_id];aesop
+      _ = (α_ A (list A) P).hom ≫ ((α_ A (list A) P).inv ≫
+          (plist.cons ▷ P)) ≫ cmpInv A (𝟙_ C) P := by simp only [Category.assoc]
+      _ = (α_ A (list A) P).hom ≫ (𝟙 _ ≫ (α_ A (list A) P).inv ≫
+          (plist.cons ▷ P)) ≫ cmpInv A (𝟙_ C) P := by rw [Category.id_comp]
+      _ = (α_ A (list A) P).hom ≫ ((A ◁ (cmpInv A (𝟙_ C) P ≫ plist.cmp A (𝟙_ C) P)) ≫
+          (α_ A (list A) P).inv ≫ (plist.cons ▷ P)) ≫ cmpInv A (𝟙_ C) P := by
+        rw [← whiskerLeft_id]
+        erw [← ListArithmetic.inv_hom_id]
+      _ = (α_ A (list A) P).hom ≫ (A ◁ cmpInv A (𝟙_ C) P) ≫
+          (A ◁ plist.cmp A (𝟙_ C) P) ≫ (α_ A (list A) P).inv ≫ (plist.cons ▷ P) ≫
+          cmpInv A (𝟙_ C) P := by simp only [Category.assoc, whiskerLeft_comp]
+      _ = (α_ A (list A) P).hom ≫ (A ◁ cmpInv A (𝟙_ C) P) ≫
+          (plist.cons ≫ plist.cmp A (𝟙_ C) P) ≫ cmpInv A (𝟙_ C) P := by aesop
+      _ = (α_ A (list A) P).hom ≫ (A ◁ cmpInv A (𝟙_ C) P) ≫
+         plist.cons ≫ (plist.cmp A (𝟙_ C) P ≫ cmpInv A (𝟙_ C) P) := by simp only [Category.assoc]
+      _ = (α_ A (list A) P).hom ≫ (A ◁ cmpInv A (𝟙_ C) P) ≫ plist.cons ≫ 𝟙 _ := by rw [ListArithmetic.hom_inv_id]
+      _ = (α_ A (list A) P).hom ≫ (A ◁ cmpInv A (𝟙_ C) P) ≫ plist.cons := by rw [Category.comp_id]
+  have h_map' : plist.cons (P := 𝟙_ C ⊗ P) ≫ plist.map' A (λ_ P).hom =
+      (A ◁ plist.map' A (λ_ P).hom) ≫ plist.cons (P := P) := by
+    -- Explicitly qualify Recursive.freeActionFunctor to bypass the namespace trap
+    exact ((Recursive.freeActionFunctor A).map (λ_ P).hom).h.symm
+  simp
+  rw [reassoc_of% h_cmp]
+  rw [reassoc_of% h_map']
+  rw [plist.cons_rc]
+
 
 @[simp]
 theorem prc_uniq {A P Y : C} {init : P ⟶ Y} {action : A ⊗ Y ⟶ Y}
