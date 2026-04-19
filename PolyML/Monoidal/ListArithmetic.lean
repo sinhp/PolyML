@@ -1065,7 +1065,7 @@ theorem append_map {A B : C} {f : A ⟶ B} :
       have h_final_comm : (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ B ◁ append = A ◁ ((list.map f ⊗ₘ list.map f) ≫ append) ≫ (f ▷ list B) := by
         rw [tensorHom_def' f (list.map f ⊗ₘ list.map f)]
         simp only [Category.assoc]
-        simp;
+        simp;sorry
 
       rw [← Category.assoc (f := (f ⊗ₘ (list.map f ⊗ₘ list.map f)))]
       erw [h_final_comm]
