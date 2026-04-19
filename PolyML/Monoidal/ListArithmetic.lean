@@ -620,19 +620,474 @@ def append {A : C} : list A ⊗ list A ⟶ list A := list.prc (𝟙 _) (list.con
 theorem whiskerRight_nil_append {A : C} : list.nil ▷ list A ≫ append = (λ_ (list A)).hom := by
   simp [append]
 
+-- --xs ++ [] = xs
+-- theorem whiskerLeft_nil_append {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
+--   sorry
+
 --xs ++ [] = xs
 theorem whiskerLeft_nil_append {A : C} : list A ◁ list.nil ≫ append = (ρ_ (list A)).hom := by
-  sorry
+  have H : (ρ_ (list A)).inv ≫ list A ◁ list.nil ≫ append = list.rc list.nil list.cons := by
+    refine plist.rc_uniq _ ?_ ?_
+
+    · -- BASE CASE: `nil`
+      rw [← Category.assoc]
+      have h_nat_nil : plist.nil (P := 𝟙_ C) ≫ (ρ_ (list A)).inv = (ρ_ (𝟙_ C)).inv ≫ plist.nil (P := 𝟙_ C) ▷ 𝟙_ C := by
+        calc plist.nil (P := 𝟙_ C) ≫ (ρ_ (list A)).inv
+          _ = 𝟙 _ ≫ plist.nil (P := 𝟙_ C) ≫ (ρ_ (list A)).inv := by rw [Category.id_comp]
+          _ = ((ρ_ (𝟙_ C)).inv ≫ (ρ_ (𝟙_ C)).hom) ≫ plist.nil (P := 𝟙_ C) ≫ (ρ_ (list A)).inv := by rw [Iso.inv_hom_id]
+          _ = (ρ_ (𝟙_ C)).inv ≫ ((ρ_ (𝟙_ C)).hom ≫ plist.nil (P := 𝟙_ C)) ≫ (ρ_ (list A)).inv := by simp only [Category.assoc]
+          _ = (ρ_ (𝟙_ C)).inv ≫ (plist.nil (P := 𝟙_ C) ▷ 𝟙_ C ≫ (ρ_ (list A)).hom) ≫ (ρ_ (list A)).inv := by erw [← rightUnitor_naturality]; aesop
+          _ = (ρ_ (𝟙_ C)).inv ≫ plist.nil (P := 𝟙_ C) ▷ 𝟙_ C ≫ ((ρ_ (list A)).hom ≫ (ρ_ (list A)).inv) := by simp only [Category.assoc]
+          _ = (ρ_ (𝟙_ C)).inv ≫ plist.nil (P := 𝟙_ C) ▷ 𝟙_ C ≫ 𝟙 _ := by rw [Iso.hom_inv_id]
+          _ = (ρ_ (𝟙_ C)).inv ≫ plist.nil (P := 𝟙_ C) ▷ 𝟙_ C := by rw [Category.comp_id]
+
+      rw [h_nat_nil]
+      simp only [Category.assoc]
+      have h_exch : plist.nil (P := 𝟙_ C) ▷ 𝟙_ C ≫ list A ◁ list.nil = 𝟙_ C ◁ list.nil ≫ plist.nil (P := 𝟙_ C) ▷ list A := by
+        rw [whisker_exchange]
+        aesop
+      rw [← Category.assoc (f := plist.nil (P := 𝟙_ C) ▷ 𝟙_ C)]
+      rw [h_exch]
+      simp only [Category.assoc]
+      erw [list.whiskerRight_nil_append]
+      erw [leftUnitor_naturality]
+      rw [unitors_equal]
+      simp
+
+
+    · -- INDUCTIVE STEP: `cons`
+      rw [← Category.assoc]
+
+      -- Safely commute `cons` past `ρ_.inv` by unpacking the identity
+      have h_nat_cons : plist.cons ≫ (ρ_ (list A)).inv = (ρ_ (A ⊗ list A)).inv ≫ plist.cons (P := 𝟙_ C) ▷ 𝟙_ C := by
+        calc plist.cons ≫ (ρ_ (list A)).inv
+          _ = 𝟙 _ ≫ plist.cons ≫ (ρ_ (list A)).inv := by rw [Category.id_comp]
+          _ = ((ρ_ (A ⊗ list A)).inv ≫ (ρ_ (A ⊗ list A)).hom) ≫ plist.cons ≫ (ρ_ (list A)).inv := by rw [Iso.inv_hom_id]; aesop
+          _ = (ρ_ (A ⊗ list A)).inv ≫ ((ρ_ (A ⊗ list A)).hom ≫ plist.cons) ≫ (ρ_ (list A)).inv := by simp only [Category.assoc]
+          _ = (ρ_ (A ⊗ list A)).inv ≫ (plist.cons ▷ 𝟙_ C ≫ (ρ_ (list A)).hom) ≫ (ρ_ (list A)).inv := by { erw [← rightUnitor_naturality]; rfl }
+          _ = (ρ_ (A ⊗ list A)).inv ≫ plist.cons ▷ 𝟙_ C ≫ ((ρ_ (list A)).hom ≫ (ρ_ (list A)).inv) := by simp only [Category.assoc]
+          _ = (ρ_ (A ⊗ list A)).inv ≫ plist.cons ▷ 𝟙_ C ≫ 𝟙 _ := by rw [Iso.hom_inv_id]
+          _ = (ρ_ (A ⊗ list A)).inv ≫ plist.cons ▷ 𝟙_ C := by rw [Category.comp_id]
+
+
+      rw [h_nat_cons]
+      simp only [Category.assoc]
+
+      -- Commute `cons ▷ 𝟙_ C` and `list A ◁ nil` via the interchange law
+      have h_exch : plist.cons (P := 𝟙_ C) ▷ 𝟙_ C ≫ list A ◁ list.nil = (A ⊗ list A) ◁ list.nil ≫ plist.cons (P := 𝟙_ C) ▷ list A := by
+        rw [whisker_exchange]
+        aesop
+      rw [← Category.assoc (f := plist.cons ▷ 𝟙_ C)]
+      rw [h_exch]
+      simp only [Category.assoc]
+
+      -- Apply `cons_prc`
+      erw [list.cons_prc]
+
+      -- Commute `(A ⊗ list A) ◁ nil` past the associator via naturality
+      have h_assoc : (A ⊗ list A) ◁ list.nil ≫ (α_ A (list A) (list A)).hom =
+                     (α_ A (list A) (𝟙_ C)).hom ≫ A ◁ (list A ◁ list.nil) := by
+        simp
+      rw [← Category.assoc (f := (A ⊗ list A) ◁ list.nil)]
+      rw [h_assoc]
+      simp only [Category.assoc]
+
+      -- Apply the monoidal triangle identity backwards!
+      have h_tri : (ρ_ (A ⊗ list A)).inv ≫ (α_ A (list A) (𝟙_ C)).hom = A ◁ (ρ_ (list A)).inv := by
+        calc (ρ_ (A ⊗ list A)).inv ≫ (α_ A (list A) (𝟙_ C)).hom
+          _ = (ρ_ (A ⊗ list A)).inv ≫ (α_ A (list A) (𝟙_ C)).hom ≫ 𝟙 _ := by rw [Category.comp_id]
+          _ = (ρ_ (A ⊗ list A)).inv ≫ (α_ A (list A) (𝟙_ C)).hom ≫ A ◁ (ρ_ (list A)).hom ≫ A ◁ (ρ_ (list A)).inv := by
+            rw [← whiskerLeft_comp, Iso.hom_inv_id, whiskerLeft_id]
+          _ = (ρ_ (A ⊗ list A)).inv ≫ ((α_ A (list A) (𝟙_ C)).hom ≫ A ◁ (ρ_ (list A)).hom) ≫ A ◁ (ρ_ (list A)).inv := by simp only [Category.assoc]
+          _ = (ρ_ (A ⊗ list A)).inv ≫ (ρ_ (A ⊗ list A)).hom ≫ A ◁ (ρ_ (list A)).inv := by aesop
+          _ = 𝟙 _ ≫ A ◁ (ρ_ (list A)).inv := by aesop
+          _ = A ◁ (ρ_ (list A)).inv := by rw [Category.id_comp]
+
+      rw [← Category.assoc (f := (ρ_ (A ⊗ list A)).inv)]
+      rw [h_tri]
+
+      -- Distribute the left whiskers to perfectly match the RHS
+      simp only [Category.assoc, whiskerLeft_comp]
+      rfl
+
+  -- 2. Now we just plug `H` into a pure string-rewrite calculation to finish the proof!
+  calc list A ◁ list.nil ≫ append
+    _ = 𝟙 _ ≫ list A ◁ list.nil ≫ append := by rw [Category.id_comp]
+    _ = ((ρ_ (list A)).hom ≫ (ρ_ (list A)).inv) ≫ list A ◁ list.nil ≫ append := by rw [Iso.hom_inv_id]
+    _ = (ρ_ (list A)).hom ≫ ((ρ_ (list A)).inv ≫ list A ◁ list.nil ≫ append) := by simp only [Category.assoc]
+    _ = (ρ_ (list A)).hom ≫ list.rc list.nil list.cons := by rw [H]
+    _ = (ρ_ (list A)).hom ≫ 𝟙 _ := by
+      dsimp [list.rc, list.nil, list.cons]
+      rw [plist.rc_nil_cons_id]
+      -- Force Lean to accept the definitional equality between `list` and `plist`
+      rfl
+    _ = (ρ_ (list A)).hom := by
+      rw [Category.comp_id]
+
+
+
+
+
+-- -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
+-- theorem append_assoc {A : C} :
+--     append ▷ list A ≫ append = (α_ _ _ _).hom ≫ (list A ◁ append) ≫ append := by
+--   sorry
+
 
 -- (xs ++ ys) ++ zs = xs ++ (ys ++ zs)
 theorem append_assoc {A : C} :
     append ▷ list A ≫ append = (α_ _ _ _).hom ≫ (list A ◁ append) ≫ append := by
-  sorry
+  -- We prove that shifting the associator to the left yields the parameterized recursor.
+  have H1 : (α_ (list A) (list A) (list A)).inv ≫ append ▷ list A ≫ append = list.prc append list.cons := by
+    refine prc_uniq _ ?_ ?_
+
+    · -- BASE CASE for H1
+      -- 1. Let `simp` automatically prove the whisker naturality
+      have h_comm_nil : (α_ (𝟙_ C) (list A) (list A)).hom ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) =
+        (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ (α_ (list A) (list A) (list A)).hom := by simp; aesop
+
+      -- 2. Execute the calc block safely using our new lemma
+      have h_nat : plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ (list A) (list A) (list A)).inv =
+         (α_ (𝟙_ C) (list A) (list A)).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A := by
+        calc plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv
+          _ = 𝟙 _ ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv := by rw [Category.id_comp]
+          _ = ((α_ _ _ _).inv ≫ (α_ _ _ _).hom) ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv := by rw [Iso.inv_hom_id];
+          _ = (α_ _ _ _).inv ≫ ((α_ _ _ _).hom ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A)) ≫ (α_ _ _ _).inv := by simp only [Category.assoc]
+          _ = (α_ _ _ _).inv ≫ ((plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv := by erw [h_comm_nil]; aesop
+          _ = (α_ _ _ _).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ ((α_ _ _ _).hom ≫ (α_ _ _ _).inv) := by simp only [Category.assoc]
+          _ = (α_ _ _ _).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ 𝟙 _ := by rw [Iso.hom_inv_id];
+          _ = (α_ _ _ _).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A := by rw [Category.comp_id]
+
+      -- 1. Flatten all parentheses to the right
+
+      -- 2. Pull one parenthesis left to explicitly group `(nil ▷ ... ≫ α.inv)`
+      rw [← Category.assoc]
+      -- 3. Execute the rewrite, using `erw` to look through the `list.nil` abbreviation!
+      erw [h_nat]
+      simp only [Category.assoc]
+
+      -- Group the nested whiskers
+      have h_whisker : (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ append ▷ list A = (plist.nil (P := 𝟙_ C) ▷ list A ≫ append) ▷ list A := by
+        rw [← comp_whiskerRight]
+      rw [← Category.assoc (f := (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A)]
+      erw [h_whisker]
+
+      -- Apply your base case append identity!
+      erw [list.whiskerRight_nil_append]
+
+      -- We are left with `(α_ 𝟙 A A).inv ≫ λ.hom ▷ A`. By standard triangle coherence, this is `λ.hom`!
+      simp
+
+    · -- INDUCTIVE STEP for H1
+      rw [← Category.assoc]
+
+      -- Let `simp` automatically prove the whisker naturality after unfolding definitions!
+      have h_comm_cons : (α_ (A ⊗ list A) (list A) (list A)).hom ≫ plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) =
+        (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A ≫ (α_ (list A) (list A) (list A)).hom := by { dsimp [list]; simp }
+
+      have h_nat : plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ (list A) (list A) (list A)).inv =
+          (α_ (A ⊗ list A) (list A) (list A)).inv ≫ (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A := by
+        calc plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv
+          _ = 𝟙 _ ≫ plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv := by rw [Category.id_comp]
+          _ = ((α_ _ _ _).inv ≫ (α_ _ _ _).hom) ≫ plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv := by rw [Iso.inv_hom_id];
+          _ = (α_ _ _ _).inv ≫ ((α_ _ _ _).hom ≫ plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A)) ≫ (α_ _ _ _).inv := by simp only [Category.assoc]
+          _ = (α_ _ _ _).inv ≫ ((plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A ≫ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv := by { erw [h_comm_cons]; rfl }
+          _ = (α_ _ _ _).inv ≫ (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A ≫ ((α_ _ _ _).hom ≫ (α_ _ _ _).inv) := by simp only [Category.assoc]
+          _ = (α_ _ _ _).inv ≫ (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A ≫ 𝟙 _ := by rw [Iso.hom_inv_id];
+          _ = (α_ _ _ _).inv ≫ (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A := by rw [Category.comp_id]
+
+      -- THE FIX: Brutally expose `plist.cons` to prevent `rw` from failing on the abbreviation
+      dsimp [list.cons]
+
+      -- Safely group and rewrite h_nat
+      simp only [Category.assoc]
+      rw [← Category.assoc (f := plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A))]
+      rw [h_nat]
+      simp only [Category.assoc]
+
+      -- Group the nested whiskers
+      have h_whisker : (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A ≫ append ▷ list A = (plist.cons (P := 𝟙_ C) ▷ list A ≫ append) ▷ list A := by
+        rw [← comp_whiskerRight]
+
+      -- Safely group and rewrite h_whisker
+      rw [← Category.assoc (f := (plist.cons (P := 𝟙_ C) ▷ list A) ▷ list A)]
+      rw [h_whisker]
+
+      -- Unpack `cons_prc` for the inner append
+      erw [list.cons_prc]
+      simp only [comp_whiskerRight, Category.assoc]
+
+      -- Unpack `cons_prc` for the outer append
+      erw [list.cons_prc]
+      simp only [Category.assoc, whiskerLeft_comp]
+
+      -- Commute the inner whisker past the associator
+      -- Commute the inner whisker past the associator
+      have h_alpha2 : ((A ◁ append) ▷ list A) ≫ (α_ A (list A) (list A)).hom =
+          (α_ A (list A ⊗ list A) (list A)).hom ≫ A ◁ (append ▷ list A) := by
+        simp
+
+      -- THE FIX: Target the raw `prc` form that is currently sitting in the goal!
+      rw [← Category.assoc (f := (A ◁ list.prc (𝟙 (list A)) list.cons) ▷ list A)]
+      erw [h_alpha2]
+      simp only [Category.assoc]
+
+      -- Apply Mac Lane's Pentagon Coherence backward!
+      have h_coherence : (α_ (A ⊗ list A) (list A) (list A)).inv ≫ (α_ A (list A) (list A)).hom ▷ list A ≫
+          (α_ A (list A ⊗ list A) (list A)).hom = (α_ A (list A) (list A ⊗ list A)).hom ≫ A ◁ (α_ (list A) (list A) (list A)).inv := by
+        simp
+      rw [← Category.assoc (f := (α_ (A ⊗ list A) (list A) (list A)).inv)]
+      simp only [Category.assoc]
+      aesop
+
+  -- We prove that the right-hand side is ALSO equivalent to the parameterized recursor.
+  have H2 : list A ◁ append ≫ append = list.prc append list.cons := by
+    refine prc_uniq _ ?_ ?_
+
+    · -- BASE CASE for H2
+      rw [← Category.assoc]
+
+      -- Interchange the independent whiskers safely
+      have h_exch : plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ list A ◁ append = 𝟙_ C ◁ append ≫ plist.nil (P := 𝟙_ C) ▷ list A := by
+        rw [whisker_exchange]; rfl
+
+      -- THE FIX: Brutally expose `plist.nil` to bypass abbreviation traps!
+      dsimp [list.nil]
+
+      -- Because the first line already grouped `(plist.nil ▷ ... ≫ list A ◁ append)`,
+      -- we skip associativity pulling and just rewrite directly!
+      rw [h_exch]
+      simp only [Category.assoc]
+
+      -- Apply the base case append identity
+      erw [list.whiskerRight_nil_append]
+      erw [leftUnitor_naturality]
+
+
+    ·  -- INDUCTIVE STEP for H2
+      rw [← Category.assoc]
+
+      -- Interchange the independent whiskers safely
+      have h_exch : plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ list A ◁ append = (A ⊗ list A) ◁ append ≫ plist.cons (P := 𝟙_ C) ▷ list A := by
+        rw [whisker_exchange]; rfl
+
+      -- THE FIX: Brutally expose `plist.cons`
+      dsimp [list.cons]
+
+      -- Again, the first line ALREADY grouped our target perfectly.
+      rw [h_exch]
+      simp only [Category.assoc]
+
+      -- Unpack `cons_prc`
+      erw [list.cons_prc]
+      simp only [Category.assoc, whiskerLeft_comp]
+
+      -- Commute the left whisker past the associator via naturality
+      have h_alpha_nat : ((A ⊗ list A) ◁ append) ≫ (α_ A (list A) (list A)).hom =
+        (α_ A (list A) (list A ⊗ list A)).hom ≫ A ◁ (list A ◁ append) := by
+        simp
+
+      -- THE FIX: Target the untouched `append` instead of `prc`!
+      rw [← Category.assoc (f := (A ⊗ list A) ◁ append)]
+      erw [h_alpha_nat]
+      simp only [Category.assoc]
+      rfl
+
+  -- Bring H1 and H2 together via a strict string-rewrite calculation!
+  calc append ▷ list A ≫ append
+    _ = 𝟙 _ ≫ append ▷ list A ≫ append := by rw [Category.id_comp]
+    _ = ((α_ (list A) (list A) (list A)).hom ≫ (α_ (list A) (list A) (list A)).inv) ≫ append ▷ list A ≫ append := by rw [Iso.hom_inv_id];
+    _ = (α_ _ _ _).hom ≫ (α_ (list A) (list A) (list A)).inv ≫ append ▷ list A ≫ append := by simp only [Category.assoc]
+    _ = (α_ _ _ _).hom ≫ list.prc append list.cons := by rw [H1]
+    _ = (α_ _ _ _).hom ≫ list A ◁ append ≫ append := by rw [← H2]
+
+
+
+-- -- map f (xs ++ ys) = map f xs ++ map f ys
+-- theorem append_map {A B : C} {f : A ⟶ B} :
+--     append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ append := by
+--   sorry
 
 -- map f (xs ++ ys) = map f xs ++ map f ys
 theorem append_map {A B : C} {f : A ⟶ B} :
     append ≫ list.map f = ((list.map f) ⊗ₘ (list.map f)) ≫ append := by
-  sorry
+  -- We show both sides equal the parameterized recursor acting on `list B`.
+  -- The initial value is `list.map f` and the action is `(f ⊗ 1) ≫ cons`.
+  have H1 : append ≫ list.map f = list.prc (list.map f) ((f ⊗ₘ 𝟙 (list B)) ≫ list.cons) := by
+    refine prc_uniq _ ?_ ?_
+
+    · -- INDUCTIVE CASE for H1
+      -- BASE CASE for H1
+      dsimp [list.nil, list.cons]
+      -- THE FIX: Target `plist.nil` to match the base case!
+      rw [← Category.assoc (f := plist.nil (P := 𝟙_ C) ▷ list A)]
+      erw [list.whiskerRight_nil_append]
+    · -- INDUCTIVE CASE for H1
+      dsimp [list.nil, list.cons]
+
+      -- Unpack `cons_prc` for append
+      rw [← Category.assoc (f := plist.cons (P := 𝟙_ C) ▷ list A)]
+      erw [list.cons_prc]
+      simp only [Category.assoc]
+
+      -- Strip away the fresh `cons` abbreviation injected by `cons_prc`
+      dsimp [list.cons]
+
+      -- Define `h_map_cons` flawlessly using the built-in tensor lemma
+      have h_map_cons : plist.cons (P := 𝟙_ C) (A := A) ≫ list.map f = (f ⊗ₘ list.map f) ≫ plist.cons (P := 𝟙_ C) (A := B) := by
+        erw [list.cons_map]
+        dsimp [list.cons]
+        rw [← Category.assoc (f := A ◁ list.map f)]
+        simp; exact Eq.symm (tensorHom_def'_assoc f (map f) plist.cons)
+
+      -- Rewrite the end of the goal directly
+      rw [h_map_cons]
+      -- Define the commutation for the remaining whiskers
+      -- Define the commutation for the remaining whiskers
+      have h_comm : A ◁ append ≫ (f ⊗ₘ list.map f) = (A ◁ append ≫ A ◁ list.map f) ≫ (f ▷ list B) := by
+        -- Expand the tensor into whiskers so it matches the RHS!
+        rw [tensorHom_def' f (list.map f)]
+        simp only [Category.assoc]
+
+      -- Target the raw `prc` to pull the parenthesis left so `h_comm` matches!
+      rw [← Category.assoc (f := A ◁ list.prc (𝟙 (list A)) plist.cons)]
+      erw [h_comm]
+
+
+      -- Clean up and close!
+      simp only [Category.assoc]
+      simp;
+
+  have H2 : ((list.map f) ⊗ₘ (list.map f)) ≫ append = list.prc (list.map f) ((f ⊗ₘ 𝟙 (list B)) ≫ list.cons) := by
+    refine prc_uniq _ ?_ ?_
+
+    · -- BASE CASE for H2
+      dsimp [list.nil, list.cons]
+
+      -- Commute `nil` past `map ⊗ map`
+      -- Commute `nil` past `map ⊗ map` using strict whisker exchange
+      have h_base_comm : plist.nil (P := 𝟙_ C) (A := A) ▷ list A ≫ (list.map f ⊗ₘ list.map f) = 𝟙_ C ◁ list.map f ≫ plist.nil (P := 𝟙_ C) (A := B) ▷ list B := by
+        -- 1. Expand the tensor product into left and right whiskers
+        rw [tensorHom_def (list.map f) (list.map f)]
+
+        -- 2. Group the right whiskers together
+        rw [← Category.assoc (f := plist.nil (P := 𝟙_ C) ▷ list A)]
+
+        -- 3. Factor the whisker out: (nil ▷ A) ≫ (map ▷ A) = (nil ≫ map) ▷ A
+        rw [← comp_whiskerRight]
+
+        -- 4. Commute map through nil! (Try map_nil if this fails)
+        erw [list.map_nil]
+
+        -- 5. We now have `nil_B ▷ A ≫ B ◁ map`. We just swap the independent whiskers!
+        rw [whisker_exchange]
+        rfl
+      rw [← Category.assoc (f := plist.nil (P := 𝟙_ C) ▷ list A)]
+      erw [h_base_comm]
+      simp only [Category.assoc]
+
+      -- Apply base case append identity on the resulting `list B`
+      --rw [← Category.assoc (f := plist.nil (P := 𝟙_ C) ▷ list B)]
+      erw [list.whiskerRight_nil_append]
+      --simp only [Category.assoc]
+
+      -- Apply left unitor naturality backward to match `prc_nil` output!
+      erw [← leftUnitor_naturality]
+      --rfl
+
+    · -- INDUCTIVE CASE for H2
+      dsimp [list.nil, list.cons]
+
+      -- Commute `cons` past `map ⊗ map`
+      have h_ind_comm : plist.cons (P := 𝟙_ C) (A := A) ▷ list A ≫ (list.map f ⊗ₘ list.map f) =
+        (α_ A (list A) (list A)).hom ≫ (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ (α_ B (list B) (list B)).inv ≫ plist.cons (P := 𝟙_ C) (A := B) ▷ list B := by
+        -- 1. Force everything to the same base definition
+        dsimp [list.cons, list]
+
+        -- 2. Expand the tensor into whiskers
+        rw [tensorHom_def' (list.map f) (list.map f)]
+
+        -- 3. Instead of pulling by name, we pull by pattern
+        rw [← Category.assoc]
+
+        -- 4. Fold the right whiskers and commute
+        rw [← comp_whiskerRight]
+        erw [list.cons_map]
+
+        -- 5. Flatten and fold the middle exchange
+        simp only [comp_whiskerRight, Category.assoc]
+
+        -- 6. Manually re-stitch the tensor f ⊗ map
+        have h_stitch : (A ◁ list.map f) ▷ list A ≫ (f ▷ list B) ▷ list A = (f ⊗ₘ list.map f) ▷ list A := by
+          rw [← comp_whiskerRight, whiskerLeft_comp_whiskerRight]
+
+        rw [← Category.assoc (f := (A ◁ list.map f) ▷ list A)]
+        rw [h_stitch]
+        simp only [Category.assoc]
+
+        -- 7. Swap the independent whiskers
+        have h_exch : (plist.cons (P := 𝟙_ C) (A := B)) ▷ list A ≫ list B ◁ list.map f =
+                      (B ⊗ list B) ◁ list.map f ≫ (plist.cons (P := 𝟙_ C) (A := B)) ▷ list B := by
+          dsimp [list.cons, list]; rw [whisker_exchange]
+
+        rw [← Category.assoc (f := (f ⊗ₘ list.map f) ▷ list A)]
+        erw [h_exch]
+        simp only [Category.assoc]
+
+        -- 8. Fold the whole mess into the triple tensor
+        have h_triple : (f ⊗ₘ list.map f) ▷ list A ≫ (B ⊗ list B) ◁ list.map f = ((f ⊗ₘ list.map f) ⊗ₘ list.map f) := by
+          exact Eq.symm (tensorHom_def' (f ⊗ₘ list.map f) (list.map f))
+
+        rw [← Category.assoc (f := (f ⊗ₘ list.map f) ▷ list A)]
+        rw [h_triple]
+
+        -- 9. Final associator snap
+        have h_alpha : ((f ⊗ₘ list.map f) ⊗ₘ list.map f) =
+                       (α_ A (list A) (list A)).hom ≫ (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ (α_ B (list B) (list B)).inv := by
+          simp
+
+        rw [h_alpha]
+        simp only [Category.assoc]
+
+      rw [← Category.assoc (f := plist.cons (P := 𝟙_ C) ▷ list A)]
+      erw [h_ind_comm]
+      simp only [Category.assoc]
+      erw [list.cons_prc]
+      simp only [Category.assoc, whiskerLeft_comp]
+
+      -- Cancel the inner `inv ≫ hom` associators
+      have h_cancel : (α_ B (list B) (list B)).inv ≫ (α_ B (list B) (list B)).hom = 𝟙 _ := by rw [Iso.inv_hom_id]
+      rw [← Category.assoc (f := (α_ B (list B) (list B)).inv)]
+      erw [h_cancel]
+      simp only [Category.id_comp, Category.assoc]
+
+      -- Distribute the remaining tensors
+      have h_final_comm : (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ B ◁ append = A ◁ ((list.map f ⊗ₘ list.map f) ≫ append) ≫ (f ▷ list B) := by
+        rw [tensorHom_def' f (list.map f ⊗ₘ list.map f)]
+        simp only [Category.assoc]
+        simp;
+
+      rw [← Category.assoc (f := (f ⊗ₘ (list.map f ⊗ₘ list.map f)))]
+      erw [h_final_comm]
+      simp only [Category.assoc]
+      aesop
+
+
+  -- Bring H1 and H2 together to close the proof!
+  calc append ≫ list.map f
+    _ = list.prc (list.map f) ((f ⊗ₘ 𝟙 (list B)) ≫ list.cons) := by rw [H1]
+    _ = ((list.map f) ⊗ₘ (list.map f)) ≫ append := by rw [← H2]
+
+
+
+
+
+
+
+
+
+
+
 
 -- ⁠[x] ++ xs = x :: xs
 theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
