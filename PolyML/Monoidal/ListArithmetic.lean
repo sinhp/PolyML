@@ -29,7 +29,8 @@ In cartesian closed categories, these two notions coincide.
 forgetful functor from the category of actions to the underlying category `C`.
 The advantage of this definition is that it gives a compact formulation of the universal property of the
 list object from which the recursion scheme can be derived thus enabling us to define all the important list maps.
-Such categories are called **recursive categories**. We can already define list maps such as `map`, `foldr` in recursive categories.
+Such categories are called **recursive categories**. We can already define list maps such as `map`, `foldr`
+in recursive categories.
 
 - The condition requiring the morphism `plist A (P ⊗ Y) ⟶ (plist A P) ⊗ Y` to be an isomorphism for all
 objects `A, P, Y` is equivalent to the requirment that the recursion in `C` is preserved when
@@ -848,7 +849,8 @@ theorem append_assoc {A : C} :
       rw [← Category.assoc]
 
       -- Interchange the independent whiskers safely
-      have h_exch : plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ list A ◁ append = 𝟙_ C ◁ append ≫ plist.nil (P := 𝟙_ C) ▷ list A := by
+      have h_exch : plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ list A ◁ append =
+          𝟙_ C ◁ append ≫ plist.nil (P := 𝟙_ C) ▷ list A := by
         rw [whisker_exchange]; rfl
 
       -- THE FIX: Brutally expose `plist.nil` to bypass abbreviation traps!
@@ -868,7 +870,8 @@ theorem append_assoc {A : C} :
       rw [← Category.assoc]
 
       -- Interchange the independent whiskers safely
-      have h_exch : plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ list A ◁ append = (A ⊗ list A) ◁ append ≫ plist.cons (P := 𝟙_ C) ▷ list A := by
+      have h_exch : plist.cons (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ list A ◁ append =
+          (A ⊗ list A) ◁ append ≫ plist.cons (P := 𝟙_ C) ▷ list A := by
         rw [whisker_exchange]; rfl
 
       -- THE FIX: Brutally expose `plist.cons`
@@ -896,8 +899,10 @@ theorem append_assoc {A : C} :
   -- Bring H1 and H2 together via a strict string-rewrite calculation!
   calc append ▷ list A ≫ append
     _ = 𝟙 _ ≫ append ▷ list A ≫ append := by rw [Category.id_comp]
-    _ = ((α_ (list A) (list A) (list A)).hom ≫ (α_ (list A) (list A) (list A)).inv) ≫ append ▷ list A ≫ append := by rw [Iso.hom_inv_id];
-    _ = (α_ _ _ _).hom ≫ (α_ (list A) (list A) (list A)).inv ≫ append ▷ list A ≫ append := by simp only [Category.assoc]
+    _ = ((α_ (list A) (list A) (list A)).hom ≫ (α_ (list A) (list A) (list A)).inv) ≫
+        append ▷ list A ≫ append := by rw [Iso.hom_inv_id];
+    _ = (α_ _ _ _).hom ≫ (α_ (list A) (list A) (list A)).inv ≫
+        append ▷ list A ≫ append := by simp only [Category.assoc]
     _ = (α_ _ _ _).hom ≫ list.prc append list.cons := by rw [H1]
     _ = (α_ _ _ _).hom ≫ list A ◁ append ≫ append := by rw [← H2]
 
@@ -934,7 +939,8 @@ theorem append_map {A B : C} {f : A ⟶ B} :
       dsimp [list.cons]
 
       -- Define `h_map_cons` flawlessly using the built-in tensor lemma
-      have h_map_cons : plist.cons (P := 𝟙_ C) (A := A) ≫ list.map f = (f ⊗ₘ list.map f) ≫ plist.cons (P := 𝟙_ C) (A := B) := by
+      have h_map_cons : plist.cons (P := 𝟙_ C) (A := A) ≫ list.map f =
+          (f ⊗ₘ list.map f) ≫ plist.cons (P := 𝟙_ C) (A := B) := by
         erw [list.cons_map]
         dsimp [list.cons]
         rw [← Category.assoc (f := A ◁ list.map f)]
@@ -966,7 +972,8 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 
       -- Commute `nil` past `map ⊗ map`
       -- Commute `nil` past `map ⊗ map` using strict whisker exchange
-      have h_base_comm : plist.nil (P := 𝟙_ C) (A := A) ▷ list A ≫ (list.map f ⊗ₘ list.map f) = 𝟙_ C ◁ list.map f ≫ plist.nil (P := 𝟙_ C) (A := B) ▷ list B := by
+      have h_base_comm : plist.nil (P := 𝟙_ C) (A := A) ▷ list A ≫ (list.map f ⊗ₘ list.map f) =
+          𝟙_ C ◁ list.map f ≫ plist.nil (P := 𝟙_ C) (A := B) ▷ list B := by
         -- 1. Expand the tensor product into left and right whiskers
         rw [tensorHom_def (list.map f) (list.map f)]
 
@@ -1000,7 +1007,8 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 
       -- Commute `cons` past `map ⊗ map`
       have h_ind_comm : plist.cons (P := 𝟙_ C) (A := A) ▷ list A ≫ (list.map f ⊗ₘ list.map f) =
-        (α_ A (list A) (list A)).hom ≫ (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ (α_ B (list B) (list B)).inv ≫ plist.cons (P := 𝟙_ C) (A := B) ▷ list B := by
+        (α_ A (list A) (list A)).hom ≫ (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫
+        (α_ B (list B) (list B)).inv ≫ plist.cons (P := 𝟙_ C) (A := B) ▷ list B := by stop
         -- 1. Force everything to the same base definition
         dsimp [list.cons, list]
 
@@ -1059,10 +1067,11 @@ theorem append_map {A B : C} {f : A ⟶ B} :
       have h_cancel : (α_ B (list B) (list B)).inv ≫ (α_ B (list B) (list B)).hom = 𝟙 _ := by rw [Iso.inv_hom_id]
       rw [← Category.assoc (f := (α_ B (list B) (list B)).inv)]
       erw [h_cancel]
-      simp only [Category.id_comp, Category.assoc]
+      simp only [Category.id_comp]
 
       -- Distribute the remaining tensors
-      have h_final_comm : (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ B ◁ append = A ◁ ((list.map f ⊗ₘ list.map f) ≫ append) ≫ (f ▷ list B) := by
+      have h_final_comm : (f ⊗ₘ (list.map f ⊗ₘ list.map f)) ≫ B ◁ append =
+          A ◁ ((list.map f ⊗ₘ list.map f) ≫ append) ≫ (f ▷ list B) := by
         rw [tensorHom_def' f (list.map f ⊗ₘ list.map f)]
         simp only [Category.assoc]
         simp;sorry
@@ -1132,21 +1141,161 @@ theorem nil_rev [BraidedCategory C] {A : C} : list.nil ≫ rev = list.nil (A := 
   dsimp [rev, list.nil, list.rc]
   simp only [plist.nil_rc]
 
+-- /- rev [x] = [x] -/
+-- theorem singleton_rev_eq_singleton' [BraidedCategory C] {A : C} : η ≫ rev (A := A) = η := by
+--   simp only [rev, list.singleton]
+--   sorry
+
 /- rev [x] = [x] -/
 theorem singleton_rev_eq_singleton [BraidedCategory C] {A : C} : η ≫ rev (A := A) = η := by
-  simp only [rev, list.singleton]
+  nth_rw 1 [list.singleton_eq_nil_cons]
+  dsimp [list.rev]
+  simp only [Category.assoc]
+  dsimp [list.cons, list.rc, list.nil]
+  rw [plist.cons_rc]
+  rw [← Category.assoc (f := A ◁ plist.nil (P := 𝟙_ C))]
+  rw [← whiskerLeft_comp]
+  rw [plist.nil_rc]
+
+  have h_exch : A ◁ plist.nil (P := 𝟙_ C) ≫ η ▷ list A = η ▷ 𝟙_ C ≫ list A ◁ plist.nil (P := 𝟙_ C) := by
+    erw [whisker_exchange]
+
+  rw [← Category.assoc (f := A ◁ plist.nil (P := 𝟙_ C))]
+  rw [h_exch]
+  simp only [Category.assoc]
+  rw [← Category.assoc (f := (ρ_ A).inv)]
+  erw [← rightUnitor_inv_naturality]
+  simp only [Category.assoc]
+  have h_braid : list A ◁ plist.nil (P := 𝟙_ C) ≫ (β_ (list A) (list A)).hom =
+                 (β_ (list A) (𝟙_ C)).hom ≫ plist.nil (P := 𝟙_ C) ▷ list A :=
+    BraidedCategory.braiding_naturality_right (list A) (plist.nil (P := 𝟙_ C))
+  rw [← Category.assoc (f := list A ◁ plist.nil (P := 𝟙_ C))]
+  rw [h_braid]
+  simp only [Category.assoc]
+  have h_unit_braid : (β_ (list A) (𝟙_ C)).hom = (ρ_ (list A)).hom ≫ (λ_ (list A)).inv := by
+    simp
+  rw [← Category.assoc (f := (ρ_ (list A)).inv)]
+  rw [h_unit_braid]
+  simp only [Iso.inv_hom_id_assoc]
+  erw [list.whiskerRight_nil_append]
+  simp
+
+theorem rev_append' [BraidedCategory C] {A : C} :
+    append ≫ rev (A:= A) = (rev ⊗ₘ rev) ≫ list.append := by
   sorry
+
+
+/- rev (xs ++ ys) = rev ys ++ rev xs -/
 
 /- rev (xs ++ ys) = rev ys ++ rev xs -/
 theorem rev_append [BraidedCategory C] {A : C} :
     append ≫ rev (A:= A) = (rev ⊗ₘ rev) ≫ list.append := by
-  sorry
+
+  -- 1. Prove the Left-Hand Side equals a specific parameterized recursor
+  -- 1. Prove the Left-Hand Side equals a specific parameterized recursor
+  have H1 : append ≫ rev (A:= A) = list.prc rev ((η ▷ list A) ≫ (β_ _ _).hom ≫ append) := by
+    refine prc_uniq _ ?_ ?_
+
+    · -- BASE CASE for LHS: [] ++ ys
+      -- Isolate the `nil ▷ list A ≫ append` composition
+      rw [← Category.assoc (f := list.nil ▷ list A)]
+
+      -- Evaluate the append base case
+      erw [list.whiskerRight_nil_append]
+
+    · -- INDUCTIVE CASE for LHS: (x :: xs) ++ ys
+      -- Isolate the `cons ▷ list A ≫ append` composition
+      rw [← Category.assoc (f := list.cons ▷ list A)]
+
+      -- Expand the inductive step of append
+      erw [list.cons_prc]
+      simp only [Category.assoc]
+
+      -- Define how `rev` acts on `cons` by unpacking its underlying `plist.rc` definition
+      -- THE FIX: The braiding is (β_ (list A) (list A)), because η has already turned A into list A!
+      have h_rev_cons : list.cons (A := A) ≫ list.rev =
+                        A ◁ list.rev ≫ (η ▷ list A) ≫ (β_ (list A) (list A)).hom ≫ list.append := by
+        dsimp [list.rev, list.cons, list.rc]
+        rw [plist.cons_rc]
+
+      -- Pull the parenthesis left so we can rewrite `cons ≫ rev`
+      -- THE FIX: We use the raw 'prc' because 'cons_prc' unpacked the 'append' abbreviation!
+      rw [← Category.assoc (f := A ◁ prc (𝟙 (list A)) cons)]
+      -- 1. Flatten the composition so `cons` and `rev` become adjacent
+      simp only [Category.assoc]
+
+      -- 2. Now the rewrite will find the exact pattern `cons ≫ rev`
+      erw [h_rev_cons]
+      simp
+
+      -- 3. Group the left whiskers `A ◁ prc... ≫ A ◁ rev` into `A ◁ (prc... ≫ rev)`
+
+      -- Group the left whiskers `A ◁ prc... ≫ A ◁ rev` into `A ◁ (prc... ≫ rev)`
+
+      -- At this point, the LHS has `A ◁ (prc ... ≫ rev)`
+      -- and the RHS has `A ◁ (append ≫ rev)`.
+      -- Because they are definitionally identical, Lean can close it natively!
+      rfl
+
+  -- 2. Prove the Right-Hand Side equals the SAME parameterized recursor
+  have H2 : (rev (A:=A) ⊗ₘ rev) ≫ list.append = list.prc rev ((η ▷ list A) ≫ (β_ (list A) (list A)).hom ≫ append) := by
+    refine prc_uniq _ ?_ ?_
+
+    · -- ==========================================
+      -- BASE CASE for RHS: [] ++ ys
+      -- ==========================================
+      -- 1. Expand the tensor product into left and right whiskers
+      rw [tensorHom_def]
+      simp only [Category.assoc]
+
+      -- 2. Factor `nil` and `rev` on the left wire together
+      rw [← Category.assoc (f := list.nil (A := A) ▷ list A)]
+      rw [← comp_whiskerRight]
+
+      -- 3. Reversing a nil list is nil
+      erw [list.nil_rev]
+
+      -- 4. Use the Interchange Law to slide `rev` to the right of `nil`
+      have h_exch : list.nil (A := A) ▷ list A ≫ list A ◁ list.rev =
+                    𝟙_ C ◁ list.rev ≫ list.nil (A := A) ▷ list A := by
+        rw [whisker_exchange]
+
+      -- Pull the parenthesis to the left so the two whiskers are grouped
+      rw [← Category.assoc (f := list.nil (A := A) ▷ list A)]
+
+      -- Now the rewrite will perfectly match the grouped whiskers
+      rw [h_exch]
+      simp only [Category.assoc]
+      erw [list.whiskerRight_nil_append]
+      erw [← leftUnitor_naturality]
+
+    · stop-- ==========================================
+      dsimp [list.cons, list.rev]
+      rw [tensorHom_def]
+      simp only [Category.assoc]
+      rw [← Category.assoc (f := plist.cons (P := 𝟙_ C) ▷ list A)]
+      rw [← comp_whiskerRight]
+      have h_rev_cons : plist.cons (P := 𝟙_ C) (A := A) ≫ list.rev =
+                        A ◁ list.rev ≫ (η ▷ list A) ≫ (β_ (list A) (list A)).hom ≫ list.append := by
+        dsimp [list.rev, list.cons, list.rc]
+        rw [plist.cons_rc]
+      erw [h_rev_cons]
+      simp only [Category.assoc, comp_whiskerRight]
+      simp
+
+
+  -- 3. Tie them together
+  calc append ≫ rev (A:= A)
+    _ = list.prc rev ((η ▷ list A) ≫ (β_ _ _).hom ≫ append) := by rw [H1]
+    _ = (rev ⊗ₘ rev) ≫ list.append := by rw [← H2]
+
 
 /- rev (rev xs ++ [x]) = [x] ++ xs -/
 theorem singleton_braiding_append_rev_eq_singleton_append [BraidedCategory C] {A : C} :
     ((η ▷ list A) ≫ (β_ _ _).hom ≫ list.append ≫ list.rev) =
     (η ▷ list A) ≫ list.append  := by
   sorry
+
 
 /-- list.rev is an involution, i.e. `list.rev ≫ list.rev = 𝟙`. -/
 theorem rev_rev [BraidedCategory C] {A : C} : list.rev ≫ list.rev = 𝟙 (list A) :=
@@ -1178,8 +1327,8 @@ def ListAdjActForgetHomEquiv (A P : Type u₁) (Y : Act A) :
         intro p
         have h := congrArg (fun (g : (A × (List A × P)) → _) => g (a, (as, p))) f.h
         simp only [List.foldr_cons]
-        simp_all only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map, types_comp_apply,
-          whiskerLeft_apply, List.freeActionFunctor_obj_str]
+        simp_all only [List.freeActionFunctor_obj_a, curriedTensor_obj_obj, curriedTensor_obj_map,
+          types_comp_apply, whiskerLeft_apply, List.freeActionFunctor_obj_str]
   right_inv f := by
     funext x
     rfl
@@ -1465,11 +1614,37 @@ theorem list.nil_tail {A : C} : list.nil ≫ list.tail (A:= A) = coprod.inl := b
   simp only [id_tensorHom, plist.nil_rc, coprod.inl_map, id_comp]
 
 theorem list.cons_tail {A : C} : list.cons ≫ list.tail (A:= A) = snd _ _ ≫ coprod.inr := by
+  dsimp [list.tail]
+  rw [← Category.assoc]
+  have h_split := (@list.semirecursive _ _ _ _ _ A).cons_split
+  erw [h_split]
+  simp only [coprod.inr_map]
+
+theorem list.singleton_tail' {A : C} :
+    list.singleton ≫ list.tail (A:= A) = toUnit A ≫ list.nil ≫ coprod.inr := by
   sorry
+
+@[reassoc (attr := simp)]
+theorem list.whiskerLeft_nil_snd {A : C} :
+    A ◁ list.nil (A := A) ≫ snd A (list A) = snd A (𝟙_ C) ≫ list.nil := by sorry
 
 theorem list.singleton_tail {A : C} :
     list.singleton ≫ list.tail (A:= A) = toUnit A ≫ list.nil ≫ coprod.inr := by
-  sorry
+  rw [list.singleton_eq_nil_cons]
+  rw [Category.assoc]
+  rw [Category.assoc]
+  rw [list.cons_tail]
+  rw [← Category.assoc (f := A ◁ list.nil)]
+  have h_snd_nat : A ◁ list.nil (A := A) ≫ snd A (list A) = snd A (𝟙_ C) ≫ list.nil := by
+    dsimp [snd,nil,snd];
+    sorry
+  rw [h_snd_nat]
+  simp only [Category.assoc]
+  have h_term : (ρ_ A).inv ≫ snd A (𝟙_ C) = toUnit A := by
+    exact Subsingleton.elim _ _
+  rw [← Category.assoc]
+  rw [h_term]
+
 
 /-- The object of nonempty lists. -/
 noncomputable def nelist [HasPullbacks C] (A : C) := pullback (list.tail (A:= A)) coprod.inr
@@ -1536,25 +1711,116 @@ theorem listAlgebra_str [ListArithmetic C] {A : C} :
     (listAlgebra A).str = coprod.desc list.nil list.cons := by
   rfl
 
-/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
+
+/-- In a list-arithmetic category, the parametrize list object is the initial algebra
+  for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
 noncomputable instance isInitialOfplistAlgebra [ListArithmetic C] (A P : C)  :
     IsInitial (plistAlgebra A P) := by
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
     f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
-    h := by sorry
-  }
-  · sorry
+    h := by
+        apply coprod.hom_ext
 
-/-- In a list-arithmetic category, the list object is the initial algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
-noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A P : C)  :
+        ·
+          dsimp [plistAlgebra, coprodTensorEndofunctorAlgebraMk, coprodTensorEndofunctor]
+
+          rw [← Category.assoc]
+          rw [coprod.inl_map]
+          simp only [Category.id_comp]
+          aesop
+        · -- RIGHT INJECTION (cons case)
+          dsimp [plistAlgebra, coprodTensorEndofunctorAlgebraMk, coprodTensorEndofunctor]
+          simp only [← Category.assoc]
+          rw [coprod.inr_map]
+          rw [coprod.inr_desc]
+          simp only [Category.assoc]
+          rw [plist.cons_rc]
+          dsimp [actionOfcoprodTensorEndofunctorAlgebra]
+
+  }
+  ·  -- 1. Introduce BOTH the target algebra (α) and the homomorphism (g)
+    intro α g
+
+    -- 2. Bypass the `ext` tactic and manually apply the theorem that states:
+    -- "Two algebra homomorphisms are equal if their underlying `.f` maps are equal."
+    apply CategoryTheory.Endofunctor.Algebra.Hom.ext
+
+    -- 3. Clean up the lambda application from `ofUniqueHom` on the right side
+    dsimp only
+
+    -- 4. Now the goal is strictly `g.f = plist.rc ...`, so your uniqueness lemma perfectly applies!
+    apply plist.rc_uniq
+
+    · have h_nil := congr_arg (fun x => coprod.inl ≫ x) g.h
+      dsimp [plistAlgebra, coprodTensorEndofunctorAlgebraMk, coprodTensorEndofunctor] at h_nil
+      simp only [← Category.assoc] at h_nil
+      rw [coprod.inl_map, coprod.inl_desc] at h_nil
+      simp only [Category.id_comp] at h_nil
+      dsimp [initOfCoprodTensorEndofunctorAlgebra]
+      exact h_nil.symm
+
+    · have h_cons := congr_arg (fun x => coprod.inr ≫ x) g.h
+      dsimp [plistAlgebra, coprodTensorEndofunctorAlgebraMk, coprodTensorEndofunctor] at h_cons
+      simp only [← Category.assoc] at h_cons
+      rw [coprod.inr_map, coprod.inr_desc] at h_cons
+      simp only [Category.assoc] at h_cons
+      dsimp [actionOfcoprodTensorEndofunctorAlgebra]
+      exact h_cons.symm
+
+/-- In a list-arithmetic category, the list object is the initial
+  algebra for the polynomial endofunctor `X ↦ 1 ⨿ A ⊗ X`. -/
+noncomputable instance isInitialOflistAlgebra [ListArithmetic C] (A _ : C)  :
     IsInitial (listAlgebra A) := by
   refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
   · exact {
     f := plist.rc (initOfCoprodTensorEndofunctorAlgebra α) (actionOfcoprodTensorEndofunctorAlgebra α)
-    h := by sorry
+    h := by
+      apply coprod.hom_ext
+
+      · -- LEFT INJECTION (nil case)
+        dsimp [listAlgebra, plistAlgebra, coprodTensorEndofunctorAlgebraMk,
+          coprodTensorEndofunctor]
+        simp only [← Category.assoc]
+        rw [coprod.inl_map, coprod.inl_desc]
+        simp only [Category.id_comp]
+        rw [plist.nil_rc]
+        rfl
+
+      · -- RIGHT INJECTION (cons case)
+        dsimp [listAlgebra, plistAlgebra, coprodTensorEndofunctorAlgebraMk,
+          coprodTensorEndofunctor]
+        simp only [← Category.assoc]
+        rw [coprod.inr_map, coprod.inr_desc]
+        simp only [Category.assoc]
+        rw [plist.cons_rc]
+        dsimp [actionOfcoprodTensorEndofunctorAlgebra]
   }
-  · sorry
+  · intro α g
+    apply CategoryTheory.Endofunctor.Algebra.Hom.ext
+    dsimp only
+    apply plist.rc_uniq
+
+    · -- BASE CASE (nil)
+      have h_nil := congr_arg (fun x => coprod.inl ≫ x) g.h
+      dsimp [listAlgebra, plistAlgebra, coprodTensorEndofunctorAlgebraMk,
+        coprodTensorEndofunctor] at h_nil
+      simp only [← Category.assoc] at h_nil
+      rw [coprod.inl_map, coprod.inl_desc] at h_nil
+      simp only [Category.id_comp] at h_nil
+      dsimp [initOfCoprodTensorEndofunctorAlgebra]
+      exact h_nil.symm
+
+    · -- INDUCTIVE CASE (cons)
+      have h_cons := congr_arg (fun x => coprod.inr ≫ x) g.h
+      dsimp [listAlgebra, plistAlgebra, coprodTensorEndofunctorAlgebraMk,
+         coprodTensorEndofunctor] at h_cons
+      simp only [← Category.assoc] at h_cons
+      rw [coprod.inr_map, coprod.inr_desc] at h_cons
+      simp only [Category.assoc] at h_cons
+      dsimp [actionOfcoprodTensorEndofunctorAlgebra]
+      exact h_cons.symm
+
 
 /-- The Lambek isomorphism  `P ⨿ (A ⊗ plist A P) ≅ plist A P` -/
 noncomputable def plistAlgebraIso  [ListArithmetic C] (A P : C) : P ⨿ (A ⊗ plist A P) ≅ plist A P where

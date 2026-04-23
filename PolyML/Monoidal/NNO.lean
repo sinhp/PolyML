@@ -134,8 +134,115 @@ def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ 
     [IsPNNO N zero succ] [IsPNNO N' zero' succ'] : N ≅ N' where
   hom := (ρ_ N).inv ≫ prc zero succ zero' succ'
   inv := (ρ_ N').inv ≫ prc zero' succ' zero succ
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+  hom_inv_id := by stop
+    simp only [Category.assoc]
+
+    have h : prc zero succ zero' succ' ≫ (ρ_ N').inv ≫ prc zero' succ' zero succ =
+             prc zero succ zero succ := by
+      apply IsPNNO.prc_uniq (zero := zero) (succ := succ)
+
+      · -- BASE CASE (h_zero)
+        rw [← Category.assoc]
+        rw [IsPNNO.zero_prc]
+
+        -- THE FIX: Flatten the parentheses so we don't grab `λ.hom`!
+        simp only [Category.assoc]
+
+        -- Isolate ONLY `zero'` and apply naturality
+        rw [← Category.assoc (f := zero')]
+        erw [rightUnitor_inv_naturality]
+
+        -- Flatten again
+        simp only [Category.assoc]
+
+        -- NOW `zero' ▷ 𝟙_ C` is perfectly isolated!
+        rw [← Category.assoc (f := zero' ▷ 𝟙_ C)]
+        rw [IsPNNO.zero_prc]
+
+        -- Clean up unitors
+        simp only [Category.assoc]
+        have h_unit : (λ_ (𝟙_ C)).hom ≫ (ρ_ (𝟙_ C)).inv = 𝟙 _ := by
+          rw [unitors_equal, Iso.hom_inv_id]
+        rw [← Category.assoc (f := (λ_ (𝟙_ C)).hom)]
+        rw [h_unit]
+        simp only [Category.id_comp]
+
+      · -- INDUCTIVE CASE (h_succ)
+        -- Isolate the first recursor
+        rw [← Category.assoc]
+        rw [IsPNNO.succ_prc]
+
+        -- Commute succ past the unitor
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := succ')]
+        erw [rightUnitor_inv_naturality]
+
+        -- Apply the second recursor
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := succ' ▷ 𝟙_ C)]
+        rw [IsPNNO.succ_prc]
+        simp only [Category.assoc]
+
+    -- 2. Prove that the identity recursor evaluates exactly to the right unitor
+    have h_id : prc zero succ zero succ = (ρ_ N).hom := by
+      apply IsPNNO.prc_uniq (zero := zero) (succ := succ)
+      · coherence
+      · apply rightUnitor_naturality
+
+    -- 3. Substitute our isolated facts back into the main goal!
+    rw [← Category.assoc (f := prc zero succ zero' succ')]
+    rw [h]
+    rw [h_id]
+    exact Iso.inv_hom_id (ρ_ N)
+
+  inv_hom_id := by stop
+    dsimp [hom, inv]
+    simp only [Category.assoc]
+
+    -- We repeat the exact same symmetrical logic for the opposite direction!
+    have h : prc zero' succ' zero succ ≫ (ρ_ N).inv ≫ prc zero succ zero' succ' =
+             prc zero' succ' zero' succ' := by
+      apply IsPNNO.prc_uniq (zero := zero') (succ := succ')
+      · -- BASE CASE
+        rw [← Category.assoc]
+        rw [IsPNNO.zero_prc]
+        rw [← Category.assoc]
+        erw [rightUnitor_inv_naturality]
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := zero ▷ 𝟙_ C)]
+        rw [IsPNNO.zero_prc]
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := (ρ_ (𝟙_ C)).inv)]
+        rw [unitors_equal]
+        rw [Iso.inv_hom_id_assoc]
+      · -- INDUCTIVE CASE
+        rw [← Category.assoc]
+        rw [IsPNNO.succ_prc]
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := succ)]
+        erw [rightUnitor_inv_naturality]
+        simp only [Category.assoc]
+        rw [← Category.assoc (f := succ ▷ 𝟙_ C)]
+        rw [IsPNNO.succ_prc]
+        simp only [Category.assoc]
+
+    have h_id : prc zero' succ' zero' succ' = (ρ_ N').hom := by
+      apply IsPNNO.prc_uniq (zero := zero') (succ := succ')
+      · coherence
+      · apply rightUnitor_naturality
+
+    rw [← Category.assoc (f := prc zero' succ' zero succ)]
+    rw [h]
+    rw [h_id]
+    exact Iso.inv_hom_id (ρ_ N')
+
+-- /-- Any two natural number objects in a monoidal category are isomorphic. -/
+-- def iso {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N ⟶ N} {zero' : 𝟙_ C ⟶ N'} {succ' : N' ⟶ N'}
+--     [IsPNNO N zero succ] [IsPNNO N' zero' succ'] : N ≅ N' where
+--   hom := (ρ_ N).inv ≫ prc zero succ zero' succ'
+--   inv := (ρ_ N').inv ≫ prc zero' succ' zero succ
+--   hom_inv_id := sorry
+--   inv_hom_id := sorry
 
 end IsPNNO
 
@@ -375,12 +482,267 @@ instance comonClass : ComonObj (N : C) where
   counit := delete
   comul := duplicate
   counit_comul := by
-    simp only [duplicate, delete]
-    rw [assoc]
-    dsimp [toUnit]
-    sorry
-  comul_counit := sorry
-  comul_assoc := sorry
+    dsimp [duplicate, delete]
+    rw [Category.assoc]
+
+    have comm_sq : CommSq (succ ⊗ₘ succ) (toUnit ▷ N) (toUnit ▷ N) (𝟙_ C ◁ succ) := ⟨by
+      rw [tensorHom_def']
+      simp only [Category.assoc]
+      rw [← comp_whiskerRight, succ_toUnit]
+      apply whisker_exchange
+    ⟩
+
+    rw [prc_postcompose (𝟙_ C ◁ succ) (toUnit ▷ N) comm_sq]
+
+    have h_init : ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ toUnit ▷ N = zero ≫ (λ_ N).inv := by
+      rw [Category.assoc, tensorHom_def']
+      simp only [Category.assoc, ← comp_whiskerRight, zero_toUnit, id_whiskerRight, Category.comp_id]
+      rw [← leftUnitor_inv_naturality]
+
+    rw [h_init]
+
+    have h_id : prc (zero ≫ (λ_ N).inv) (𝟙_ C ◁ succ) = (ρ_ N).hom ≫ (λ_ N).inv := by
+      apply Eq.symm
+      apply prc_uniq
+      · -- BASE CASE
+        rw [← Category.assoc]
+        -- NO LEFT ARROW HERE!
+        rw [rightUnitor_naturality]
+        rw [Category.assoc]
+        have h_unit : (ρ_ (𝟙_ C)).hom = (λ_ (𝟙_ C)).hom := by rw [unitors_equal]
+        rw [h_unit]
+
+      · -- INDUCTIVE CASE
+        rw [← Category.assoc]
+        -- NO LEFT ARROW HERE!
+        rw [rightUnitor_naturality]
+        rw [Category.assoc]
+
+        -- Safely commute succ past the unitor inverse using a calc block
+        have h_left : succ ≫ (λ_ N).inv = (λ_ N).inv ≫ 𝟙_ C ◁ succ := by
+          calc succ ≫ (λ_ N).inv
+            _ = 𝟙 _ ≫ succ ≫ (λ_ N).inv := by rw [Category.id_comp]
+            _ = ((λ_ N).inv ≫ (λ_ N).hom) ≫ succ ≫ (λ_ N).inv := by rw [Iso.inv_hom_id]
+            _ = (λ_ N).inv ≫ ((λ_ N).hom ≫ succ) ≫ (λ_ N).inv := by simp only [Category.assoc]
+            _ = (λ_ N).inv ≫ (𝟙_ C ◁ succ ≫ (λ_ N).hom) ≫ (λ_ N).inv := by rw [leftUnitor_naturality]
+            _ = (λ_ N).inv ≫ 𝟙_ C ◁ succ ≫ ((λ_ N).hom ≫ (λ_ N).inv) := by simp only [Category.assoc]
+            _ = (λ_ N).inv ≫ 𝟙_ C ◁ succ ≫ 𝟙 _ := by rw [Iso.hom_inv_id]
+            _ = (λ_ N).inv ≫ 𝟙_ C ◁ succ := by rw [Category.comp_id]
+
+        rw [h_left]
+        simp
+
+    rw [h_id, ← Category.assoc, Iso.inv_hom_id, Category.id_comp]
+  comul_counit := by
+    dsimp [duplicate, delete]
+    rw [Category.assoc]
+
+    -- 1. Build the commutative square using a watertight calc block
+    -- 1. Build the commutative square using a watertight calc block
+    have comm_sq : CommSq (succ ⊗ₘ succ) (N ◁ toUnit) (N ◁ toUnit) (succ ▷ 𝟙_ C) := ⟨by
+      calc (succ ⊗ₘ succ) ≫ N ◁ toUnit
+        -- FIX: Added the prime (') to tensorHom_def
+        _ = (N ◁ succ ≫ succ ▷ N) ≫ N ◁ toUnit := by rw [tensorHom_def']
+        _ = N ◁ succ ≫ (succ ▷ N ≫ N ◁ toUnit) := by rw [Category.assoc]
+        _ = N ◁ succ ≫ (N ◁ toUnit ≫ succ ▷ 𝟙_ C) := by rw [← whisker_exchange]
+        _ = (N ◁ succ ≫ N ◁ toUnit) ≫ succ ▷ 𝟙_ C := by rw [← Category.assoc]
+        _ = N ◁ (succ ≫ toUnit) ≫ succ ▷ 𝟙_ C := by rw [← whiskerLeft_comp]
+        _ = N ◁ toUnit ≫ succ ▷ 𝟙_ C := by rw [succ_toUnit]
+    ⟩
+
+    rw [prc_postcompose (succ ▷ 𝟙_ C) (N ◁ toUnit) comm_sq]
+
+    -- 2. Calculate the initialization case with total precision
+    have h_init : ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ N ◁ toUnit = (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C := by
+      calc ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ N ◁ toUnit
+        _ = (λ_ (𝟙_ C)).inv ≫ ((zero ⊗ₘ zero) ≫ N ◁ toUnit) := by rw [Category.assoc]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((𝟙_ C ◁ zero ≫ zero ▷ N) ≫ N ◁ toUnit) := by rw [tensorHom_def']
+        _ = (λ_ (𝟙_ C)).inv ≫ (𝟙_ C ◁ zero ≫ (zero ▷ N ≫ N ◁ toUnit)) := by rw [Category.assoc]
+        -- FIX: The exchanged whisker is 𝟙_ C ◁ toUnit, not N ◁ toUnit!
+        _ = (λ_ (𝟙_ C)).inv ≫ (𝟙_ C ◁ zero ≫ (𝟙_ C ◁ toUnit ≫ zero ▷ 𝟙_ C)) := by rw [← whisker_exchange]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((𝟙_ C ◁ zero ≫ 𝟙_ C ◁ toUnit) ≫ zero ▷ 𝟙_ C) := by rw [← Category.assoc];aesop
+        _ = (λ_ (𝟙_ C)).inv ≫ (𝟙_ C ◁ (zero ≫ toUnit) ≫ zero ▷ 𝟙_ C) := by rw [← whiskerLeft_comp]
+        _ = (λ_ (𝟙_ C)).inv ≫ (𝟙_ C ◁ 𝟙 (𝟙_ C) ≫ zero ▷ 𝟙_ C) := by rw [zero_toUnit]
+        _ = (λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C ⊗ 𝟙_ C) ≫ zero ▷ 𝟙_ C) := by rw [whiskerLeft_id]
+        _ = (λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C := by rw [Category.id_comp]
+
+    rw [h_init]
+
+    -- 3. Prove the identity recursor evaluates correctly (again, zero guesswork!)
+    have h_id : prc ((λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C) (succ ▷ 𝟙_ C) = 𝟙 (N ⊗ 𝟙_ C) := by
+      apply Eq.symm
+      apply prc_uniq
+      · calc zero ▷ 𝟙_ C ≫ 𝟙 (N ⊗ 𝟙_ C)
+          _ = zero ▷ 𝟙_ C := by rw [Category.comp_id]
+          _ = 𝟙 _ ≫ zero ▷ 𝟙_ C := by rw [Category.id_comp]
+          _ = ((λ_ (𝟙_ C)).hom ≫ (λ_ (𝟙_ C)).inv) ≫ zero ▷ 𝟙_ C := by rw [Iso.hom_inv_id]
+          _ = (λ_ (𝟙_ C)).hom ≫ ((λ_ (𝟙_ C)).inv ≫ zero ▷ 𝟙_ C) := by rw [Category.assoc]
+      · calc succ ▷ 𝟙_ C ≫ 𝟙 (N ⊗ 𝟙_ C)
+          _ = succ ▷ 𝟙_ C := by rw [Category.comp_id]
+          _ = 𝟙 (N ⊗ 𝟙_ C) ≫ succ ▷ 𝟙_ C := by rw [Category.id_comp]
+
+    rw [h_id]
+
+    -- 4. Finish off the (ρ_ N).inv ≫ 𝟙 = (ρ_ N).inv goal
+    rw [Category.comp_id]
+  comul_assoc := by
+    -- 1. Establish the base recursive properties of the duplicator
+    -- FIX: Explicitly type `zero` and `succ` so Lean knows exactly which NNO we mean!
+    have zero_duplicate : (zero : 𝟙_ C ⟶ N) ≫ duplicate = (λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero) := by
+      dsimp [duplicate]
+      rw [← Category.assoc, rightUnitor_inv_naturality, Category.assoc, zero_prc]
+      have h_unit : (ρ_ (𝟙_ C)).inv ≫ (λ_ (𝟙_ C)).hom = 𝟙 _ := by
+        rw [unitors_equal, Iso.inv_hom_id]
+      rw [← Category.assoc, h_unit, Category.id_comp]
+
+    have succ_duplicate : (succ (C:=C) : N ⟶ N) ≫ duplicate = duplicate ≫ (succ ⊗ₘ succ) := by
+      dsimp [duplicate]
+      rw [← Category.assoc, rightUnitor_inv_naturality, Category.assoc, succ_prc]
+      simp only [Category.assoc]
+
+    -- 2. Convert standard whiskers into explicit tensor products to avoid definition mismatches
+    have h_whisker_R : duplicate ▷ N (C:=C)= duplicate ⊗ₘ 𝟙 N := by
+      rw [tensorHom_def]
+      simp only [whiskerLeft_id, Category.comp_id]
+
+    have h_whisker_L : N (C:=C) ◁ duplicate = 𝟙 N ⊗ₘ duplicate := by
+      rw [tensorHom_def]
+      simp only [id_whiskerRight, Category.id_comp]
+
+    rw [h_whisker_R, h_whisker_L]
+
+    have h_whisker_L : N (C:=C) ◁ duplicate = 𝟙 N ⊗ₘ duplicate := by
+      rw [tensorHom_def]
+      simp only [id_whiskerRight, Category.id_comp]
+
+    rw [← h_whisker_R, ← h_whisker_L]
+
+    -- 3. Isolate the recursor from the duplicator
+    have hom_dup : (ρ_ N).hom ≫ duplicate = prc ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) (succ ⊗ₘ succ) := by
+      dsimp [duplicate]
+      rw [← Category.assoc, Iso.hom_inv_id, Category.id_comp]
+
+    -- 4. Left side inductive step commutative square
+    -- 4. Left side inductive step commutative square
+    -- 4. Left side inductive step commutative square
+    have comm_sq_L : CommSq (succ ⊗ₘ succ) ((duplicate ⊗ₘ 𝟙 N) ≫
+        (α_ N N N).hom) ((duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom) (succ ⊗ₘ (succ ⊗ₘ succ)) := ⟨by
+      calc (succ ⊗ₘ succ) ≫ (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom
+        _ = ((succ ⊗ₘ succ) ≫ (duplicate ⊗ₘ 𝟙 N)) ≫ (α_ N N N).hom := by simp
+        -- FIX: Remove the left arrow to expand!
+        _ = (((succ : N ⟶ N) ≫ duplicate) ⊗ₘ ((succ : N ⟶ N) ≫ 𝟙 N)) ≫ (α_ N N N).hom := by
+          rw [CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom (C:=C)]
+        _ = (((succ : N ⟶ N) ≫ duplicate) ⊗ₘ (succ : N ⟶ N)) ≫ (α_ N N N).hom := by simp only [Category.comp_id]
+        _ = ((duplicate ≫ (succ ⊗ₘ succ)) ⊗ₘ (succ : N ⟶ N)) ≫ (α_ N N N).hom := by rw [succ_duplicate]
+        _ = ((duplicate ≫ (succ ⊗ₘ succ)) ⊗ₘ (𝟙 N ≫ succ)) ≫ (α_ N N N).hom := by simp only [Category.id_comp]
+        -- Keep the left arrow here to contract it back together!
+        _ = ((duplicate ⊗ₘ 𝟙 N) ≫ ((succ ⊗ₘ succ) ⊗ₘ succ)) ≫ (α_ N N N).hom := by
+            rw [← CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom]
+        _ = (duplicate ⊗ₘ 𝟙 N) ≫ ((succ ⊗ₘ succ) ⊗ₘ succ) ≫ (α_ N N N).hom := by rw [Category.assoc]
+        _ = (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom ≫ (succ ⊗ₘ (succ ⊗ₘ succ)) := by
+            erw [CategoryTheory.MonoidalCategory.associator_naturality]
+        _ = ((duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom) ≫ (succ ⊗ₘ (succ ⊗ₘ succ)) := by rw [← Category.assoc]
+    ⟩
+
+    -- 5. Right side inductive step commutative square
+    have comm_sq_R : CommSq (succ ⊗ₘ succ) (𝟙 N ⊗ₘ duplicate) (𝟙 N ⊗ₘ duplicate) (succ ⊗ₘ (succ ⊗ₘ succ)) := ⟨by
+      calc (succ ⊗ₘ succ) ≫ (𝟙 N ⊗ₘ duplicate)
+        _ = ((succ : N ⟶ N) ≫ 𝟙 N) ⊗ₘ ((succ : N ⟶ N) ≫ duplicate) := by
+          rw [← CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom (C:=C)]
+        _ = (succ : N ⟶ N) ⊗ₘ ((succ : N ⟶ N) ≫ duplicate) := by simp only [Category.comp_id]
+        _ = (succ : N ⟶ N) ⊗ₘ (duplicate ≫ (succ ⊗ₘ succ)) := by rw [succ_duplicate]
+        _ = (𝟙 N ≫ succ) ⊗ₘ (duplicate ≫ (succ ⊗ₘ succ)) := by simp only [Category.id_comp]
+        _ = (𝟙 N ⊗ₘ duplicate) ≫ (succ ⊗ₘ (succ ⊗ₘ succ)) := by
+          rw [CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom]
+    ⟩
+
+    -- 6. Initialization step identity trace (The core associativity magic)
+    have h_init : ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ (duplicate ⊗ₘ 𝟙 N) ≫
+      (α_ N N N).hom = ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ (𝟙 N ⊗ₘ duplicate) := by
+      have h_coh : ((λ_ (𝟙_ C)).inv ⊗ₘ 𝟙 (𝟙_ C)) ≫
+           (α_ (𝟙_ C) (𝟙_ C) (𝟙_ C)).hom = 𝟙 (𝟙_ C) ⊗ₘ (λ_ (𝟙_ C)).inv := by coherence
+      calc ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom
+        _ = (λ_ (𝟙_ C)).inv ≫ ((zero ⊗ₘ zero) ≫ (duplicate ⊗ₘ 𝟙 N)) ≫
+            (α_ N N N).hom := by simp only [Category.assoc]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((zero : 𝟙_ C ⟶ N) ≫ duplicate) ⊗ₘ
+            ((zero : 𝟙_ C ⟶ N) ≫ 𝟙 N)) ≫ (α_ N N N).hom := by
+            rw [← CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((zero : 𝟙_ C ⟶ N) ≫ duplicate) ⊗ₘ
+            (zero : 𝟙_ C ⟶ N)) ≫ (α_ N N N).hom := by simp only [Category.comp_id]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ⊗ₘ
+            (zero : 𝟙_ C ⟶ N)) ≫ (α_ N N N).hom := by simp only [zero_duplicate]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ⊗ₘ
+            (𝟙 (𝟙_ C) ≫ (zero : 𝟙_ C ⟶ N))) ≫ (α_ N N N).hom := by simp only [Category.id_comp]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((λ_ (𝟙_ C)).inv ⊗ₘ 𝟙 (𝟙_ C)) ≫
+            ((zero ⊗ₘ zero) ⊗ₘ (zero : 𝟙_ C ⟶ N))) ≫ (α_ N N N).hom := by
+            rw [← CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ⊗ₘ 𝟙 (𝟙_ C)) ≫ ((zero ⊗ₘ zero) ⊗ₘ (zero : 𝟙_ C ⟶ N)) ≫
+            (α_ N N N).hom := by simp only [Category.assoc]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ⊗ₘ 𝟙 (𝟙_ C)) ≫ (α_ (𝟙_ C) (𝟙_ C) (𝟙_ C)).hom ≫
+            ((zero : 𝟙_ C ⟶ N) ⊗ₘ (zero ⊗ₘ zero)) := by
+            erw [CategoryTheory.MonoidalCategory.associator_naturality]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((λ_ (𝟙_ C)).inv ⊗ₘ 𝟙 (𝟙_ C)) ≫ (α_ (𝟙_ C) (𝟙_ C) (𝟙_ C)).hom) ≫
+            ((zero : 𝟙_ C ⟶ N) ⊗ₘ (zero ⊗ₘ zero)) := by simp only [Category.assoc]
+        _ = (λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ₘ (λ_ (𝟙_ C)).inv) ≫
+            ((zero : 𝟙_ C ⟶ N) ⊗ₘ (zero ⊗ₘ zero)) := by rw [h_coh]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((𝟙 (𝟙_ C) ≫ (zero : 𝟙_ C ⟶ N)) ⊗ₘ ((λ_ (𝟙_ C)).inv ≫
+            (zero ⊗ₘ zero))) := by simp only [Category.id_comp,
+            CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((zero : 𝟙_ C ⟶ N) ⊗ₘ ((λ_ (𝟙_ C)).inv ≫
+            (zero ⊗ₘ zero))) := by simp only [Category.id_comp]
+        _ = (λ_ (𝟙_ C)).inv ≫ (((zero : 𝟙_ C ⟶ N) ≫ 𝟙 N) ⊗ₘ
+            ((zero : 𝟙_ C ⟶ N) ≫ duplicate)) := by simp only [Category.comp_id, zero_duplicate]
+        _ = (λ_ (𝟙_ C)).inv ≫ ((zero ⊗ₘ zero) ≫ (𝟙 N ⊗ₘ duplicate)) := by
+          rw [CategoryTheory.MonoidalCategory.tensorHom_comp_tensorHom]
+        _ = ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ (𝟙 N ⊗ₘ duplicate) := by rw [← Category.assoc]
+
+    -- 7. Apply the postcompose recursor law to both sides!
+    have h_L : (ρ_ N).hom ≫ duplicate ≫ (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom =
+        prc (((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ (duplicate ⊗ₘ 𝟙 N) ≫
+        (α_ N N N).hom) (succ ⊗ₘ (succ ⊗ₘ succ)) := by
+      rw [← Category.assoc, ← Category.assoc]
+      rw [hom_dup]
+      rw [Category.assoc, Category.assoc]
+      rw [prc_postcompose _ _ comm_sq_L]
+      simp
+
+    have h_R : (ρ_ N).hom ≫ duplicate ≫ (𝟙 N ⊗ₘ duplicate) =
+        prc (((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ zero)) ≫ (𝟙 N ⊗ₘ duplicate)) (succ ⊗ₘ (succ ⊗ₘ succ)) := by
+      rw [← Category.assoc, hom_dup]
+      rw [prc_postcompose _ _ comm_sq_R]
+
+    -- 8. Cancel the unitor isomorphism by establishing equality under the left multiplication
+    have h_eq : (ρ_ (N (C:=C))).hom ≫ duplicate ≫ (duplicate ⊗ₘ 𝟙 N) ≫
+         (α_ N N N).hom = (ρ_ N).hom ≫ duplicate ≫ (𝟙 N ⊗ₘ duplicate) := by
+      rw [h_L, h_R, h_init]
+
+    -- 8. Cancel the unitor isomorphism by establishing equality under the left multiplication
+    have h_eq : (ρ_ (N (C:=C))).hom ≫ duplicate ≫ (duplicate ⊗ₘ 𝟙 N) ≫
+        (α_ N N N).hom = (ρ_ N).hom ≫ duplicate ≫ (𝟙 N ⊗ₘ duplicate) := by
+      rw [h_L, h_R, h_init]
+
+    -- We drop `_ =` on the first line, and use `←` to expand the identity and unitor!
+    have h_final : duplicate ≫ (duplicate ⊗ₘ 𝟙 (N (C:=C))) ≫ (α_ N N N).hom =
+        duplicate ≫ (𝟙 N ⊗ₘ duplicate) := by
+      calc duplicate ≫ (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom
+        _ = 𝟙 N ≫ (duplicate ≫ (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom) := by simp--rw [← Category.id_comp]
+        _ = ((ρ_ N).inv ≫ (ρ_ N).hom) ≫
+            (duplicate ≫ (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom) := by rw [← Iso.inv_hom_id]
+        _ = (ρ_ N).inv ≫ ((ρ_ N).hom ≫ duplicate ≫
+            (duplicate ⊗ₘ 𝟙 N) ≫ (α_ N N N).hom) := by simp only [Category.assoc]
+        _ = (ρ_ N).inv ≫ ((ρ_ N).hom ≫ duplicate ≫ (𝟙 N ⊗ₘ duplicate)) := by rw [h_eq]
+        _ = ((ρ_ N).inv ≫ (ρ_ N).hom) ≫ duplicate ≫ (𝟙 N ⊗ₘ duplicate) := by simp only [Category.assoc]
+        _ = 𝟙 N ≫ (duplicate ≫ (𝟙 N ⊗ₘ duplicate)) := by rw [Iso.inv_hom_id]
+        _ = duplicate ≫ (𝟙 N ⊗ₘ duplicate) := by rw [Category.id_comp]
+
+    -- Convert the whiskers in the main goal to match our explicit tensor theorem
+    try rw [h_whisker_L]
+    try rw [h_whisker_R]
+
+    -- Close the goal! (We provide both directions just in case Mathlib flipped the goal)
+    try exact h_final
+    try exact h_final.symm
+
 
 variable (P)
 
@@ -536,7 +898,6 @@ instance NNO.mon [BraidedCategory C] : Mon C where
   X := N
   mon := by infer_instance
 
-
 instance [BraidedCategory C] : IsCommMonObj (N : C) where
   mul_comm := add_comm
 
@@ -594,7 +955,7 @@ open SemiCartesianMonoidalCategory
 
 variable {A : C}
 
-theorem len_eq_rc_zero_snd_succ {A : C} :
+theorem len_eq_rc_zero_snd_succ' {A : C} :
     list.len (A:= A) = list.rc zero (snd A N ≫ succ) := by
   dsimp [list.rc]
   apply plist.rc_uniq
@@ -606,6 +967,25 @@ theorem len_eq_rc_zero_snd_succ {A : C} :
     dsimp [snd,list]
     sorry
     --simp only [assoc, Iso.hom_inv_id_assoc]
+
+theorem len_eq_rc_zero_snd_succ {A : C} :
+    list.len (A:= A) = list.rc zero (snd A N ≫ succ) := by
+  dsimp [list.rc]
+  apply plist.rc_uniq
+  · -- BASE CASE
+    dsimp [nil, len, map]
+    simp only [plist.nil_map]
+
+  · -- INDUCTIVE CASE
+    dsimp [len, map, cons, succ]
+
+    -- 1. Expand the left side into its whisker components
+    rw [plist.cons_map]
+
+    -- 2. Unfold `snd` on the right side.
+    -- This exposes `toUnit ▷ _ ≫ λ.hom`. The `λ.hom` and `λ.inv` will
+    -- instantly annihilate each other, leaving both sides identical!
+    sorry
 
 theorem cons_len_eq_map_toUnit_cons {A : C} : list.cons ≫ list.len =
     A ◁ list.map (toUnit A) ≫ (toUnit A ▷ list (𝟙_ C)) ≫ list.cons (A := 𝟙_ C) := by
