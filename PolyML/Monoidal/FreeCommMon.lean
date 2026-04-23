@@ -5,7 +5,7 @@ Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Monoidal.CommMon_
 import Mathlib.CategoryTheory.Monad.Monadicity
-import PolyML.Monoidal.ListArithmetic
+import PolyML.Monoidal.List
 import PolyML.Monoidal.FreeMon
 
 
