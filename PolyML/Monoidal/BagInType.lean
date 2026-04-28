@@ -162,13 +162,63 @@ def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon (Type u) :
 
 theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
     (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) = Multiset.sum (M:= α) := by
+  letI : DecidableEq α := Classical.decEq α
   simp [bag.aggregator, bag.Algebra.ofCommMon_a]
   ext m
   simp only [types_comp_apply]
-  dsimp [Multiset.sum]
-  dsimp [commMonOfAddCommMonoid]
-  dsimp [equivMultiset]
-  sorry
+
+  let M := commMonOfAddCommMonoid α
+  let f := (WithBags.adj (C := Type u)).counit.app M
+  let F : (α →₀ ℕ) → α := f.hom
+
+  change F (Multiset.toFinsupp m) = Multiset.sum m
+
+  have h_zero : F (0 : α →₀ ℕ) = (0 : α) := by
+    have h := bag.one_lift (M := M) (f := 𝟙 α)
+    have h_val := congr_fun h PUnit.unit
+    simp only [types_comp_apply] at h_val
+    dsimp [M, commMonOfAddCommMonoid, monClassOfAddMonoid] at h_val
+    exact h_val
+
+  have h_add : ∀ (x y : α →₀ ℕ), F (x + y) = F x + F y := fun x y => by
+    have hF : ∀ z, F z = (bag.lift (M := M) (𝟙 α)) z := fun z => by
+      dsimp [F, f]
+      exact congr_fun bag.lift_eq_counit_app.symm z
+    rw [hF (x + y), hF x, hF y]
+    have h_val := congr_fun (bag.mul_lift (M := M) (f := 𝟙 α)) (x, y)
+    erw [types_comp_apply, types_comp_apply] at h_val
+    rw [MonoidalCategory.tensorHom_def] at h_val
+    erw [types_comp_apply] at h_val
+    erw [whiskerRight_apply, whiskerLeft_apply] at h_val
+    dsimp [MonObj.mul, monClassOfAddMonoid, bag.monClass, bag.append, bag, Function.uncurry] at h_val
+    exact h_val
+
+  have h_sing : ∀ (x : α), F (Finsupp.single x 1) = x := fun x => by
+    have hF : F (Finsupp.single x 1) = (bag.lift (M := M) (𝟙 α)) (Finsupp.single x 1) := by
+      dsimp [F, f]
+      exact congr_fun bag.lift_eq_counit_app.symm (Finsupp.single x 1)
+    rw [hF]
+    have h_val := congr_fun (bag.singleton_lift (M := M) (f := 𝟙 α)) x
+    erw [types_comp_apply] at h_val
+    dsimp [bag.singleton] at h_val
+    exact h_val
+
+  induction m using Multiset.induction_on with
+  | empty =>
+    have h_empty : Multiset.toFinsupp (0 : Multiset α) = 0 := by ext; rfl
+    rw [h_empty, Multiset.sum_zero, h_zero]
+  | cons a m ih =>
+    have h_toFinsupp_cons : Multiset.toFinsupp (a ::ₘ m) = Finsupp.single a 1 + Multiset.toFinsupp m := by
+      ext x
+      simp only [Finsupp.add_apply, Finsupp.single_apply]
+      change Multiset.count x (a ::ₘ m) = (if a = x then 1 else 0) + Multiset.count x m
+      rw [Multiset.count_cons]
+      by_cases h : a = x
+      · subst h
+        simp [add_comm]
+      · simp [h, Ne.symm h]
+    rw [h_toFinsupp_cons, Multiset.sum_cons]
+    rw [h_add, h_sing, ih]
 
 end bagType
 

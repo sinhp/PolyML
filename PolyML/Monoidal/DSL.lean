@@ -57,6 +57,7 @@ def Algorithm.eval {P A Out : C} : Algorithm P A Out → (P ⟶ Out)
 -- we use the nno `N` to represent the numbers in the list
 variable (N_as_obj : C) [h_nno : NNO C] (h_eq : N_as_obj = N)
 
+--example
 -- like let myList = [2, 2, 3, 4]`.
 variable (my_list_morphism : 𝟙_ C ⟶ list N_as_obj)
 
