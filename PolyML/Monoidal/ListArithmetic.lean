@@ -750,14 +750,11 @@ theorem append_assoc {A : C} :
       -- 2. Execute the calc block safely using our new lemma
       have h_nat : plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ (list A) (list A) (list A)).inv =
          (α_ (𝟙_ C) (list A) (list A)).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A := by
-        calc plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv
-          _ = 𝟙 _ ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv := by rw [Category.id_comp]
-          _ = ((α_ _ _ _).inv ≫ (α_ _ _ _).hom) ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A) ≫ (α_ _ _ _).inv := by rw [Iso.inv_hom_id];
-          _ = (α_ _ _ _).inv ≫ ((α_ _ _ _).hom ≫ plist.nil (P := 𝟙_ C) ▷ (list A ⊗ list A)) ≫ (α_ _ _ _).inv := by simp only [Category.assoc]
-          _ = (α_ _ _ _).inv ≫ ((plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv := by erw [h_comm_nil]; aesop
-          _ = (α_ _ _ _).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ ((α_ _ _ _).hom ≫ (α_ _ _ _).inv) := by simp only [Category.assoc]
-          _ = (α_ _ _ _).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A ≫ 𝟙 _ := by rw [Iso.hom_inv_id];
-          _ = (α_ _ _ _).inv ≫ (plist.nil (P := 𝟙_ C) ▷ list A) ▷ list A := by rw [Category.comp_id]
+        simpa [Category.assoc] using
+          (congrArg
+            (fun k =>
+              (α_ (𝟙_ C) (list A) (list A)).inv ≫ k ≫ (α_ (list A) (list A) (list A)).inv)
+            h_comm_nil)
 
       -- 1. Flatten all parentheses to the right
 
