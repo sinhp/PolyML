@@ -5,6 +5,8 @@ Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Monad.Monadicity
 import PolyML.Monoidal.NNO
+import PolyML.Monoidal.ListArithmetic
+
 
 /-!
 # Free Monoid Monad
