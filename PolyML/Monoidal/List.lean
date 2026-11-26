@@ -51,9 +51,21 @@ def IsList.iso {A L₁ L₂ : C} {nil₁ : 𝟙_ C ⟶ L₁} {cons₁ : A ⊗ L�
   { hom := IsList.rc nil₁ cons₁ nil₂ cons₂
     inv := IsList.rc nil₂ cons₂ nil₁ cons₁
     hom_inv_id := by
-      sorry
+      have h₁ : IsList.rc nil₁ cons₁ nil₂ cons₂ ≫ IsList.rc nil₂ cons₂ nil₁ cons₁
+          = IsList.rc nil₁ cons₁ nil₁ cons₁ :=
+        IsList.rc_uniq _
+          (by rw [← Category.assoc, IsList.nil_rc, IsList.nil_rc])
+          (by rw [← Category.assoc, IsList.cons_rc, Category.assoc, IsList.cons_rc,
+                whiskerLeft_comp_assoc])
+      rw [h₁, (IsList.rc_uniq (𝟙 L₁) (by simp) (by simp)).symm]
     inv_hom_id := by
-      sorry }
+      have h₁ : IsList.rc nil₂ cons₂ nil₁ cons₁ ≫ IsList.rc nil₁ cons₁ nil₂ cons₂
+          = IsList.rc nil₂ cons₂ nil₂ cons₂ :=
+        IsList.rc_uniq _
+          (by rw [← Category.assoc, IsList.nil_rc, IsList.nil_rc])
+          (by rw [← Category.assoc, IsList.cons_rc, Category.assoc, IsList.cons_rc,
+                whiskerLeft_comp_assoc])
+      rw [h₁, (IsList.rc_uniq (𝟙 L₂) (by simp) (by simp)).symm] }
 
 class List (A : C) where
   /-- The underlying list object on `A`. -/
@@ -197,17 +209,27 @@ theorem nil_splitHeadTail [HasBinaryCoproducts C] :
   dsimp [splitHeadTail]
   rw [nil_rc]
 
--- `fun (a, as) => splitHeadTail (a :: as) = fun (a, as) => inr (a, as)`
-@[reassoc (attr := simp)]
-theorem cons_splitHeadTail [HasBinaryCoproducts C] :
-    cons A ≫ splitHeadTail A = coprod.inr := by
-  sorry
-
 -- `fun as => if splitHeadTail (as) = inl (nil) return nil else cons splitHeadTail as = fun as => as`
 @[reassoc (attr := simp)]
 theorem splitHeadTail_nil_cons [HasBinaryCoproducts C] :
     splitHeadTail A ≫ coprod.desc (nil A) (cons A) = 𝟙 (L A) := by
-  sorry
+  have h : splitHeadTail A ≫ coprod.desc (nil A) (cons A)
+      = IsList.rc (nil A) (cons A) (nil A) (cons A) :=
+    IsList.rc_uniq _
+      (by dsimp [splitHeadTail]; rw [← Category.assoc, IsList.nil_rc, coprod.inl_desc])
+      (by dsimp [splitHeadTail]
+          rw [← Category.assoc, IsList.cons_rc, Category.assoc, Category.assoc, coprod.inr_desc,
+              ← Category.assoc, ← whiskerLeft_comp])
+  rw [h, (IsList.rc_uniq (𝟙 (L A)) (by simp) (by simp)).symm]
+
+-- `fun (a, as) => splitHeadTail (a :: as) = fun (a, as) => inr (a, as)`
+@[reassoc (attr := simp)]
+theorem cons_splitHeadTail [HasBinaryCoproducts C] :
+    cons A ≫ splitHeadTail A = coprod.inr := by
+  have : cons A ≫ splitHeadTail A
+      = A ◁ (splitHeadTail A ≫ coprod.desc (nil A) (cons A)) ≫ coprod.inr := by
+    dsimp [splitHeadTail]; rw [IsList.cons_rc, ← Category.assoc, ← whiskerLeft_comp]
+  rw [this, splitHeadTail_nil_cons, whiskerLeft_id, Category.id_comp]
 
 end splitHeadTail
 
@@ -285,7 +307,7 @@ theorem nil_tail? : nil A ≫ tail? A = coprod.inl := by
   dsimp [tail?, splitHeadTail]
   rw [← assoc]
   dsimp [rc]
-  simp only [id_tensorHom, IsList.nil_rc, coprod.inl_map, id_comp]
+  simp only [IsList.nil_rc, coprod.inl_map, id_comp]
 
 @[simp]
 theorem cons_tail? : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
@@ -294,14 +316,39 @@ theorem cons_tail? : cons A ≫ tail? A = snd A (L A) ≫ coprod.inr := by
 @[simp]
 theorem singleton_tail? :
     singleton A ≫ tail? A = toUnit A ≫ nil A ≫ coprod.inr := by
-  sorry
+  dsimp [tail?, singleton]
+  simp only [assoc, cons_splitHeadTail_assoc, coprod.inr_map, snd_def,
+    whisker_exchange_assoc, leftUnitor_naturality_assoc]
+  have h : (ρ_ A).inv ≫ (isTerminalTensorUnit.from A ▷ (𝟙_ C)) ≫ (λ_ (𝟙_ C)).hom = toUnit A :=
+    toUnit_unique _ _
+  rw [reassoc_of% h]
 
 /-- `tail?` for the unit list object is isomorphic to `pred?` on the natural
 number object. -/
 theorem tail?_pred? [List (𝟙_ C)] [NNO C] :
       tail? (𝟙_ C) ≫ (coprod.map (𝟙 _) isoListUnitNNO.hom) =
         isoListUnitNNO.hom ≫ NNO.pred? (C:= C) := by
-  sorry
+  have hnil_iso : nil (𝟙_ C) ≫ isoListUnitNNO.hom = NNO.zero :=
+    @IsNNO.zero_rc _ _ _ _ _ _ NNO.ofListUnit.isNNO _ _ _
+  have hcons_iso : ((λ_ (L (𝟙_ C))).inv ≫ cons (𝟙_ C)) ≫ isoListUnitNNO.hom
+      = isoListUnitNNO.hom ≫ NNO.succ :=
+    @IsNNO.succ_rc _ _ _ _ _ _ NNO.ofListUnit.isNNO _ _ _
+  have hcons_succ : cons (𝟙_ C) ≫ isoListUnitNNO.hom
+      = (λ_ (L (𝟙_ C))).hom ≫ isoListUnitNNO.hom ≫ NNO.succ := by
+    rw [← hcons_iso]; simp [← Category.assoc]
+  have hsnd : snd (𝟙_ C) (L (𝟙_ C)) = (λ_ (L (𝟙_ C))).hom := by
+    rw [snd_def, show (isTerminalTensorUnit.from (𝟙_ C) : 𝟙_ C ⟶ 𝟙_ C) = 𝟙 (𝟙_ C)
+      from toUnit_unique _ _, id_whiskerRight, Category.id_comp]
+  rw [← cancel_epi (splitHeadTailIso (A := 𝟙_ C)).inv]
+  show coprod.desc (nil (𝟙_ C)) (cons (𝟙_ C)) ≫ tail? (𝟙_ C)
+        ≫ coprod.map (𝟙 _) isoListUnitNNO.hom
+      = coprod.desc (nil (𝟙_ C)) (cons (𝟙_ C)) ≫ isoListUnitNNO.hom ≫ NNO.pred?
+  apply coprod.hom_ext
+  · rw [coprod.inl_desc_assoc, coprod.inl_desc_assoc, ← Category.assoc, nil_tail?,
+        coprod.inl_map, Category.id_comp, ← Category.assoc, hnil_iso, NNO.pred?_zero]
+  · rw [coprod.inr_desc_assoc, coprod.inr_desc_assoc, ← Category.assoc, cons_tail?,
+        Category.assoc, coprod.inr_map, hsnd, ← Category.assoc (cons (𝟙_ C)), hcons_succ,
+        Category.assoc, Category.assoc, NNO.pred?_succ]
 
 end tail?
 
@@ -326,7 +373,27 @@ variable {A}
 
 theorem len_eq_len' [List (𝟙_ C)] :
     len A = len' A ≫ isoListUnitNNO.hom := by
-  sorry
+  symm
+  apply IsList.rc_uniq
+  · rw [← assoc]
+    show (nil A ≫ map (toUnit A)) ≫ isoListUnitNNO.hom = NNO.zero
+    rw [nil_map]
+    exact IsList.nil_rc
+  · rw [← assoc]
+    show (cons A ≫ map (toUnit A)) ≫ isoListUnitNNO.hom
+        = (A ◁ (len' A ≫ isoListUnitNNO.hom)) ≫ snd A NNO.N ≫ NNO.succ
+    rw [cons_map, assoc]
+    have hcons : cons (𝟙_ C : C) ≫ isoListUnitNNO.hom
+        = ((𝟙_ C) ◁ isoListUnitNNO.hom) ≫ ((λ_ NNO.N).hom ≫ NNO.succ) := IsList.cons_rc
+    rw [hcons, snd_def]
+    show (toUnit A ⊗ₘ map (toUnit A)) ≫ ((𝟙_ C) ◁ isoListUnitNNO.hom) ≫
+          (λ_ NNO.N).hom ≫ NNO.succ
+        = (A ◁ (len' A ≫ isoListUnitNNO.hom)) ≫
+          (isTerminalTensorUnit.from A ▷ NNO.N ≫ (λ_ NNO.N).hom) ≫ NNO.succ
+    rw [tensorHom_def, assoc, ← MonoidalCategory.whiskerLeft_comp_assoc,
+        ← whisker_exchange_assoc]
+    simp only [assoc, len']
+    rfl
 
 theorem len_def :
     len A = List.rc NNO.zero (snd A NNO.N ≫ NNO.succ) := by
@@ -343,20 +410,24 @@ theorem cons_len_succ :
 -- len (a :: xs) = succ (len xs)
 theorem cons_len_succ' [List (𝟙_ C)] :
     cons A ≫ len A = (toUnit A ⊗ₘ len A) ≫ (λ_ NNO.N).hom ≫ NNO.succ := by
-  rw [len_eq_len', len']
-  simp only [← assoc, cons_map]
-  sorry
+  rw [cons_len_succ, snd_def, tensorHom_def]
+  simp only [assoc, whisker_exchange_assoc, leftUnitor_naturality_assoc]
+  rfl
 
 theorem cons_len_eq_toUnit_map_cons_iso [List (𝟙_ C)] :
     cons A ≫ len A = (toUnit A ⊗ₘ map (toUnit A)) ≫ cons (𝟙_ C) ≫ isoListUnitNNO.hom := by
-  simp only [ofListUnit_N, cons_map, ← assoc]
-  rw [assoc]
-  sorry
+  rw [len_eq_len', ← assoc, cons_map, assoc]
 
 -- len ([x]) = 1
 theorem singleton_len_one :
     singleton A ≫ len A = toUnit A ≫ NNO.one := by
-  sorry
+  dsimp [singleton]
+  rw [assoc, assoc, cons_len_succ, ← whiskerLeft_comp_assoc, nil_len_zero, snd_def]
+  simp only [assoc, whisker_exchange_assoc, leftUnitor_naturality_assoc]
+  have h : (ρ_ A).inv ≫ (isTerminalTensorUnit.from A ▷ (𝟙_ C)) ≫ (λ_ (𝟙_ C)).hom = toUnit A :=
+    toUnit_unique _ _
+  rw [reassoc_of% h]
+  simp [NNO.one]
 
 end len
 
@@ -409,8 +480,22 @@ variable [NNO C]
 
 theorem len_eq_tail_len_succ :
     len A = tail A ≫ List.len A ≫ NNO.succ := by
+  have hkey : List.tail? A ≫ coprod.desc NNO.zero (List.len A ≫ NNO.succ) = List.len A := by
+    rw [← cancel_epi (@List.splitHeadTailIso _ _ _ A _ _).inv,
+        show (@List.splitHeadTailIso _ _ _ A _ _).inv
+              = coprod.desc (List.nil A) (List.cons A) from rfl]
+    refine coprod.hom_ext ?_ ?_
+    · rw [coprod.inl_desc_assoc, coprod.inl_desc_assoc, ← Category.assoc,
+          List.nil_tail?, coprod.inl_desc, List.nil_len_zero]
+    · rw [coprod.inr_desc_assoc, coprod.inr_desc_assoc, ← Category.assoc, List.cons_tail?,
+          Category.assoc, coprod.inr_desc, List.cons_len_succ, ← Category.assoc,
+          ← Category.assoc (A ◁ List.len A)]
+      congr 1
+      rw [snd_def, snd_def, Category.assoc]
+      slice_rhs 1 2 => rw [whisker_exchange]
+      rw [Category.assoc, leftUnitor_naturality]
   simp only [len]
-  sorry
+  rw [← hkey, ← Category.assoc, ← NeList.isPullback.w, Category.assoc, coprod.inr_desc, hkey]
 
 end len
 
@@ -439,15 +524,34 @@ theorem ofList_str {A : C} [List A] :
     (ofList A).str = coprod.desc (nil A) (cons A) := by
   rfl
 
-/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
+/-- In a list-arithmetic category, the parametrize list object is the initial algebra for the
+polynomial endofunctor `X ↦ P ⨿ A ⊗ X`. -/
 noncomputable instance ofListIsInitial {A : C} [List A] :
     IsInitial (Endofunctor.Algebra.ofList A) := by
-  refine IsInitial.ofUniqueHom  (fun α => ?_) ?uniq
-  · exact {
-    f := rc (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α)
-    h := by sorry
-  }
-  · sorry
+  refine IsInitial.ofUniqueHom (fun α => ?_) ?_
+  · refine
+      { f := rc (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α)
+        h := ?_ }
+    change coprod.map (𝟙 _) (A ◁ rc (linearPolynomialAlgebra.nil α)
+          (linearPolynomialAlgebra.cons α)) ≫ α.str
+        = coprod.desc (MonoidalCategory.List.nil A) (MonoidalCategory.List.cons A)
+            ≫ rc (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α)
+    rw [coprod.desc_comp]
+    refine coprod.hom_ext ?_ ?_
+    · rw [coprod.inl_map_assoc, id_comp, coprod.inl_desc, IsList.nil_rc,
+        linearPolynomialAlgebra.nil]
+    · rw [coprod.inr_map_assoc, coprod.inr_desc, IsList.cons_rc, linearPolynomialAlgebra.cons]
+  · intro α m
+    apply Algebra.Hom.ext
+    have hm : coprod.map (𝟙 _) (A ◁ m.f) ≫ α.str = (ofList A).str ≫ m.f := m.h
+    rw [ofList_str] at hm
+    have hnil := congrArg (coprod.inl ≫ ·) hm
+    have hcons := congrArg (coprod.inr ≫ ·) hm
+    simp only [coprod.inl_map_assoc, coprod.inr_map_assoc, id_comp,
+      coprod.inl_desc_assoc, coprod.inr_desc_assoc] at hnil hcons
+    exact @IsList.rc_uniq C _ _ A (List.L A) (MonoidalCategory.List.nil A)
+      (MonoidalCategory.List.cons A) List.isList α.a
+      (linearPolynomialAlgebra.nil α) (linearPolynomialAlgebra.cons α) m.f hnil.symm hcons.symm
 
 /-- The Lambek isomorphism  `(𝟙_ C) ⨿ (A ⊗ L A) ≅ L A`. -/
 noncomputable def isoOfList [WithList C] (A : C) : (𝟙_ C) ⨿ (A ⊗ L A) ≅ L A where
@@ -468,7 +572,33 @@ noncomputable def toList (A : C)
   L := α.a
   nil := linearPolynomialAlgebra.nil α
   cons := linearPolynomialAlgebra.cons α
-  isList := sorry
+  isList :=
+    { rc := fun {B} f g =>
+        (h.to (linearPolynomialAlgebraMk B f g)).f
+      nil_rc := fun {B f g} => by
+        have hcomm := (h.to (linearPolynomialAlgebraMk B f g)).h
+        dsimp [linearPolynomialAlgebra.nil, linearPolynomial,
+          linearPolynomialAlgebraMk] at *
+        rw [Category.assoc, ← hcomm, ← Category.assoc, coprod.inl_map, Category.id_comp,
+          coprod.inl_desc]
+      cons_rc := fun {B f g} => by
+        have hcomm := (h.to (linearPolynomialAlgebraMk B f g)).h
+        dsimp [linearPolynomialAlgebra.cons, linearPolynomial,
+          linearPolynomialAlgebraMk] at *
+        rw [Category.assoc, ← hcomm, ← Category.assoc, coprod.inr_map,
+          Category.assoc, coprod.inr_desc]
+      rc_uniq := fun {B f g} r h_nil h_cons => by
+        let β : Algebra (linearPolynomial A (𝟙_ C)) := linearPolynomialAlgebraMk B f g
+        have hr : coprod.map (𝟙 _) (A ◁ r) ≫ β.str = α.str ≫ r := by
+          refine coprod.hom_ext ?_ ?_
+          · rw [coprod.inl_map_assoc, Category.id_comp]
+            change coprod.inl ≫ coprod.desc f g = coprod.inl ≫ α.str ≫ r
+            rw [coprod.inl_desc, ← Category.assoc]; exact h_nil.symm
+          · rw [coprod.inr_map_assoc]
+            change A ◁ r ≫ coprod.inr ≫ coprod.desc f g = coprod.inr ≫ α.str ≫ r
+            rw [coprod.inr_desc, ← Category.assoc]; exact h_cons.symm
+        let φ : α ⟶ β := { f := r, h := hr }
+        exact congrArg Algebra.Hom.f (h.hom_ext φ _) }
 
 end Endofunctor.Algebra
 
