@@ -95,9 +95,14 @@ instance bicategory : Bicategory (Para C) where
   id X := Para.id X
   comp := Para.comp
   homCategory X Y := inferInstanceAs (Category (Para.Hom X Y))
-  whiskerLeft := @fun X Y Z f g g' α =>
-    ⟨ f.par ◁ α.1, by simp [comp_par_hom]; sorry   ⟩
-  whiskerRight := sorry
+  whiskerLeft := @fun X _Y _Z f _g _g' α =>
+    ⟨f.par ◁ α.1, by
+      simp only [comp_par_hom]
+      rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc, α.2]⟩
+  whiskerRight := @fun _X _Y _Z _f _f' α g =>
+    ⟨α.1 ▷ g.par, by
+      simp only [comp_par_hom]
+      rw [associator_inv_naturality_middle_assoc, ← comp_whiskerRight_assoc, α.2]⟩
   associator := sorry
   leftUnitor := sorry
   rightUnitor := sorry
