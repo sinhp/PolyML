@@ -70,29 +70,31 @@ namespace PreservesPullbacks
 
 /-- The identity functor preserves pullbacks. -/
 instance id : PreservesPullbacks (𝟭 C) where
-  preserves := sorry
+  preserves _ _ _ _ hc := hc
 
 /-- Composition of pullback-preserving functors preserves pullbacks. -/
-instance comp (F : C ⥤ D) [PreservesPullbacks F] (G : D ⥤ E) [PreservesPullbacks G] : PreservesPullbacks (F ⋙ G) where
-  preserves := sorry
+instance comp (F : C ⥤ D) [hF : PreservesPullbacks F]
+    (G : D ⥤ E) [hG : PreservesPullbacks G] :
+    PreservesPullbacks (F ⋙ G) where
+  preserves _ _ _ _ hc :=
+    hG.preserves _ _ _ _ (hF.preserves _ _ _ _ hc)
 
 variable {X Y : C} (f : X ⟶ Y)
 
 /-- A pullback-preserving functor preserves monomorphisms. -/
-theorem map_mono (F : C ⥤ D) [PreservesPullbacks F]  [Mono f] [PreservesPullbacks F] :
-    Mono (F.map f) := by
-  constructor
-  intro Z g h hfg
-  -- Use the fact that mono is equivalent to the diagonal being an iso
-  have : g ≫ F.map f = h ≫ F.map f := hfg
-  sorry
+theorem map_mono (F : C ⥤ D) [PreservesPullbacks F] [hf : Mono f] : Mono (F.map f) := by
+  have hF := PreservesPullbacks.preserves (F := F) (𝟙 X) (𝟙 X) f f
+    ((mono_iff_isPullback f).mp hf)
+  simp only [F.map_id] at hF
+  exact (mono_iff_isPullback _).mpr hF
 
--- If `F` and `G` are naturally isomorphic and `F` preserves pullbacks, then so does `G`. -/
-theorem of_natIso (F : C ⥤ D) [PreservesPullbacks F]
-    (G : C ⥤ D) [PreservesPullbacks G] (e : F ≅ G) :
+/-- If `F` and `G` are naturally isomorphic and `F` preserves pullbacks, then so does `G`. -/
+theorem of_natIso (F : C ⥤ D) [PreservesPullbacks F] (G : C ⥤ D) (e : F ≅ G) :
     PreservesPullbacks G where
-  preserves := fun {X Y Z f g} =>
-    sorry
+  preserves _ _ _ _ hc :=
+    (PreservesPullbacks.preserves (F := F) _ _ _ _ hc).of_iso (e.app _) (e.app _) (e.app _)
+      (e.app _) (e.hom.naturality _) (e.hom.naturality _) (e.hom.naturality _)
+      (e.hom.naturality _)
 
 end PreservesPullbacks
 
