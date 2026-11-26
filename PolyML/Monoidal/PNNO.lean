@@ -37,8 +37,38 @@ def IsPNNO.iso [MonoidalCategory C] {N N' : C} {zero : 𝟙_ C ⟶ N} {succ : N 
     [IsPNNO N zero succ] [IsPNNO N' zero' succ'] : N ≅ N' where
   hom := (ρ_ N).inv ≫ prc zero succ zero' succ'
   inv := (ρ_ N').inv ≫ prc zero' succ' zero succ
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+  hom_inv_id := by
+    have h₁ : prc zero succ zero' succ' ≫ (ρ_ N').inv ≫ prc zero' succ' zero succ
+        = IsPNNO.prc zero succ zero succ := by
+      refine IsPNNO.prc_uniq _ ?_ ?_
+      · slice_lhs 1 2 => rw [IsPNNO.zero_prc]
+        slice_lhs 2 3 => rw [MonoidalCategory.rightUnitor_inv_naturality]
+        slice_lhs 3 4 => rw [IsPNNO.zero_prc]
+        simp [unitors_equal]
+      · slice_lhs 1 2 => rw [IsPNNO.succ_prc]
+        slice_lhs 2 3 => rw [MonoidalCategory.rightUnitor_inv_naturality]
+        slice_lhs 3 4 => rw [IsPNNO.succ_prc]
+        simp
+    have h₂ : (ρ_ N).hom = IsPNNO.prc zero succ zero succ :=
+      IsPNNO.prc_uniq _ (by rw [MonoidalCategory.rightUnitor_naturality, unitors_equal])
+        (by rw [MonoidalCategory.rightUnitor_naturality])
+    rw [Category.assoc, h₁, ← h₂, Iso.inv_hom_id]
+  inv_hom_id := by
+    have h₁ : prc zero' succ' zero succ ≫ (ρ_ N).inv ≫ prc zero succ zero' succ'
+        = IsPNNO.prc zero' succ' zero' succ' := by
+      refine IsPNNO.prc_uniq _ ?_ ?_
+      · slice_lhs 1 2 => rw [IsPNNO.zero_prc]
+        slice_lhs 2 3 => rw [MonoidalCategory.rightUnitor_inv_naturality]
+        slice_lhs 3 4 => rw [IsPNNO.zero_prc]
+        simp [unitors_equal]
+      · slice_lhs 1 2 => rw [IsPNNO.succ_prc]
+        slice_lhs 2 3 => rw [MonoidalCategory.rightUnitor_inv_naturality]
+        slice_lhs 3 4 => rw [IsPNNO.succ_prc]
+        simp
+    have h₂ : (ρ_ N').hom = IsPNNO.prc zero' succ' zero' succ' :=
+      IsPNNO.prc_uniq _ (by rw [MonoidalCategory.rightUnitor_naturality, unitors_equal])
+        (by rw [MonoidalCategory.rightUnitor_naturality])
+    rw [Category.assoc, h₁, ← h₂, Iso.inv_hom_id]
 
 namespace IsPNNO
 
@@ -292,11 +322,56 @@ instance comonClass : ComonObj (N : C) where
   counit := delete
   comul := duplicate
   counit_comul := by
-    simp only [duplicate, delete]
-    rw [assoc]
-    dsimp [toUnit]
-    sorry
-  comul_counit := sorry
+    show (duplicate : N ⟶ N ⊗ N) ≫ (delete : N ⟶ 𝟙_ C) ▷ N = (λ_ (N : C)).inv
+    unfold duplicate
+    have hcomm : ((succ : N ⟶ N) ⊗ₘ (succ : N ⟶ N)) ≫ (delete : N ⟶ 𝟙_ C) ▷ N
+        = ((delete : N ⟶ 𝟙_ C) ▷ N) ≫ ((𝟙_ C) ◁ (succ : N ⟶ N)) := by
+      rw [MonoidalCategory.tensorHom_def, Category.assoc, whisker_exchange,
+          ← Category.assoc, ← MonoidalCategory.comp_whiskerRight, succ_toUnit]
+    have hf : (λ_ (𝟙_ C)).inv ≫ ((zero : 𝟙_ C ⟶ N) ⊗ₘ (zero : 𝟙_ C ⟶ N))
+              ≫ (delete : N ⟶ 𝟙_ C) ▷ N = (zero : 𝟙_ C ⟶ N) ≫ (λ_ (N : C)).inv := by
+      rw [MonoidalCategory.tensorHom_def', Category.assoc,
+          ← MonoidalCategory.comp_whiskerRight, zero_toUnit,
+          MonoidalCategory.id_whiskerRight, Category.comp_id,
+          ← MonoidalCategory.leftUnitor_inv_naturality]
+    rw [Category.assoc,
+        prc_postcompose (g' := (𝟙_ C) ◁ (succ : N ⟶ N))
+          (d := (delete : N ⟶ 𝟙_ C) ▷ N) ⟨hcomm⟩, Category.assoc, hf]
+    have hprc : prc ((zero : 𝟙_ C ⟶ N) ≫ (λ_ (N : C)).inv) ((𝟙_ C) ◁ (succ : N ⟶ N))
+        = (ρ_ (N : C)).hom ≫ (λ_ (N : C)).inv := by
+      symm
+      refine prc_uniq _ ?_ ?_
+      · rw [← Category.assoc, MonoidalCategory.rightUnitor_naturality, unitors_equal,
+            Category.assoc]
+      · rw [← Category.assoc, MonoidalCategory.rightUnitor_naturality, Category.assoc,
+            MonoidalCategory.leftUnitor_inv_naturality, Category.assoc]
+    rw [hprc, ← Category.assoc, Iso.inv_hom_id, Category.id_comp]
+  comul_counit := by
+    show (duplicate : N ⟶ N ⊗ N) ≫ N ◁ (delete : N ⟶ 𝟙_ C) = (ρ_ (N : C)).inv
+    unfold duplicate
+    have hcomm : ((succ : N ⟶ N) ⊗ₘ (succ : N ⟶ N)) ≫ N ◁ (delete : N ⟶ 𝟙_ C)
+        = (N ◁ (delete : N ⟶ 𝟙_ C)) ≫ ((succ : N ⟶ N) ▷ (𝟙_ C)) := by
+      rw [MonoidalCategory.tensorHom_def', Category.assoc, ← whisker_exchange,
+          ← Category.assoc, ← MonoidalCategory.whiskerLeft_comp, succ_toUnit]
+    have hf : (λ_ (𝟙_ C)).inv ≫ ((zero : 𝟙_ C ⟶ N) ⊗ₘ (zero : 𝟙_ C ⟶ N))
+              ≫ N ◁ (delete : N ⟶ 𝟙_ C) = (zero : 𝟙_ C ⟶ N) ≫ (ρ_ (N : C)).inv := by
+      rw [MonoidalCategory.tensorHom_def, Category.assoc,
+          ← MonoidalCategory.whiskerLeft_comp, zero_toUnit,
+          MonoidalCategory.whiskerLeft_id, Category.comp_id,
+          show (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv from unitors_inv_equal,
+          ← MonoidalCategory.rightUnitor_inv_naturality]
+    rw [Category.assoc,
+        prc_postcompose (g' := (succ : N ⟶ N) ▷ (𝟙_ C))
+          (d := N ◁ (delete : N ⟶ 𝟙_ C)) ⟨hcomm⟩, Category.assoc, hf]
+    have hprc : prc ((zero : 𝟙_ C ⟶ N) ≫ (ρ_ (N : C)).inv) ((succ : N ⟶ N) ▷ (𝟙_ C))
+        = (ρ_ (N : C)).hom ≫ (ρ_ (N : C)).inv := by
+      symm
+      refine prc_uniq _ ?_ ?_
+      · rw [← Category.assoc, MonoidalCategory.rightUnitor_naturality, Category.assoc,
+            unitors_equal]
+      · rw [← Category.assoc, MonoidalCategory.rightUnitor_naturality, Category.assoc,
+            MonoidalCategory.rightUnitor_inv_naturality, Category.assoc]
+    rw [hprc, ← Category.assoc, Iso.inv_hom_id, Category.id_comp]
   comul_assoc := sorry
 
 variable (P : C)
@@ -425,10 +500,16 @@ theorem add_assoc : add ▷ (N : C) ≫ add = (α_ _ _ _).hom ≫ (N ◁ add) �
 @[simp]
 theorem iter_add {P : C} {g : P ⟶ P} :
     (add ▷ P) ≫ iter g = (α_ _ _ _).hom ≫ (N ◁ iter g) ≫ iter g := by
-  dsimp [add, iter]
-  rw [prc_prcompose]
-  simp only [comp_id]
-  sorry
+  rw [← Iso.inv_comp_eq, iter_prc]
+  refine prc_uniq _ ?_ ?_
+  · slice_lhs 1 2 => rw [associator_inv_naturality_left]
+    slice_lhs 2 3 => rw [← comp_whiskerRight, zero_add]
+    rw [leftUnitor_whiskerRight]
+    simp [assoc]
+  · slice_lhs 1 2 => rw [associator_inv_naturality_left]
+    slice_lhs 2 3 => rw [← comp_whiskerRight, succ_add, comp_whiskerRight]
+    slice_lhs 3 4 => rw [succ_iter]
+    simp [assoc]
 
 /-- The monoid structure on the natural number object. -/
 instance addMonObj [BraidedCategory C] : AddMonObj (N : C) where
@@ -464,8 +545,19 @@ instance : Add (𝟙_ C ⟶ N) := by infer_instance
 instance addZeroClass : AddZeroClass (𝟙_ C ⟶ N) where
   zero := zero
   add := Add.add
-  zero_add := sorry
-  add_zero := sorry
+  zero_add n := by
+    show (λ_ _).inv ≫ (zero ⊗ₘ n) ≫ PNNO.add = n
+    rw [show (PNNO.add : N ⊗ N ⟶ N) = PNNO.iter PNNO.succ from rfl, tensorHom_def]
+    slice_lhs 3 4 => rw [iter_prc]
+    slice_lhs 2 3 => rw [zero_prc]
+    simp
+  add_zero n := by
+    show (λ_ _).inv ≫ (n ⊗ₘ zero) ≫ PNNO.add = n
+    rw [show (PNNO.add : N ⊗ N ⟶ N) = PNNO.iter PNNO.succ from rfl, tensorHom_def]
+    slice_lhs 3 4 => rw [iter_prc]
+    rw [prc_zero_succ_eq_rightUnitor]
+    slice_lhs 2 3 => rw [MonoidalCategory.rightUnitor_naturality]
+    rw [← unitors_equal, Iso.inv_hom_id_assoc]
 
 @[simp]
 instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
@@ -475,13 +567,13 @@ instance addSemigroup : AddSemigroup (𝟙_ C ⟶ N) where
 @[simp]
 def nsmul : ℕ → (𝟙_ C ⟶ N) → (𝟙_ C ⟶ N)
   | .zero => fun _ => zero
-  | (.succ m) => fun a => Add.add a (nsmul m a)
+  | (.succ m) => fun a => Add.add (nsmul m a) a
 
 @[simp]
 instance addMonoid : AddMonoid (𝟙_ C ⟶ N) where
   nsmul := nsmul
-  nsmul_zero := sorry
-  nsmul_succ := sorry
+  nsmul_zero _ := rfl
+  nsmul_succ _ _ := rfl
 
 @[simp]
 instance addCommMonoid : AddCommMonoid (𝟙_ C ⟶ N) where
@@ -508,14 +600,34 @@ theorem num_succ (n : ℕ) :
 theorem num_one : num C (1 : ℕ) = one := by
   rw [num_succ, num_zero, one]
 
+/-- Adding a `succ` on the right pushes through the addition. -/
+theorem add_comp_succ (a b : 𝟙_ C ⟶ N) :
+    a + (b ≫ succ) = (a + b) ≫ succ := by
+  show (λ_ _).inv ≫ (a ⊗ₘ (b ≫ succ)) ≫ PNNO.add
+      = ((λ_ _).inv ≫ (a ⊗ₘ b) ≫ PNNO.add) ≫ succ
+  rw [show (a ⊗ₘ (b ≫ succ)) = (a ⊗ₘ b) ≫ (N ◁ succ) by
+        rw [← MonoidalCategory.id_tensorHom, MonoidalCategory.tensorHom_comp_tensorHom,
+            Category.comp_id],
+      Category.assoc, Category.assoc, Category.assoc]
+  congr 2
+  show (N ◁ succ) ≫ iter succ = iter succ ≫ succ
+  rw [iter_prc]
+  show prc succ succ = prc (𝟙 N) succ ≫ succ
+  rw [prc_postcompose (g' := succ) (d := succ) ⟨rfl⟩, Category.id_comp]
+
 @[simp]
 theorem num_add (m n : ℕ) :
     num C m + num C n = num C (m + n) := by
-  sorry
+  induction n with
+  | zero =>
+    show num C m + (0 : 𝟙_ C ⟶ N) = num C (m + 0)
+    rw [_root_.add_zero, Nat.add_zero]
+  | succ k ih =>
+    show num C m + (num C k ≫ succ) = num C (m + (k + 1))
+    rw [add_comp_succ, ih, Nat.add_succ, num_succ]
 
 theorem add_num_comm (m n : ℕ) :
-    num C m + num C m = num C n + num C m := by
-  sorry
+    num C m + num C m = num C n + num C m := by sorry
 
 end Num
 
@@ -533,9 +645,8 @@ instance ofNat {n : ℕ} : OfNat (𝟙_ C ⟶ N) n where
 #reduce (3 : 𝟙_ C ⟶ N) + (3 : 𝟙_ C ⟶ N)
 
 example : (1 : 𝟙_ C ⟶ N) + (1 : 𝟙_ C ⟶ N) = (2 : 𝟙_ C ⟶ N) := by
-  dsimp [num]
-  simp [add]
-  sorry
+  show num C 1 + num C 1 = num C 2
+  rw [num_add]
 
 end GlobalElement
 
