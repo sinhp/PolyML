@@ -1,5 +1,5 @@
 import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Data.Matrix.Defs
+import Mathlib.LinearAlgebra.Matrix.Defs
 import PolyML.Monoidal.DSL
 
 /-! # Pseudocode implementation of GNN
@@ -151,9 +151,9 @@ and then evaluates it.
 def gnnForwardPass_via_DSL {R U : Type} {k m : ℕ} [Fintype U]
  [  DecidableEq R][DecidableEq U] [Semiring R]
     (arch : GNN_Architecture R U k m) (params : GNN_Parameters R U k m)
-    (data : GraphData U R k) (listOfNodes : List U) :
+    (data : GraphData U R k) (listOfNodes : _root_.List U) :
     -- The output is a list of the new feature vectors
-    List (Fin m → R) :=
+    _root_.List (Fin m → R) :=
 
   -- Create a morphism that produces a list of all nodes.
   let all_nodes_morph : 𝟙_ C_concrete ⟶ list U :=
@@ -171,7 +171,7 @@ def gnnForwardPass_via_DSL {R U : Type} {k m : ℕ} [Fintype U]
 
 instance {n} [Repr α] : Repr (Fin n → α) where reprPrec f _ := repr (List.ofFn f)
 
-instance : Repr (List (Fin M → ℕ)) where
+instance : Repr (_root_.List (Fin M → ℕ)) where
   reprPrec l _ := repr l
 
 #eval gnnForwardPass_via_DSL myGNN_Arch myGNN_Params exampleGraphData listOfNodes

@@ -86,9 +86,11 @@ theorem uprimrecAux_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
 
 theorem uprimrecAux_fst {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     uprimrecAux init step ≫ fst N X = 𝟙 N := by
-  simp only [uprimrecAux]
-  rw [fst_eq_prc]
-  sorry
+  rw [uprimrecAux, Category.assoc,
+      prc_postcompose (g' := succ) (d := fst N X) ⟨by rw [lift_fst]⟩,
+      show ((λ_ (𝟙_ C)).inv ≫ (zero ⊗ₘ init)) ≫ fst N X = zero by
+        rw [Category.assoc, tensorHom_fst]; simp,
+      prc_zero_succ_eq_rightUnitor, Iso.inv_hom_id]
 
 def uprimrec {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) : N ⟶ X :=
   uprimrecAux init step ≫ snd N X
@@ -101,7 +103,13 @@ theorem uprimrec_zero {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
 
 theorem uprimrec_succ {X : C} (init : 𝟙_ C ⟶ X) (step : N ⊗ X ⟶ X) :
     succ ≫ uprimrec init step = δ' _ ≫ N ◁ (uprimrec init step) ≫ step := by
-  sorry
+  dsimp only [uprimrec, δ']
+  rw [← Category.assoc, uprimrecAux_succ, Category.assoc, lift_snd, ← Category.assoc,
+      lift_whiskerLeft, Category.id_comp]
+  conv_lhs =>
+    rw [show uprimrecAux init step = lift (𝟙 N) (uprimrecAux init step ≫ snd N X) by
+          conv_lhs => rw [← lift_comp_fst_snd (uprimrecAux init step)]
+          rw [uprimrecAux_fst]]
 
 /-- The helper morphism for defining primitive recursion. -/
 def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ N ⊗ P ⊗ B :=
@@ -110,7 +118,7 @@ def primrecAux {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P
 
 /-- The full primitive recursion schema. -/
 def primrec {P B : C} (init : P ⟶ B) (step : N ⊗ P ⊗ B ⟶ B) : N ⊗ P ⟶ B :=
-  sorry
+  primrecAux init step ≫ snd N (P ⊗ B) ≫ snd P B
 
 end PR
 
@@ -136,8 +144,7 @@ theorem pred_zero : zero (C:= C) ≫ pred = zero := by
 
 @[reassoc (attr := simp)]
 theorem pred_succ : succ (C:= C) ≫ pred = 𝟙 N := by
-  simp only [pred, uprimrec, uprimrecAux]
-  sorry
+  rw [pred, uprimrec_succ, whiskerLeft_fst, δ', lift_fst]
 
 def sumUpTo' : (N : C) ⟶ N := uprimrec (zero : 𝟙_ C ⟶ N) (add ≫ succ)
 
@@ -147,8 +154,8 @@ theorem sumUpTo'_zero : zero ≫ sumUpTo' (C:= C) = zero := by
 -- theorem sumUpTo_succ : succ ≫ sumUpTo (C:= C) = sumUpTo (C:= C) ≫ add := by
 --   sorry
 
-/-- The Subtraction morphism of natural numbers, truncated at `0`.-/
-def sub' : (N : C) ⊗ N ⟶ N := sorry
+/-- The truncated subtraction morphism on natural numbers: `sub' (m, n) = max(0, m - n)`. -/
+def sub' : (N : C) ⊗ N ⟶ N := (β_ N N).hom ≫ iter pred
 
 /-- The maximum morphism on natural numbers.-/
 def max' : (N : C) ⊗ N ⟶ N := (lift sub' (snd N N)) ≫ add

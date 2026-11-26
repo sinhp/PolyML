@@ -7,6 +7,7 @@ import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.Combinatorics.Digraph.Basic
 import Mathlib.CategoryTheory.Functor.Basic
 import Mathlib.CategoryTheory.Monoidal.Mon_
+import PolyML.Monoidal.Bool
 import PolyML.Monoidal.Fin
 
 noncomputable section
@@ -17,8 +18,8 @@ open Category Limits CartesianMonoidalCategory MonoidalCategory
 
 universe v u
 
-variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [NNO C] [ChosenPullbacks C]
-  [HasBinaryCoproducts C]
+variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [PNNO C] [ChosenPullbacks C]
+  [HasBinaryCoproducts C] [Bool C]
 
 class GraphObj (V : C) where
   E : C
@@ -69,7 +70,7 @@ def symmetrize {V : C} (G : GraphObj V) : GraphObj V where
     sorry
 
 /-- A vertex is isolated if there are no edges connected to it. -/
-def isIsolatedVertex {V : C} (G : GraphObj V) : V ⟶ (bool : C)  := sorry
+def isIsolatedVertex {V : C} (G : GraphObj V) : V ⟶ Bool.obj C := sorry
 
 end GraphObj
 
@@ -100,7 +101,7 @@ def source : G.edges ⟶ G.vertices := G.graphObj.source
 
 def target : G.edges ⟶ G.vertices := G.graphObj.target
 
-def adj : (vertices G) ⊗ (vertices G) ⟶ bool := sorry
+def adj : (vertices G) ⊗ (vertices G) ⟶ Bool.obj C := sorry
 
 end Graph
 

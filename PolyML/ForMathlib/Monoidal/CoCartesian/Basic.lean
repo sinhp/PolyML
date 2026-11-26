@@ -7,7 +7,7 @@ import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProduct
 -- import Mathlib.CategoryTheory.Limits.FullSubcategory
 -- import Mathlib.CategoryTheory.Limits.Preserves.Shapes.Terminal
 -- import Mathlib.CategoryTheory.Monoidal.Braided.Basic
-import PolyML.ForMathlib.Monoidal.SemiCoCartesian
+import PolyML.Attic.SemiCoCartesian
 
 /-!
 # Categories with chosen finite products

@@ -919,7 +919,7 @@ theorem append_map {A B : C} {f : A ⟶ B} :
 
 
 -- ⁠[x] ++ xs = x :: xs
-theorem singleton_append_eq_cons [BraidedCategory C] {A : C} :
+theorem singleton_append_eq_cons {A : C} :
     (η ▷ list A) ≫ list.append = list.cons := by
   dsimp [append,list.singleton]
   simp only [comp_whiskerRight, whisker_assoc, assoc, triangle_assoc_comp_right_inv_assoc]

@@ -35,9 +35,21 @@ def IsNNO.iso [MonoidalCategory C] (N N' : C) {zero : 𝟙_ C ⟶ N} {succ : N �
   hom := rc zero succ zero' succ'
   inv := rc zero' succ' zero succ
   hom_inv_id := by
-    sorry
+    have h₁ : rc zero succ zero' succ' ≫ rc zero' succ' zero succ
+        = IsNNO.rc zero succ zero succ :=
+      IsNNO.rc_uniq _
+        (by rw [← Category.assoc, IsNNO.zero_rc, IsNNO.zero_rc])
+        (by rw [← Category.assoc, IsNNO.succ_rc, Category.assoc, IsNNO.succ_rc,
+              Category.assoc])
+    rw [h₁, (IsNNO.rc_uniq (𝟙 N) (by simp) (by simp)).symm]
   inv_hom_id := by
-    sorry
+    have h₁ : rc zero' succ' zero succ ≫ rc zero succ zero' succ'
+        = IsNNO.rc zero' succ' zero' succ' :=
+      IsNNO.rc_uniq _
+        (by rw [← Category.assoc, IsNNO.zero_rc, IsNNO.zero_rc])
+        (by rw [← Category.assoc, IsNNO.succ_rc, Category.assoc, IsNNO.succ_rc,
+              Category.assoc])
+    rw [h₁, (IsNNO.rc_uniq (𝟙 N') (by simp) (by simp)).symm]
 
 variable (C)
 
@@ -325,10 +337,10 @@ noncomputable def NNOIsoOnePlus [HasBinaryCoproduct (𝟙_ C) N] :
 
 theorem NNOIsoOnePlus_inv [HasBinaryCoproduct (𝟙_ C) N] :
     (NNOIsoOnePlus).inv = coprod.desc (NNO.zero : 𝟙_ C ⟶ N) NNO.succ := by
-  --have := IsColimit.uniq _
-  --rw [coprod.desc, colimit.desc, colimit.isColimit]
-  -- rw [IsColimit.uniq]
-  sorry
+  show isNNOOnePlus.rc _ _ = _
+  rw [isNNOOnePlus_rc]
+  congr 1
+  exact (IsNNO.rc_uniq (f := NNO.zero ≫ NNO.succ) (g := NNO.succ) NNO.succ rfl rfl).symm
 
 noncomputable def pred? [HasBinaryCoproduct (𝟙_ C) N] : N ⟶ 𝟙_ C ⨿ N :=
   NNOIsoOnePlus.hom
@@ -359,12 +371,21 @@ noncomputable def colimitCocone [HasBinaryCoproduct (𝟙_ C) N] :
   ColimitCocone (pair (𝟙_ C) N) where
     cocone := binaryCofanZeroSucc
     isColimit := by
-      refine BinaryCofan.IsColimit.mk (C:= C) ?_ ?_ ?_ ?_ ?_
-      · intro S a b
-        exact NNOIsoOnePlus.hom ≫ (coprod.desc a b)
-      · sorry
-      · sorry
-      · sorry
+      refine BinaryCofan.IsColimit.mk (C := C) _ ?_ ?_ ?_ ?_
+      · intro _ a b
+        exact NNOIsoOnePlus.hom ≫ coprod.desc a b
+      · intro _ a b
+        show zero ≫ NNOIsoOnePlus.hom ≫ coprod.desc a b = a
+        rw [show NNOIsoOnePlus.hom = pred? from rfl, pred?_zero_assoc, coprod.inl_desc]
+      · intro _ a b
+        show succ ≫ NNOIsoOnePlus.hom ≫ coprod.desc a b = b
+        rw [show NNOIsoOnePlus.hom = pred? from rfl, pred?_succ_assoc, coprod.inr_desc]
+      · intro _ a b m h_left h_right
+        change zero ≫ m = a at h_left
+        change succ ≫ m = b at h_right
+        refine (Iso.inv_comp_eq NNOIsoOnePlus).mp ?_
+        rw [NNOIsoOnePlus_inv]
+        apply coprod.hom_ext <;> simp [h_left, h_right]
 
 /-- The diagram `T_C ⟶ N ⟵ N` is a colimit diagram. -/
 def BinaryCoproduct [HasBinaryCoproduct (𝟙_ C) N] :
