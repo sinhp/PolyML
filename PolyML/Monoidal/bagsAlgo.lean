@@ -27,7 +27,7 @@ noncomputable instance : ToString (bag Nat) := by
 noncomputable instance : Repr (bag Nat) := by
   refine { reprPrec := fun b prec => Std.Format.text (toString b) }
 
-def my_concrete_list : List Nat := [2, 3, 4, 5, 2, 1, 2]
+def my_concrete_list : _root_.List Nat := [2, 3, 4, 5, 2, 1, 2]
 
 def get_list_morph : (𝟙_ C_concrete) ⟶ list Nat :=
   fun _ => (my_concrete_list, PUnit.unit)
@@ -42,7 +42,8 @@ noncomputable def frequency_count_executable_morphism₁ :
     (𝟙_ C_concrete) ⟶ bag Nat :=
   frequency_count_program₁.eval
 
-#eval! frequency_count_executable_morphism₁ PUnit.unit
+-- #eval! frequency_count_executable_morphism₁ PUnit.unit
+-- (currently rejected: depends on `noncomputable` instances)
 
 end ConcreteEvalNumbers
 

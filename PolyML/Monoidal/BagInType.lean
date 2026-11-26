@@ -5,6 +5,7 @@ Authors: Sina Hazratpour
 -/
 
 import Mathlib.CategoryTheory.Monoidal.Internal.Types.Basic
+import Mathlib.Data.Finsupp.Multiset
 import Mathlib.Data.Finsupp.Weight
 import PolyML.Monoidal.FreeCommMon
 -- import PolyML.Deprecated.Cartesian.FreeCommMon
@@ -22,37 +23,6 @@ namespace CategoryTheory
 open Category CategoryTheory MonoidalCategory MonObj CommMon Monad Finsupp Multiset
 
 universe v u
-
--- #synth CartesianMonoidalCategory (Type u)
-
--- #check Multiset.toFinsupp
-
--- variable (α : Type u)
-
--- def multisetIsoAddMonoidAlgebra [DecidableEq α] : Multiset α ≃+ ℕ[α] :=
---   Multiset.toFinsupp
-
--- def iso [DecidableEq α] : Multiset α ≃ ℕ[α] := Multiset.toFinsupp.toEquiv
-
-
--- attribute [local instance] CommMonTypeEquivalenceCommMon.commMonCommMonoid
-
--- instance addMonoidOfMonClass (α : Type u) [MonObj α] : Monoid α :=
---   MonTypeEquivalenceMon.monMonoid α
-
--- instance monAddMonoid (α : Type u) [MonObj α] : AddMonoid α where
---   add x y := μ[α] (x, y)
---   zero := η[α] PUnit.unit
---   zero_add x := congr_fun (one_mul α) (PUnit.unit, x)
---   add_zero x := congr_fun (mul_one α) (x, PUnit.unit)
---   add_assoc x y z := sorry
---   nsmul := sorry
---   nsmul_zero := sorry
---   nsmul_succ x n := sorry
-
--- instance monAddCommMonoid (α : Type u) [MonObj α] [IsCommMon α] : AddCommMonoid α :=
---   { monAddMonoid α with
---     add_comm := fun x y => congr_fun (IsCommMon.mul_comm α) (y, x) }
 
 instance (β : AddCommMonCat) :  AddCommMonoid <| (forget AddCommMonCat).obj β := β.str
 
@@ -160,15 +130,79 @@ instance isCommMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : IsCommMonOb
 
 def commMonOfAddCommMonoid (α : Type u) [AddCommMonoid α] : CommMon (Type u) := ⟨α⟩
 
+private lemma weight_id_single_add {α : Type u} [AddCommMonoid α]
+    (a : α) (n : ℕ) (f : α →₀ ℕ) :
+    weight (M := α) (R := ℕ) (fun x : α => x) (single a n + f) =
+      n • a + weight (M := α) (R := ℕ) (fun x : α => x) f := by
+  rw [AddMonoidHom.map_add (weight (M := α) (R := ℕ) (fun x : α => x)), weight_single]
+
+private theorem weight_id_toMultiset {α : Type u} [AddCommMonoid α] [DecidableEq α]
+    (f : α →₀ ℕ) :
+    weight (M := α) (R := ℕ) (fun x : α => x) f = (Finsupp.toMultiset f).sum := by
+  refine f.induction ?_ ?_
+  · simp [weight_apply, toMultiset_zero, Multiset.sum_zero]
+  · intro a n f _ _ ih
+    rw [weight_id_single_add, toMultiset_add, Multiset.sum_add, toMultiset_single, ih]
+    simp [Multiset.sum_nsmul, Multiset.sum_singleton]
+
+private theorem weight_id_toFinsupp_sum {α : Type u} [AddCommMonoid α] [DecidableEq α]
+    (s : Multiset α) :
+    weight (M := α) (R := ℕ) (fun x : α => x) (Multiset.toFinsupp s) = s.sum := by
+  rw [weight_id_toMultiset, Multiset.toFinsupp_toMultiset]
+
+private lemma aggregator_map_add {α : Type u} [AddCommMonoid α] (f g : α →₀ ℕ) :
+    bag.aggregator (commMonOfAddCommMonoid α) (@Add.add (α →₀ ℕ) _ f g) =
+      @Add.add α _ (bag.aggregator (commMonOfAddCommMonoid α) f)
+        (bag.aggregator (commMonOfAddCommMonoid α) g) := by
+  have hmul := bag.aggregator_mul (M := commMonOfAddCommMonoid α)
+  have key := congrArg (fun φ => φ (f, g)) hmul
+  simp [types_comp_apply, whiskerRight_apply, whiskerLeft_apply,
+    Function.uncurry_apply_pair] at key
+  exact key
+
+private lemma aggregator_apply_single {α : Type u} [AddCommMonoid α] (a : α) :
+    bag.aggregator (commMonOfAddCommMonoid α) (single a 1) = a := by
+  have hsingle := bag.aggregator_singleton (M := commMonOfAddCommMonoid α)
+  rw [show single a 1 = bag.singleton (A := α) a from rfl]
+  simpa [types_comp_apply] using congrFun hsingle a
+
+private lemma aggregator_apply_single_nsmul {α : Type u} [AddCommMonoid α] (a : α) (n : ℕ) :
+    bag.aggregator (commMonOfAddCommMonoid α) (single a n) = n • a := by
+  induction n with
+  | zero =>
+    simp only [single_zero, zero_smul]
+    have h := bag.aggregator_one (M := commMonOfAddCommMonoid α)
+    simpa [types_comp_apply, whiskerRight_apply] using
+      show bag.aggregator (commMonOfAddCommMonoid α) (0 : α →₀ ℕ) = (0 : α) from
+        congrArg (fun f => f PUnit.unit) h
+  | succ n ih =>
+    rw [show single a (n + 1) = @Add.add (α →₀ ℕ) _ (single a n) (single a 1) from
+      single_add a n 1]
+    rw [aggregator_map_add, ih, aggregator_apply_single]
+    exact (succ_nsmul a n).symm
+
+private theorem aggregator_apply_weight {α : Type u} [AddCommMonoid α] [DecidableEq α]
+    (f : α →₀ ℕ) :
+    bag.aggregator (commMonOfAddCommMonoid α) f =
+      weight (M := α) (R := ℕ) (fun x : α => x) f := by
+  refine f.induction ?_ ?_
+  · have h := bag.aggregator_one (M := commMonOfAddCommMonoid α)
+    have h0 : bag.aggregator (commMonOfAddCommMonoid α) (0 : α →₀ ℕ) = (0 : α) :=
+      congrArg (fun f => f PUnit.unit) h
+    simp [weight_apply, h0]
+  · intro a n f _ _ ih
+    rw [show single a n + f = @Add.add (α →₀ ℕ) _ (single a n) f from rfl,
+      aggregator_map_add, ih, aggregator_apply_single_nsmul a n]
+    exact (weight_id_single_add a n f).symm
+
 theorem aggregator_sum {α : Type u} [AddCommMonoid α] :
     (equivMultiset α).invFun ≫ bag.aggregator (commMonOfAddCommMonoid α) = Multiset.sum (M:= α) := by
-  simp [bag.aggregator, bag.Algebra.ofCommMon_a]
-  ext m
-  simp only [types_comp_apply]
-  dsimp [Multiset.sum]
-  dsimp [commMonOfAddCommMonoid]
-  dsimp [equivMultiset]
-  sorry
+  classical
+  funext s
+  rw [types_comp_apply, equivMultiset, Equiv.invFun_as_coe, Equiv.symm_symm,
+    AddEquiv.toEquiv_eq_coe, aggregator_apply_weight]
+  simpa [eq_Finsupp α] using weight_id_toFinsupp_sum s
+
 
 end bagType
 
