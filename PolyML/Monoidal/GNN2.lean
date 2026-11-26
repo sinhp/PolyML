@@ -1,5 +1,5 @@
 import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Data.Matrix.Defs
+import Mathlib.LinearAlgebra.Matrix.Defs
 import PolyML.Monoidal.DSL
 
 /-! # Pseudocode implementation of GNN

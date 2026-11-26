@@ -190,42 +190,14 @@ instance distributive_of_closed [HasBinaryCoproducts C] [MonoidalClosed C] : Dis
 
 #check WalkingPair
 
-example {X Y : C} :  (∐ pairFunction X Y) = (X ⨿ Y) := by
-  rfl -- exact (Iso.refl (X ⨿ Y))
+section PairExamples
 
-example {X Y : C} : (∐ fun s ↦ (pairFunction X Y s)) ≅ (X ⨿ Y) := by
-exact  (Iso.refl (X ⨿ Y)).symm
+variable [HasBinaryCoproducts C] {X Y : C}
 
+example : (pair X Y).obj ⟨WalkingPair.left⟩ = X := rfl
+example : (pair X Y).obj ⟨WalkingPair.right⟩ = Y := rfl
 
-example {X Y : C ⥤ C} {c : C} : (pairFunction X Y WalkingPair.left).obj c =
-  X.obj c := by
-    rfl
-
-example {X Y : C ⥤ C} {c : C} :
-  (X ⨿ Y).obj c ≅ (∐ fun s ↦ ((pairFunction X Y s).obj c)) := by
-  exact sigmaObjIso (fun j ↦ WalkingPair.casesOn j X Y) c
-
-example {X Y : C ⥤ C} {c : C} : (pairFunction X Y WalkingPair.left).obj c = X.obj c := by
-  rfl
-
-example {X Y : C ⥤ C} : (pairFunction X Y WalkingPair.left).obj = X.obj := by
-  rfl
-
-example {X Y : C ⥤ C} {c : C} : (pairFunction X Y WalkingPair.right).obj c = Y.obj c := by
-  rfl
-
-example {X Y : C ⥤ C} {c : C} :
-  (∐ fun s ↦ ((pairFunction X Y s).obj c)) ≅ ((X.obj c) ⨿ (Y.obj c)) :=
-by
-  refine (HasColimit.isoOfNatIso ?_).symm
-  unfold pair pairFunction
-  apply Discrete.natIso
-  intro ⟨i⟩
-  apply eqToIso
-  simp
-  cases i
-  · simp
-  · simp
+end PairExamples
 
 
 
