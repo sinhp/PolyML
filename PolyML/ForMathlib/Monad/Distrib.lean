@@ -159,16 +159,16 @@ def fstAlg (α : (monad S T).Algebra) : S.Algebra := α.A
 def fstAlgFunctor : (monad S T).Algebra ⥤ S.Algebra where
   obj := fstAlg
   map {α β} g := {
-    f := sorry
-    h := sorry
+    f := g.f.f
+    h := g.f.h
   }
 
 @[simps]
 def sndAlg (α : (monad S T).Algebra) : T.Algebra where
   A := α.A.A
   a := α.a.f
-  unit := sorry
-  assoc := sorry
+  unit := congrArg Algebra.Hom.f α.unit
+  assoc := congrArg Algebra.Hom.f α.assoc
 
 @[reassoc (attr := simp)]
 def distrib (α : (monad S T).Algebra) :

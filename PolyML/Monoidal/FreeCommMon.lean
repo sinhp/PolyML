@@ -5,7 +5,7 @@ Authors: Sina Hazratpour
 -/
 import Mathlib.CategoryTheory.Monoidal.CommMon_
 import Mathlib.CategoryTheory.Monad.Monadicity
-import PolyML.Monoidal.ListArithmetic
+import PolyML.Monoidal.List
 import PolyML.Monoidal.FreeMon
 
 
@@ -53,7 +53,10 @@ def bagMon.lift {A : C} {M : CommMon C} (f : A ⟶ M.X) : bagMon A ⟶ M.toMon :
 
 theorem bagMon.lift_eq_counit_app {M : CommMon C} :
     (bagMon.lift (𝟙 M.X)).hom = (adj.counit.app M).hom := by
-  sorry
+  dsimp [bagMon.lift, freeCommMon.lift, Adjunction.homEquiv]
+  rw [Functor.map_id]
+  change 𝟙 _ ≫ (adj.counit.app M).hom = _
+  rw [Category.id_comp]
 
 /-- The underlying type of the free commutative monoid on `A`. -/
 abbrev bag (A : C) : C := bagMon A |>.X
@@ -116,7 +119,14 @@ theorem singleton_lift {M : CommMon C} {f : A ⟶ M.X} : singleton ≫ lift f = 
 def map {B : C} (f : A ⟶ B) : bag A ⟶ bag B := bag.endofunctor.map f
 
 theorem map_eq_lift {B : C} (f : A ⟶ B) : map f = lift (f ≫ singleton) := by
-  sorry
+  show (functor.map f).hom = (freeCommMon.lift (f ≫ singleton)).hom
+  congr 1
+  show functor.map f = freeCommMon.lift (f ≫ singleton)
+  show functor.map f = (adj.homEquiv A (freeCommMon B)).invFun (f ≫ singleton)
+  rw [show (adj.homEquiv A (freeCommMon B)).invFun = (adj.homEquiv A (freeCommMon B)).symm from rfl]
+  apply (adj.homEquiv A (freeCommMon B)).eq_symm_apply.mpr
+  show adj.unit.app A ≫ (CommMon.forget C).map (functor.map f) = f ≫ adj.unit.app B
+  exact (adj.unit.naturality f).symm
 
 theorem map_lift_eq_lift_comp {M : CommMon C} {B : C} (f : A ⟶ B) (g : B ⟶ M.X) :
     map f ≫ lift g = lift (f ≫ g) := by
@@ -142,12 +152,12 @@ theorem append_map {B : C} {f : A ⟶ B} : (map f ⊗ₘ map f) ≫ μ = μ ≫ 
 
 theorem self_tensor_map_self_cons {B : C} {f : A ⟶ B} :
     (f ⊗ₘ map f) ≫ cons = cons ≫ map f := by
-  dsimp [cons, append, bag]
-  rw [Category.assoc, ← append_map]
-  have := singleton_naturality (C:=C) (f:= (map f ⊗ₘ map f))
-  rw [← Category.assoc, ← Category.assoc]
-  refine ?_ =≫ μ
-  sorry
+  dsimp [cons, append]
+  rw [Category.assoc, ← append_map, ← Category.assoc, ← Category.assoc]
+  congr 1
+  rw [tensorHom_def, Category.assoc, whisker_exchange, ← Category.assoc,
+    ← comp_whiskerRight, ← singleton_naturality, comp_whiskerRight, Category.assoc,
+    ← tensorHom_def]
 
 def ofList [ListArithmetic C] : list A ⟶ bag A := list.lift (bag.singleton)
 
@@ -160,8 +170,7 @@ theorem ofList_cons [ListArithmetic C] :
     list.cons ≫ ofList = A ◁ ofList ≫ bag.cons := by
   dsimp [ofList, list.lift, list.foldr, list.cons]
   rw [plist.cons_rc]
-  refine _ ≫= ?_
-  dsimp [cons, bag.append, bag]
+  rfl
 
 /-
 TODO: show that `ofList` is a quotient morphism. The relation should be thought of as
@@ -248,17 +257,18 @@ instance isCommMonObj {α : Algebra (monad C)} : IsCommMonObj (α.A) where
 def commMon (α : (monad C).Algebra) : CommMon C where
   X := α.A
 
-noncomputable def commMonToBagAlgebraFunctorIsEquivalence' : (monad C).Algebra ≌ CommMon C :=
-  (commMonToBagAlgebraFunctor C).asEquivalence.symm
+/-- The functor from algebras for the `bag` monad to commutative monoid objects. -/
+def algebraToCommMon : (monad C).Algebra ⥤ CommMon C where
+  obj α := commMon α
+  map {α α'} f := Mon.Hom.mk' f.1 (by sorry) (by sorry)
+  map_id _ := rfl
+  map_comp {α α' α''} f g := by
+    ext
+    rfl
 
--- SH: an explicit and constructive/computable construction of the equivalence without recourse to the monadicity theorem
+/-- Explicit, constructive equivalence between `bag`-monad algebras and commutative monoids in `C`. -/
 def equivalenceMon : (monad C).Algebra ≌ CommMon C where
-  functor := {
-    obj := commMon
-    map {α α'} f := Mon.Hom.mk' f.1 (by sorry) (by sorry)
-    map_id := sorry
-    map_comp := sorry
-  }
+  functor := algebraToCommMon
   inverse := commMonToBagAlgebraFunctor C
   unitIso := sorry
   counitIso := sorry
@@ -298,13 +308,37 @@ theorem aggregator_join : join ≫ aggregator M = (map <| aggregator M) ≫ aggr
   simp [commMonToBagAlgebraFunctor, comparison]
   simpa using (ofCommMon M).assoc
 
-theorem aggregator_map {M' : CommMon C} {f : M.X ⟶ M'.X} :
-    map f ≫ aggregator M' = aggregator M ≫ f := by
-  sorry
+/-- Aggregator is natural with respect to commutative monoid homomorphisms. -/
+theorem aggregator_map' {M' : CommMon C} {f : M ⟶ M'} :
+    map f.hom ≫ aggregator M' = aggregator M ≫ f.hom := by
+  have := (WithBags.adj.counit.naturality (X := M) (Y := M') f)
+  have h_nat_hom := congr_arg (fun g => g.hom) this
+  simp only [Functor.comp_map, Functor.id_map] at h_nat_hom
+  show map f.hom ≫ (WithBags.adj.counit.app M').hom =
+    (WithBags.adj.counit.app M).hom ≫ f.hom
+  exact h_nat_hom
 
-theorem aggregator_ofList [ListArithmetic C] {M' : CommMon C} :
+theorem aggregator_map {M' : CommMon C} {f : M.X ⟶ M'.X} [IsMonHom f] :
+    map f ≫ aggregator M' = aggregator M ≫ f :=
+  aggregator_map' (M := M) (M' := M') (f := ⟨f⟩)
+
+theorem aggregator_ofList [ListArithmetic C] :
     ofList ≫ bag.aggregator M = M.toMon.aggregator := by
-  sorry
+  have hMon : IsMonHom (bag.aggregator M) :=
+    ⟨bag.aggregator_one, bag.aggregator_mul⟩
+  let g : bagMon M.X ⟶ M.toMon := Mon.Hom.mk' (bag.aggregator M)
+  have hcomp : list.lift (bag.singleton (A := M.X)) ≫ bag.aggregator M =
+      list.lift (M := M.toMon) (bag.singleton (A := M.X) ≫ bag.aggregator M) := by
+    have hnat := ((list.freeMonForgetAdjunction C).homEquiv_naturality_right_symm
+      (X := M.X) (Y := bagMon M.X) (Y' := M.toMon) bag.singleton g)
+    have h_hom := congr_arg Mon.Hom.hom hnat
+    simp only [Mon.comp_hom', list.freeMonForgetAdjunction, Adjunction.mkOfHomEquiv_homEquiv,
+      list.homEquiv, Equiv.coe_fn_symm_mk, Mon.Hom.mk'] at h_hom
+    exact h_hom.symm
+  show list.lift bag.singleton ≫ bag.aggregator M = M.toMon.aggregator
+  rw [hcomp, bag.aggregator_singleton]
+  show list.lift (𝟙 M.X) = M.toMon.aggregator
+  exact (list.Algebra.ofMon_a_eq (C := C) (M := M.toMon)).symm
 
 end aggregator
 

@@ -57,8 +57,16 @@ namespace DistribObj
 attribute [local instance] instTensorUnit
 
 instance : DistribObj (𝟙_ C) where
-  left_distrib := sorry
-  right_distrib := sorry
+  left_distrib := by
+    show (λ_ _).inv ▷ ((𝟙_ C) ⊗ (𝟙_ C)) ≫ tensorμ ..
+        ≫ ((λ_ _).hom ⊗ₘ (λ_ _).hom) ≫ (λ_ _).hom = (𝟙_ C) ◁ (λ_ _).hom ≫ (λ_ _).hom
+    rw [tensorμ, braiding_tensorUnit_left]
+    monoidal
+  right_distrib := by
+    show ((𝟙_ C) ⊗ (𝟙_ C)) ◁ (λ_ _).inv ≫ tensorμ ..
+        ≫ ((λ_ _).hom ⊗ₘ (λ_ _).hom) ≫ (λ_ _).hom = (λ_ _).hom ▷ (𝟙_ C) ≫ (λ_ _).hom
+    rw [tensorμ, braiding_tensorUnit_left]
+    monoidal
 
 end DistribObj
 
@@ -94,7 +102,14 @@ instance (f : M ≅ N) [IsSemiring_Hom f.hom] : IsSemiring_Hom f.inv where
 end IsSemiring_Hom
 
 
-instance : SemiringObj (𝟙_ C) := sorry
+attribute [local instance] ComonObj.instTensorUnit in
+instance : SemiringObj (𝟙_ C) where
+  zero_mul := by
+    show (𝟙 (𝟙_ C)) ▷ (𝟙_ C) ≫ (λ_ _).hom = (𝟙_ C) ◁ (𝟙 (𝟙_ C)) ≫ (λ_ _).hom ≫ (𝟙 (𝟙_ C))
+    monoidal
+  mul_zero := by
+    show (𝟙_ C) ◁ (𝟙 (𝟙_ C)) ≫ (λ_ _).hom = (𝟙 (𝟙_ C)) ▷ (𝟙_ C) ≫ (ρ_ _).hom ≫ (𝟙 (𝟙_ C))
+    monoidal
 
 variable (C) in
 /-- A semiring object internal to a monoidal category.
