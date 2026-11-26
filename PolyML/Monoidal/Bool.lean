@@ -10,6 +10,8 @@ import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import PolyML.ForMathlib.ConstantMorphism
 import Mathlib.CategoryTheory.Distributive.Monoidal
 
+set_option linter.unusedSectionVars false
+
 universe u v
 
 noncomputable section
